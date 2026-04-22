@@ -159,11 +159,21 @@ class _loginPageState extends State<loginPage> {
                 SizedBox(height: displayHeight(context) * 0.02),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: Text(
-                    "Lupa password?",
-                    style: TextStyle(
-                      fontSize: displayWidth(context) * 0.035,
-                      color: Colors.black87,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LupaPasswordPage(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      "Lupa password?",
+                      style: TextStyle(
+                        fontSize: displayWidth(context) * 0.035,
+                        color: Colors.black87,
+                      ),
                     ),
                   ),
                 ),
@@ -207,7 +217,9 @@ class _loginPageState extends State<loginPage> {
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const registerPage()),
+                          MaterialPageRoute(
+                            builder: (context) => const registerPage(),
+                          ),
                         );
                       },
                       child: Text(

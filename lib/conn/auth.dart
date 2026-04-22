@@ -8,3 +8,4 @@ part '../main.dart';
 part '../splashscreen.dart';
 part '../page/loginPage.dart';
 part '../page/registerPage.dart';
+part '../page/lupaPasswordPage.dart';
