@@ -7,3 +7,4 @@ import '../size_helper.dart';
 part '../main.dart';
 part '../splashscreen.dart';
 part '../page/loginPage.dart';
+part '../page/registerPage.dart';
