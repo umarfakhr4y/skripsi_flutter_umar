@@ -311,7 +311,14 @@ class _MentorHomeState extends State<MentorHome> {
                     _buildQuickAccessCard(
                       Icons.access_time,
                       "Lihat Absensi\nPeserta Magang",
-                      () {},
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AbsensiPesertaMentor(),
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(width: displayWidth(context) * 0.04),
                     _buildQuickAccessCard(
