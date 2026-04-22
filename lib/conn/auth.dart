@@ -17,3 +17,4 @@ part '../page/mentorpage/mentorMain.dart';
 part '../page/mentorpage/mentorHome.dart';
 part '../page/mentorpage/mentorProfile.dart';
 part '../page/mentorpage/mentorNotif.dart';
+part '../page/mentorpage/fitur/liatpesertamagangMentor.dart';

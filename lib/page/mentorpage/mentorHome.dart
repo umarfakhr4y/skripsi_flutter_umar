@@ -8,53 +8,61 @@ class MentorHome extends StatefulWidget {
 
 class _MentorHomeState extends State<MentorHome> {
   final iconList = <IconData>[Icons.brightness_5, Icons.brightness_4];
-  var _bottomNavIndex = 0;
-  Widget _buildQuickAccessCard(IconData icon, String title) {
+  Widget _buildQuickAccessCard(
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
     return Expanded(
-      child: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          Container(
-            margin: EdgeInsets.only(top: displayWidth(context) * 0.07),
-            padding: EdgeInsets.only(
-              top: displayWidth(context) * 0.09,
-              bottom: displayWidth(context) * 0.05,
-              left: displayWidth(context) * 0.02,
-              right: displayWidth(context) * 0.02,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
-            ),
-            width: double.infinity,
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: displayWidth(context) * 0.03,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Container(
+              margin: EdgeInsets.only(top: displayWidth(context) * 0.07),
+              padding: EdgeInsets.only(
+                top: displayWidth(context) * 0.09,
+                bottom: displayWidth(context) * 0.05,
+                left: displayWidth(context) * 0.02,
+                right: displayWidth(context) * 0.02,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.04,
+                ),
+              ),
+              width: double.infinity,
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: displayWidth(context) * 0.03,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
             ),
-          ),
-          Container(
-            width: displayWidth(context) * 0.14,
-            height: displayWidth(context) * 0.14,
-            decoration: BoxDecoration(
-              color: const Color(0xFF9E9E9E), // Grey background for icon
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: const Color(0xFFEEEEEE),
-                width: 3,
-              ), // Match background to look like a cutout if needed, but in image it's just a solid circle
+            Container(
+              width: displayWidth(context) * 0.14,
+              height: displayWidth(context) * 0.14,
+              decoration: BoxDecoration(
+                color: const Color(0xFF9E9E9E), // Grey background for icon
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFEEEEEE),
+                  width: 3,
+                ), // Match background to look like a cutout if needed, but in image it's just a solid circle
+              ),
+              child: Icon(
+                icon,
+                color: Colors.white,
+                size: displayWidth(context) * 0.07,
+              ),
             ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: displayWidth(context) * 0.07,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -283,9 +291,18 @@ class _MentorHomeState extends State<MentorHome> {
                     _buildQuickAccessCard(
                       Icons.people,
                       "Lihat\nPeserta Magang",
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const LiatPesertaMagangMentor(),
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(width: displayWidth(context) * 0.04),
-                    _buildQuickAccessCard(Icons.add, "Tambahkan\nTugas"),
+                    _buildQuickAccessCard(Icons.add, "Tambahkan\nTugas", () {}),
                   ],
                 ),
                 SizedBox(height: displayHeight(context) * 0.01),
@@ -294,11 +311,13 @@ class _MentorHomeState extends State<MentorHome> {
                     _buildQuickAccessCard(
                       Icons.access_time,
                       "Lihat Absensi\nPeserta Magang",
+                      () {},
                     ),
                     SizedBox(width: displayWidth(context) * 0.04),
                     _buildQuickAccessCard(
                       Icons.assignment_turned_in,
                       "Lihat\nPenugasan Peserta",
+                      () {},
                     ),
                   ],
                 ),
