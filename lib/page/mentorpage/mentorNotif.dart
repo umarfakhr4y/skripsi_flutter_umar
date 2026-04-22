@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import '../../size_helper.dart';
+part of '../../conn/auth.dart';
 
 class MentorNotif extends StatefulWidget {
   const MentorNotif({super.key});

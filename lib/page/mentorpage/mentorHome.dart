@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:vocasia_skripsi_app_umarfakhriy/page/mentorpage/mentorNotif.dart';
-import '../../size_helper.dart';
+part of '../../conn/auth.dart';
 
 class MentorHome extends StatefulWidget {
   const MentorHome({super.key});
@@ -9,6 +7,8 @@ class MentorHome extends StatefulWidget {
 }
 
 class _MentorHomeState extends State<MentorHome> {
+  final iconList = <IconData>[Icons.brightness_5, Icons.brightness_4];
+  var _bottomNavIndex = 0;
   Widget _buildQuickAccessCard(IconData icon, String title) {
     return Expanded(
       child: Stack(
