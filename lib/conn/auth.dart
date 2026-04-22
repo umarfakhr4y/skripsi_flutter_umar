@@ -19,3 +19,4 @@ part '../page/mentorpage/mentorProfile.dart';
 part '../page/mentorpage/mentorNotif.dart';
 part '../page/mentorpage/fitur/liatpesertamagangMentor.dart';
 part '../page/mentorpage/fitur/absensipesertaMentor.dart';
+part '../page/mentorpage/mentorTools.dart';

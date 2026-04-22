@@ -275,11 +275,21 @@ class _MentorHomeState extends State<MentorHome> {
                         color: Colors.black87,
                       ),
                     ),
-                    Text(
-                      "Lihat Semua",
-                      style: TextStyle(
-                        fontSize: displayWidth(context) * 0.03,
-                        color: Colors.grey[600],
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MentorTools(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "Lihat Semua",
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.03,
+                          color: Colors.grey[600],
+                        ),
                       ),
                     ),
                   ],
