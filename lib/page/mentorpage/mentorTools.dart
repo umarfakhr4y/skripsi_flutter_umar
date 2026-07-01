@@ -113,31 +113,66 @@ class _MentorToolsState extends State<MentorTools> {
                   icon: Icons.people,
                   title: "Peserta Magang",
                   subtitle: "Lihat Peserta Magang",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LiatPesertaMagangMentor(),
+                      ),
+                    );
+                  },
                 ),
                 _buildToolCard(
                   icon: Icons.people,
                   title: "Persuratan",
                   subtitle: "Lihat Pengajuan Persuratan",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PersuratanPesertaMentor(),
+                      ),
+                    );
+                  },
                 ),
                 _buildToolCard(
                   icon: Icons.assignment,
                   title: "Manajemen Tugas",
                   subtitle: "Lihat Manajemen Tugas",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManajemenTugasMentor(),
+                      ),
+                    );
+                  },
                 ),
                 _buildToolCard(
                   icon: Icons.assignment,
                   title: "Bimbingan",
                   subtitle: "Lihat Bimbingan",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BimbinganPesertaMentor(),
+                      ),
+                    );
+                  },
                 ),
                 _buildToolCard(
                   icon: Icons.calendar_today,
                   title: "Laporan Harian",
                   subtitle: "Lihat Laporan Harian",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LaporanPesertaMentor(),
+                      ),
+                    );
+                  },
                 ),
 
                 SizedBox(height: displayHeight(context) * 0.05),
