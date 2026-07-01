@@ -341,7 +341,14 @@ class _MentorHomeState extends State<MentorHome> {
                     _buildQuickAccessCard(
                       Icons.assignment_turned_in,
                       "Lihat\nPenugasan Peserta",
-                      () {},
+                      () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ManajemenTugasMentor(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
