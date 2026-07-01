@@ -312,7 +312,14 @@ class _MentorHomeState extends State<MentorHome> {
                       },
                     ),
                     SizedBox(width: displayWidth(context) * 0.04),
-                    _buildQuickAccessCard(Icons.add, "Tambahkan\nTugas", () {}),
+                    _buildQuickAccessCard(Icons.add, "Tambahkan\nTugas", () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const TambahTugasMentor(),
+                        ),
+                      );
+                    }),
                   ],
                 ),
                 SizedBox(height: displayHeight(context) * 0.01),
