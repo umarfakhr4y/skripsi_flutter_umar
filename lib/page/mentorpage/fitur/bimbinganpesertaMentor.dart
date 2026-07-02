@@ -94,7 +94,7 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? const Color(0xFFE57373) : Colors.transparent,
+              color: isSelected ? const Color(0xFFE84C63) : Colors.transparent,
               width: 2,
             ),
           ),
@@ -134,7 +134,7 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
               vertical: displayHeight(context) * 0.005,
             ),
             leading: CircleAvatar(
-              backgroundColor: const Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE84C63),
               radius: displayWidth(context) * 0.055,
               child: Icon(
                 Icons.person,
@@ -186,7 +186,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(top: displayHeight(context) * 0.005),
+                        padding: EdgeInsets.only(
+                          top: displayHeight(context) * 0.005,
+                        ),
                         child: Text(
                           bimbingan['materi'],
                           style: TextStyle(
@@ -200,10 +202,12 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE57373),
+                    color: const Color(0xFFE84C63),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(displayWidth(context) * 0.04),
-                      bottomRight: Radius.circular(displayWidth(context) * 0.04),
+                      bottomRight: Radius.circular(
+                        displayWidth(context) * 0.04,
+                      ),
                     ),
                   ),
                   child: Row(
@@ -212,7 +216,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                         child: InkWell(
                           onTap: () {},
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: displayHeight(context) * 0.015),
+                            padding: EdgeInsets.symmetric(
+                              vertical: displayHeight(context) * 0.015,
+                            ),
                             child: Column(
                               children: [
                                 Icon(
@@ -220,7 +226,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                                   color: Colors.white,
                                   size: displayWidth(context) * 0.06,
                                 ),
-                                SizedBox(height: displayHeight(context) * 0.005),
+                                SizedBox(
+                                  height: displayHeight(context) * 0.005,
+                                ),
                                 Text(
                                   'Setujui',
                                   style: TextStyle(
@@ -238,7 +246,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                         child: InkWell(
                           onTap: () {},
                           child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: displayHeight(context) * 0.015),
+                            padding: EdgeInsets.symmetric(
+                              vertical: displayHeight(context) * 0.015,
+                            ),
                             child: Column(
                               children: [
                                 Icon(
@@ -246,7 +256,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                                   color: Colors.white,
                                   size: displayWidth(context) * 0.05,
                                 ),
-                                SizedBox(height: displayHeight(context) * 0.005),
+                                SizedBox(
+                                  height: displayHeight(context) * 0.005,
+                                ),
                                 Text(
                                   'Tolak',
                                   style: TextStyle(
