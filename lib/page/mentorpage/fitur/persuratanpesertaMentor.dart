@@ -68,7 +68,7 @@ class _PersuratanPesertaMentorState extends State<PersuratanPesertaMentor> {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE57373),
+                  color: const Color(0xFFE84C63),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Column(
@@ -101,7 +101,7 @@ class _PersuratanPesertaMentorState extends State<PersuratanPesertaMentor> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE57373),
+                        color: const Color(0xFFE84C63),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Column(
@@ -132,7 +132,7 @@ class _PersuratanPesertaMentorState extends State<PersuratanPesertaMentor> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE57373),
+                        color: const Color(0xFFE84C63),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Column(
@@ -202,7 +202,7 @@ class _PersuratanPesertaMentorState extends State<PersuratanPesertaMentor> {
                                         ? Icons.error
                                         : Icons.check_circle,
                                     size: 16,
-                                    color: const Color(0xFFE57373),
+                                    color: const Color(0xFFE84C63),
                                   ),
                                   const SizedBox(width: 6),
                                   Text(

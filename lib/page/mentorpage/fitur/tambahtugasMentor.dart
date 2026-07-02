@@ -76,7 +76,7 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                     height: displayWidth(context) * 0.06,
                     child: Checkbox(
                       value: isTugasIndividu,
-                      activeColor: const Color(0xFFE57373),
+                      activeColor: const Color(0xFFE84C63),
                       onChanged: (bool? value) {
                         setState(() {
                           isTugasIndividu = value ?? false;
@@ -140,7 +140,7 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                 child: ElevatedButton(
                   onPressed: _submitData,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE57373),
+                    backgroundColor: const Color(0xFFE84C63),
                     padding: EdgeInsets.symmetric(
                       vertical: displayHeight(context) * 0.018,
                     ),
@@ -212,7 +212,7 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: const Color(0xFFE57373),
+                        backgroundColor: const Color(0xFFE84C63),
                         radius: displayWidth(context) * 0.045,
                         child: Icon(
                           Icons.person,
@@ -343,7 +343,7 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                 width: displayWidth(context) * 0.22,
                 height: displayWidth(context) * 0.2,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE57373),
+                  color: const Color(0xFFE84C63),
                   borderRadius: BorderRadius.circular(
                     displayWidth(context) * 0.04,
                   ),

@@ -4,7 +4,8 @@ class DetailPesertaMagangMentor extends StatefulWidget {
   const DetailPesertaMagangMentor({super.key});
 
   @override
-  State<DetailPesertaMagangMentor> createState() => _DetailPesertaMagangMentorState();
+  State<DetailPesertaMagangMentor> createState() =>
+      _DetailPesertaMagangMentorState();
 }
 
 class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
@@ -47,8 +48,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        vertical: displayHeight(context) * 0.03, 
-        horizontal: displayWidth(context) * 0.04
+        vertical: displayHeight(context) * 0.03,
+        horizontal: displayWidth(context) * 0.04,
       ),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -59,7 +60,9 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           CircleAvatar(
             radius: displayWidth(context) * 0.1,
             backgroundColor: Colors.grey[300],
-            backgroundImage: const NetworkImage('https://i.pravatar.cc/150?img=11'), // Dummy image
+            backgroundImage: const NetworkImage(
+              'https://i.pravatar.cc/150?img=11',
+            ), // Dummy image
           ),
           SizedBox(height: displayHeight(context) * 0.02),
           Text(
@@ -82,8 +85,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           SizedBox(height: displayHeight(context) * 0.015),
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: displayWidth(context) * 0.04, 
-              vertical: displayHeight(context) * 0.005
+              horizontal: displayWidth(context) * 0.04,
+              vertical: displayHeight(context) * 0.005,
             ),
             decoration: BoxDecoration(
               color: Colors.green.withOpacity(0.1),
@@ -117,7 +120,11 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
         children: [
           Row(
             children: [
-              Icon(Icons.person_outline, color: const Color(0xFFE57373), size: displayWidth(context) * 0.05),
+              Icon(
+                Icons.person_outline,
+                color: const Color(0xFFE57373),
+                size: displayWidth(context) * 0.05,
+              ),
               SizedBox(width: displayWidth(context) * 0.02),
               Text(
                 'Data Diri',
@@ -180,10 +187,14 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
             children: [
               Row(
                 children: [
-                  Icon(Icons.assignment_outlined, color: const Color(0xFFE57373), size: displayWidth(context) * 0.05),
+                  Icon(
+                    Icons.assignment_outlined,
+                    color: const Color(0xFFE57373),
+                    size: displayWidth(context) * 0.05,
+                  ),
                   SizedBox(width: displayWidth(context) * 0.02),
                   Text(
-                    'Tugas Terbaru',
+                    'Tugas Terkini',
                     style: TextStyle(
                       fontSize: displayWidth(context) * 0.04,
                       fontWeight: FontWeight.bold,
@@ -192,52 +203,39 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
                   ),
                 ],
               ),
-              GestureDetector(
-                onTap: () {
-                  // Aksi Lihat Semua
-                },
-                child: Text(
-                  'Lihat Semua',
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.03,
-                    color: const Color(0xFFE57373),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
             ],
           ),
           SizedBox(height: displayHeight(context) * 0.02),
           _buildTugasCard(
             icon: Icons.code,
             iconBgColor: const Color(0xFFE8EAF6), // Light Indigo
-            iconColor: const Color(0xFF3F51B5),   // Indigo
+            iconColor: const Color(0xFF3F51B5), // Indigo
             title: 'Implementasi API Login',
             subtitle: 'Deadline: 15 Mei 2024',
             badgeText: 'PROSES',
-            badgeColor: const Color(0xFFF57C00),  // Orange
+            badgeColor: const Color(0xFFF57C00), // Orange
             badgeBgColor: const Color(0xFFFFF3E0), // Light Orange
           ),
           SizedBox(height: displayHeight(context) * 0.015),
           _buildTugasCard(
             icon: Icons.check_circle_outline,
             iconBgColor: const Color(0xFFE8F5E9), // Light Green
-            iconColor: const Color(0xFF4CAF50),   // Green
+            iconColor: const Color(0xFF4CAF50), // Green
             title: 'Desain UI Dashboard',
             subtitle: 'Diselesaikan: 10 Mei 2024',
             badgeText: 'SELESAI',
-            badgeColor: const Color(0xFF4CAF50),  // Green
+            badgeColor: const Color(0xFF4CAF50), // Green
             badgeBgColor: const Color(0xFFE8F5E9), // Light Green
           ),
           SizedBox(height: displayHeight(context) * 0.015),
           _buildTugasCard(
             icon: Icons.design_services_outlined,
             iconBgColor: const Color(0xFFFFF3E0), // Light Orange
-            iconColor: const Color(0xFFFF9800),   // Orange
+            iconColor: const Color(0xFFFF9800), // Orange
             title: 'Riset User Persona',
             subtitle: 'Menunggu Review Mentor',
             badgeText: 'REVIEW',
-            badgeColor: const Color(0xFF2196F3),  // Blue
+            badgeColor: const Color(0xFF2196F3), // Blue
             badgeBgColor: const Color(0xFFE3F2FD), // Light Blue
           ),
         ],
@@ -258,7 +256,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
     return Container(
       padding: EdgeInsets.all(displayWidth(context) * 0.03),
       decoration: BoxDecoration(
-        color: Colors.white, 
+        color: Colors.white,
         borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -271,10 +269,14 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
               color: iconBgColor,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: displayWidth(context) * 0.05),
+            child: Icon(
+              icon,
+              color: iconColor,
+              size: displayWidth(context) * 0.05,
+            ),
           ),
           SizedBox(width: displayWidth(context) * 0.03),
-          
+
           // Texts
           Expanded(
             child: Column(
@@ -304,16 +306,18 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
             ),
           ),
           SizedBox(width: displayWidth(context) * 0.02),
-          
+
           // Status Badge
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: displayWidth(context) * 0.025, 
-              vertical: displayHeight(context) * 0.005
+              horizontal: displayWidth(context) * 0.025,
+              vertical: displayHeight(context) * 0.005,
             ),
             decoration: BoxDecoration(
               color: badgeBgColor,
-              borderRadius: BorderRadius.circular(displayWidth(context) * 0.015),
+              borderRadius: BorderRadius.circular(
+                displayWidth(context) * 0.015,
+              ),
             ),
             child: Text(
               badgeText,

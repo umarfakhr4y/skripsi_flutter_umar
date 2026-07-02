@@ -294,7 +294,14 @@ class _ManajemenTugasMentorState extends State<ManajemenTugasMentor> {
                     children: [
                       Expanded(
                         child: InkWell(
-                          onTap: () {},
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DetailTugasMentor(),
+                              ),
+                            );
+                          },
                           child: Padding(
                             padding: EdgeInsets.symmetric(
                               vertical: displayHeight(context) * 0.015,
