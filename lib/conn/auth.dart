@@ -26,3 +26,5 @@ part '../page/mentorpage/fitur/bimbinganpesertaMentor.dart';
 part '../page/mentorpage/fitur/tambahtugasMentor.dart';
 part '../page/mentorpage/fitur/laporanpesertaMentor.dart';
 part '../page/mentorpage/fitur/detailpesertamagangMentor.dart';
+part '../page/mentorpage/fitur/detailtugasMentor.dart';
+part '../page/mentorpage/fitur/lampiraninstruksiMentor.dart';
