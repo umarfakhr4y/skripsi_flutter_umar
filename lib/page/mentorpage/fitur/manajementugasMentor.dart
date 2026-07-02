@@ -140,7 +140,7 @@ class _ManajemenTugasMentorState extends State<ManajemenTugasMentor> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: displayHeight(context) * 0.02),
       decoration: BoxDecoration(
-        color: const Color(0xFFE57373),
+        color: const Color(0xFFE84C63),
         borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
       ),
       child: Column(
@@ -191,7 +191,7 @@ class _ManajemenTugasMentorState extends State<ManajemenTugasMentor> {
               vertical: displayHeight(context) * 0.005,
             ),
             leading: CircleAvatar(
-              backgroundColor: const Color(0xFFE57373),
+              backgroundColor: const Color(0xFFE84C63),
               radius: displayWidth(context) * 0.055,
               child: Icon(
                 Icons.person,
@@ -282,7 +282,7 @@ class _ManajemenTugasMentorState extends State<ManajemenTugasMentor> {
                 ),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE57373),
+                    color: const Color(0xFFE84C63),
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(displayWidth(context) * 0.04),
                       bottomRight: Radius.circular(
