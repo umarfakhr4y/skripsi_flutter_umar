@@ -28,3 +28,8 @@ part '../page/mentorpage/fitur/laporanpesertaMentor.dart';
 part '../page/mentorpage/fitur/detailpesertamagangMentor.dart';
 part '../page/mentorpage/fitur/detailtugasMentor.dart';
 part '../page/mentorpage/fitur/lampiraninstruksiMentor.dart';
+
+part '../page/pesertapage/pesertaMain.dart';
+part '../page/pesertapage/pesertaHome.dart';
+part '../page/pesertapage/pesertaProfile.dart';
+part '../page/pesertapage/pesertaMenu.dart';
