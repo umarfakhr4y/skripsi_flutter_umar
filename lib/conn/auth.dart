@@ -8,12 +8,15 @@ import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.da
 
 import '../size_helper.dart';
 
+import 'package:webview_flutter/webview_flutter.dart';
+
 part '../main.dart';
 part '../splashscreen.dart';
 part '../page/loginPage.dart';
 part '../page/registerPage.dart';
 part '../page/profilePage/profilePage.dart';
 part '../page/profilePage/editProfile.dart';
+part '../page/profilePage/pengaturanNotifikasiPage.dart';
 part '../page/profilePage/aboutPage.dart';
 part '../page/lupaPasswordPage.dart';
 part '../page/mentorpage/mentorMain.dart';
