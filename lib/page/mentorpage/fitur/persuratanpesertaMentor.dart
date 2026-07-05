@@ -226,11 +226,37 @@ class _PersuratanPesertaMentorState extends State<PersuratanPesertaMentor> {
                             ],
                           ),
                         ),
-                        const Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                          color: Colors.black,
-                        ),
+                        if (isPending)
+                          PopupMenuButton<String>(
+                            icon: const Icon(
+                              Icons.more_vert,
+                              size: 24,
+                              color: Colors.black,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            onSelected: (String value) {
+                              if (value == 'setuju') {
+                                // Aksi jika setuju
+                                print('Surat Disetujui');
+                              } else if (value == 'tidak_setuju') {
+                                // Aksi jika tidak setuju
+                                print('Surat Tidak Disetujui');
+                              }
+                            },
+                            itemBuilder: (BuildContext context) =>
+                                <PopupMenuEntry<String>>[
+                                  const PopupMenuItem<String>(
+                                    value: 'setuju',
+                                    child: Text('Setuju'),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'tidak_setuju',
+                                    child: Text('Tidak Setuju'),
+                                  ),
+                                ],
+                          ),
                       ],
                     ),
                   );
