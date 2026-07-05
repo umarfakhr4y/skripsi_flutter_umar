@@ -1,13 +1,13 @@
-part of '../../conn/auth.dart';
+part of '../conn/auth.dart';
 
-class PesertaProfile extends StatefulWidget {
-  const PesertaProfile({super.key});
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
 
   @override
-  State<PesertaProfile> createState() => PesertaProfileState();
+  State<ProfilePage> createState() => ProfilePageState();
 }
 
-class PesertaProfileState extends State<PesertaProfile> {
+class ProfilePageState extends State<ProfilePage> {
   Widget _buildMenuOption(
     BuildContext context, {
     required IconData icon,

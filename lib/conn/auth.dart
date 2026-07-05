@@ -12,10 +12,10 @@ part '../main.dart';
 part '../splashscreen.dart';
 part '../page/loginPage.dart';
 part '../page/registerPage.dart';
+part '../page/profilePage.dart';
 part '../page/lupaPasswordPage.dart';
 part '../page/mentorpage/mentorMain.dart';
 part '../page/mentorpage/mentorHome.dart';
-part '../page/mentorpage/mentorProfile.dart';
 part '../page/mentorpage/mentorNotif.dart';
 part '../page/mentorpage/fitur/liatpesertamagangMentor.dart';
 part '../page/mentorpage/fitur/absensipesertaMentor.dart';
@@ -31,5 +31,4 @@ part '../page/mentorpage/fitur/lampiraninstruksiMentor.dart';
 
 part '../page/pesertapage/pesertaMain.dart';
 part '../page/pesertapage/pesertaHome.dart';
-part '../page/pesertapage/pesertaProfile.dart';
 part '../page/pesertapage/pesertaMenu.dart';

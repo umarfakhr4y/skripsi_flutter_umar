@@ -118,6 +118,6 @@ class PesertaPage3 extends StatelessWidget {
   const PesertaPage3({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return PesertaProfile();
+    return ProfilePage();
   }
 }

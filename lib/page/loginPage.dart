@@ -202,6 +202,68 @@ class _loginPageState extends State<loginPage> {
                     ),
                   ),
                 ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MentorMain(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                    minimumSize: Size(
+                      double.infinity,
+                      displayHeight(context) * 0.065,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        displayWidth(context) * 0.03,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    "Mentor",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: displayWidth(context) * 0.045,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PesertaMain(),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                    minimumSize: Size(
+                      double.infinity,
+                      displayHeight(context) * 0.065,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        displayWidth(context) * 0.03,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    "Peserta",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: displayWidth(context) * 0.045,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
                 SizedBox(height: displayHeight(context) * 0.03),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
