@@ -1,4 +1,4 @@
-part of '../conn/auth.dart';
+part of '../../conn/auth.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,52 +12,60 @@ class ProfilePageState extends State<ProfilePage> {
     BuildContext context, {
     required IconData icon,
     required String title,
+    required Widget route,
   }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
-      padding: EdgeInsets.all(displayWidth(context) * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(displayWidth(context) * 0.02),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF9EAEB), // Light pinkish
-              borderRadius: BorderRadius.circular(displayWidth(context) * 0.02),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => route));
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
+        padding: EdgeInsets.all(displayWidth(context) * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF983A46),
-              size: displayWidth(context) * 0.05,
-            ),
-          ),
-          SizedBox(width: displayWidth(context) * 0.04),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: displayWidth(context) * 0.035,
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(displayWidth(context) * 0.02),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9EAEB), // Light pinkish
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.02,
+                ),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF983A46),
+                size: displayWidth(context) * 0.05,
               ),
             ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios,
-            color: Colors.grey[600],
-            size: displayWidth(context) * 0.04,
-          ),
-        ],
+            SizedBox(width: displayWidth(context) * 0.04),
+            Expanded(
+              child: Text(
+                title,
+                style: TextStyle(
+                  fontSize: displayWidth(context) * 0.035,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey[600],
+              size: displayWidth(context) * 0.04,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -134,27 +142,6 @@ class ProfilePageState extends State<ProfilePage> {
                               ), // Placeholder gambar avatar
                             ),
                           ),
-                          Container(
-                            margin: EdgeInsets.only(
-                              bottom: displayWidth(context) * 0.01,
-                              right: displayWidth(context) * 0.01,
-                            ),
-                            padding: EdgeInsets.all(
-                              displayWidth(context) * 0.015,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFF983A46,
-                              ), // Dark red edit button
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
-                            ),
-                            child: Icon(
-                              Icons.edit_outlined,
-                              color: Colors.white,
-                              size: displayWidth(context) * 0.04,
-                            ),
-                          ),
                         ],
                       ),
                       SizedBox(height: displayHeight(context) * 0.02),
@@ -168,7 +155,7 @@ class ProfilePageState extends State<ProfilePage> {
                       ),
                       SizedBox(height: displayHeight(context) * 0.005),
                       Text(
-                        "Teknik Informatika -\nUniversitas Gadjah Mada",
+                        "[EMAIL_ADDRESS]",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: displayWidth(context) * 0.035,
@@ -185,21 +172,25 @@ class ProfilePageState extends State<ProfilePage> {
                   context,
                   icon: Icons.person_outline,
                   title: "Edit Profil",
+                  route: EditProfile(),
                 ),
                 _buildMenuOption(
                   context,
                   icon: Icons.notifications_none,
                   title: "Pengaturan Notifikasi",
+                  route: EditProfile(),
                 ),
                 _buildMenuOption(
                   context,
                   icon: Icons.help_outline,
                   title: "Pusat Bantuan",
+                  route: EditProfile(),
                 ),
                 _buildMenuOption(
                   context,
                   icon: Icons.info_outline,
                   title: "Tentang Aplikasi",
+                  route: EditProfile(),
                 ),
 
                 // Footer Version
