@@ -190,7 +190,7 @@ class PesertaMenuState extends State<PesertaMenu> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Pusat Layanan\nMahasiswa",
+                              "Pusat Layanan\nPeserta Magang",
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.045,
                                 fontWeight: FontWeight.bold,

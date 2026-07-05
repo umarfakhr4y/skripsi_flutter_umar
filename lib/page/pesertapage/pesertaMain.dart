@@ -36,7 +36,9 @@ class PesertaMainState extends State<PesertaMain> {
     return Scaffold(
       body: PageView(
         controller: _pageController,
-        physics: const NeverScrollableScrollPhysics(),
+        onPageChanged: (index) {
+          _controller.jumpTo(index);
+        },
         children: List.generate(
           bottomBarPages.length,
           (index) => bottomBarPages[index],
