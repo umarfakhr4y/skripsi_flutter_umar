@@ -133,12 +133,11 @@ class _MentorProfileState extends State<MentorProfile> {
                 ),
                 SizedBox(height: displayHeight(context) * 0.02),
 
-                // Bagian Menu List
-                _buildMenuHeader("Preferensi Akun"),
-                _buildMenuOption("Data Diri"),
-                _buildMenuOption("Pengaturan Akun"),
-                _buildMenuOption("Riwayat Transaksi"),
-
+                // // Bagian Menu List
+                // _buildMenuHeader("Preferensi Akun"),
+                // _buildMenuOption("Data Diri"),
+                // _buildMenuOption("Pengaturan Akun"),
+                // _buildMenuOption("Riwayat Transaksi"),
                 _buildMenuHeader("Bantuan dan Dukungan"),
                 _buildMenuOption("Tentang Vocasia"),
                 _buildMenuOption("Syarat & Ketentuan"),
