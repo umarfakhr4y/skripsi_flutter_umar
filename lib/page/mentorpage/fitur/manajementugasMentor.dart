@@ -346,12 +346,17 @@ class _ManajemenTugasMentorState extends State<ManajemenTugasMentor> {
                                 SizedBox(
                                   height: displayHeight(context) * 0.005,
                                 ),
-                                Text(
-                                  'Hapus',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: displayWidth(context) * 0.025,
-                                    fontWeight: FontWeight.w500,
+                                GestureDetector(
+                                  onTap: () {
+                                    print('Tugas Dihapus');
+                                  },
+                                  child: Text(
+                                    'Hapus',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: displayWidth(context) * 0.025,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
