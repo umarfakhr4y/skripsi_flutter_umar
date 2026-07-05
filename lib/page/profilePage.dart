@@ -90,7 +90,12 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   child: InkWell(
                     onTap: () {
-                      print('logout');
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const loginPage(),
+                        ),
+                      );
                     },
                     child: Icon(
                       Icons.logout,
