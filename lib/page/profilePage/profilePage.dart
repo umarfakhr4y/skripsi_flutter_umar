@@ -180,12 +180,7 @@ class ProfilePageState extends State<ProfilePage> {
                   title: "Pengaturan Notifikasi",
                   route: const PengaturanNotifikasiPage(),
                 ),
-                _buildMenuOption(
-                  context,
-                  icon: Icons.help_outline,
-                  title: "Pusat Bantuan",
-                  route: EditProfile(),
-                ),
+
                 _buildMenuOption(
                   context,
                   icon: Icons.info_outline,
