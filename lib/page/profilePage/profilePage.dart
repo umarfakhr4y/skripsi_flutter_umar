@@ -178,7 +178,7 @@ class ProfilePageState extends State<ProfilePage> {
                   context,
                   icon: Icons.notifications_none,
                   title: "Pengaturan Notifikasi",
-                  route: EditProfile(),
+                  route: const PengaturanNotifikasiPage(),
                 ),
                 _buildMenuOption(
                   context,
