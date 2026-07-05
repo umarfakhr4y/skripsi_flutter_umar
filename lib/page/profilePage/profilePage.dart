@@ -190,7 +190,7 @@ class ProfilePageState extends State<ProfilePage> {
                   context,
                   icon: Icons.info_outline,
                   title: "Tentang Aplikasi",
-                  route: EditProfile(),
+                  route: const AboutPage(),
                 ),
 
                 // Footer Version

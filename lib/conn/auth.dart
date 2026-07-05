@@ -14,6 +14,7 @@ part '../page/loginPage.dart';
 part '../page/registerPage.dart';
 part '../page/profilePage/profilePage.dart';
 part '../page/profilePage/editProfile.dart';
+part '../page/profilePage/aboutPage.dart';
 part '../page/lupaPasswordPage.dart';
 part '../page/mentorpage/mentorMain.dart';
 part '../page/mentorpage/mentorHome.dart';
