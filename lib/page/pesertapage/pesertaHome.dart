@@ -231,10 +231,6 @@ class PesertaHomeState extends State<PesertaHome> {
                         tagTextColor: const Color(0xFF983A46),
                         title: "Implementasi API",
                         description: "Integrasi endpoint dashboard...",
-                        progress: 0.65,
-                        progressColor: const Color(
-                          0xFF983A46,
-                        ), // Dark red / brown progress
                       ),
                       SizedBox(width: displayWidth(context) * 0.04),
                       _buildTugasCard(
@@ -248,8 +244,6 @@ class PesertaHomeState extends State<PesertaHome> {
                         ), // Dark golden/brown text
                         title: "Desain UI",
                         description: "High-fidelity prototype...",
-                        progress: 0.25,
-                        progressColor: const Color(0xFF8B6508),
                       ),
                     ],
                   ),
@@ -306,8 +300,6 @@ class PesertaHomeState extends State<PesertaHome> {
     required Color tagTextColor,
     required String title,
     required String description,
-    required double progress,
-    required Color progressColor,
   }) {
     return Container(
       width: displayWidth(context) * 0.6,
@@ -376,32 +368,6 @@ class PesertaHomeState extends State<PesertaHome> {
             overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: displayHeight(context) * 0.03),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    displayWidth(context) * 0.02,
-                  ),
-                  child: LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: Colors.grey[200],
-                    valueColor: AlwaysStoppedAnimation<Color>(progressColor),
-                    minHeight: displayHeight(context) * 0.006,
-                  ),
-                ),
-              ),
-              SizedBox(width: displayWidth(context) * 0.03),
-              Text(
-                "${(progress * 100).toInt()}%",
-                style: TextStyle(
-                  fontSize: displayWidth(context) * 0.03,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
