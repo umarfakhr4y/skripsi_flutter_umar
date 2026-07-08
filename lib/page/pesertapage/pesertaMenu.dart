@@ -269,13 +269,13 @@ class PesertaMenuState extends State<PesertaMenu> {
                 _buildMenuOption(
                   context,
                   icon: Icons.description,
-                  title: "Persuratan",
+                  title: "Persuratan & Perizinan",
                   subtitle: "Administrasi dan surat izin",
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TugasSayaPeserta(),
+                        builder: (context) => const PersuratanPeserta(),
                       ),
                     );
                   },
