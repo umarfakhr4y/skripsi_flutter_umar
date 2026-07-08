@@ -48,6 +48,10 @@ class _loginPageState extends State<loginPage> {
       });
       if (result['success']) {
         final role = result['data']['data']['role'];
+        final token = result['data']['access_token'];
+
+        const storage = FlutterSecureStorage();
+        await storage.write(key: 'access_token', value: token);
 
         ScaffoldMessenger.of(
           context,

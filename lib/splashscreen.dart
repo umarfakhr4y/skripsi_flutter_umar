@@ -8,16 +8,26 @@ class Splashscreen extends StatefulWidget {
 }
 
 class _SplashscreenState extends State<Splashscreen> {
+  @override
   void initState() {
     super.initState();
+    _checkToken();
+  }
+
+  Future<void> _checkToken() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+    print('===== TOKEN SAAT INI =====');
+    print(token);
+    print('==========================');
+
     Timer(
-      Duration(seconds: 1),
+      const Duration(seconds: 1),
       () => Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => loginPage()),
+        MaterialPageRoute(builder: (context) => const loginPage()),
       ),
     );
-    ;
   }
 
   @override

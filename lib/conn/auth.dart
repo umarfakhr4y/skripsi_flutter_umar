@@ -11,6 +11,7 @@ import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.da
 import '../size_helper.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 part '../main.dart';
 part '../splashscreen.dart';
@@ -39,6 +40,7 @@ part '../page/mentorpage/fitur/detailtugasMentor.dart';
 part '../page/mentorpage/fitur/lampiraninstruksiMentor.dart';
 
 part '../page/pesertapage/pesertaMain.dart';
+part '../page/pesertapage/autentikasiPeserta.dart';
 part '../page/pesertapage/pesertaHome.dart';
 part '../page/pesertapage/pesertaMenu.dart';
 part '../page/pesertapage/fitur/tugasSayaPeserta.dart';
