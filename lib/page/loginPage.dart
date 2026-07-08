@@ -10,16 +10,78 @@ class loginPage extends StatefulWidget {
 class _loginPageState extends State<loginPage> {
   bool _isPasswordVisible = false;
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   String _emailText = "";
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
   bool _isEmailValid(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  Future<void> _login() async {
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Login dan Password tidak boleh kosong')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final result = await AuthService.login(
+      _emailController.text,
+      _passwordController.text,
+    );
+
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (result['success']) {
+        final role = result['data']['data']['role'];
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+
+        if (role == 'admin') {
+          // Jika ada halaman admin, panggil di sini
+          // ScaffoldMessenger.of(context).showSnackBar(
+          //   const SnackBar(content: Text('Halaman Admin belum tersedia')),
+          // );
+          print('admin');
+        } else if (role == 'mentor') {
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => const MentorMain()),
+          // );
+          print('mentor');
+        } else if (role == 'peserta') {
+          // Navigator.pushReplacement(
+          //   context,
+          //   MaterialPageRoute(builder: (context) => const PesertaMain()),
+          // );
+          print('peserta');
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Role tidak dikenal: $role')));
+        }
+      } else {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+      }
+    }
   }
 
   @override
@@ -127,6 +189,7 @@ class _loginPageState extends State<loginPage> {
                     ),
                   ),
                   child: TextField(
+                    controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
                       hintText: "Input your password",
@@ -179,7 +242,7 @@ class _loginPageState extends State<loginPage> {
                 ),
                 SizedBox(height: displayHeight(context) * 0.1),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE84C63),
                     minimumSize: Size(
@@ -193,14 +256,23 @@ class _loginPageState extends State<loginPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    "Log In",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: displayWidth(context) * 0.045,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? SizedBox(
+                          height: displayHeight(context) * 0.03,
+                          width: displayHeight(context) * 0.03,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 3,
+                          ),
+                        )
+                      : Text(
+                          "Log In",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: displayWidth(context) * 0.045,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
                 ElevatedButton(
                   onPressed: () {

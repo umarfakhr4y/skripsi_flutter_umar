@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ui';
+import 'package:http/http.dart' as http;
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:circular_reveal_animation/circular_reveal_animation.dart';
@@ -19,6 +21,8 @@ part '../page/profilePage/editProfile.dart';
 part '../page/profilePage/pengaturanNotifikasiPage.dart';
 part '../page/profilePage/aboutPage.dart';
 part '../page/lupaPasswordPage.dart';
+part '../page/autentikasimain.dart';
+
 part '../page/mentorpage/mentorMain.dart';
 part '../page/mentorpage/mentorHome.dart';
 part '../page/mentorpage/mentorNotif.dart';
