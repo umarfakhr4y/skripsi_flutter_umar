@@ -13,65 +13,69 @@ class PesertaMenuState extends State<PesertaMenu> {
     required IconData icon,
     required String title,
     required String subtitle,
+    required VoidCallback onTap,
   }) {
-    return Container(
-      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
-      padding: EdgeInsets.all(displayWidth(context) * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(displayWidth(context) * 0.03),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF9EAEB), // Light pinkish
-              shape: BoxShape.circle,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
+        padding: EdgeInsets.all(displayWidth(context) * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFFE84C63), // Red icon
-              size: displayWidth(context) * 0.06,
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(displayWidth(context) * 0.03),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF9EAEB), // Light pinkish
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFFE84C63), // Red icon
+                size: displayWidth(context) * 0.06,
+              ),
             ),
-          ),
-          SizedBox(width: displayWidth(context) * 0.04),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.038,
-                    color: Colors.black87,
-                    fontWeight: FontWeight.w500,
+            SizedBox(width: displayWidth(context) * 0.04),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.038,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                SizedBox(height: displayHeight(context) * 0.005),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.032,
-                    color: Colors.grey[600],
+                  SizedBox(height: displayHeight(context) * 0.005),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.032,
+                      color: Colors.grey[600],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Icon(
-            Icons.arrow_forward_ios,
-            color: Colors.grey[400],
-            size: displayWidth(context) * 0.04,
-          ),
-        ],
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey[400],
+              size: displayWidth(context) * 0.04,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -223,26 +227,58 @@ class PesertaMenuState extends State<PesertaMenu> {
                 _buildMenuOption(
                   context,
                   icon: Icons.assignment,
-                  title: "Penugasan",
+                  title: "Tugas Saya",
                   subtitle: "Lihat daftar tugas harian",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TugasSayaPeserta(),
+                      ),
+                    );
+                  },
                 ),
                 _buildMenuOption(
                   context,
                   icon: Icons.star,
                   title: "Evaluasi",
                   subtitle: "Hasil penilaian mentor",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TugasSayaPeserta(),
+                      ),
+                    );
+                  },
                 ),
                 _buildMenuOption(
                   context,
                   icon: Icons.chat_bubble,
                   title: "Bimbingan",
                   subtitle: "Konsultasi dengan mentor",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TugasSayaPeserta(),
+                      ),
+                    );
+                  },
                 ),
                 _buildMenuOption(
                   context,
                   icon: Icons.description,
                   title: "Persuratan",
                   subtitle: "Administrasi dan surat izin",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const TugasSayaPeserta(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

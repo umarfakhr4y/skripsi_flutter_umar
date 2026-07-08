@@ -37,3 +37,4 @@ part '../page/mentorpage/fitur/lampiraninstruksiMentor.dart';
 part '../page/pesertapage/pesertaMain.dart';
 part '../page/pesertapage/pesertaHome.dart';
 part '../page/pesertapage/pesertaMenu.dart';
+part '../page/pesertapage/fitur/tugasSayaPeserta.dart';
