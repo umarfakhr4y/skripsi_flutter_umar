@@ -254,14 +254,14 @@ class PesertaMenuState extends State<PesertaMenu> {
                 ),
                 _buildMenuOption(
                   context,
-                  icon: Icons.chat_bubble,
+                  icon: Icons.chat_bubble_outline,
                   title: "Bimbingan",
                   subtitle: "Konsultasi dengan mentor",
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TugasSayaPeserta(),
+                        builder: (context) => const BimbinganPeserta(),
                       ),
                     );
                   },

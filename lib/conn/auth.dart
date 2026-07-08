@@ -39,3 +39,4 @@ part '../page/pesertapage/pesertaHome.dart';
 part '../page/pesertapage/pesertaMenu.dart';
 part '../page/pesertapage/fitur/tugasSayaPeserta.dart';
 part '../page/pesertapage/fitur/evaluasiPeserta.dart';
+part '../page/pesertapage/fitur/bimbinganPeserta.dart';
