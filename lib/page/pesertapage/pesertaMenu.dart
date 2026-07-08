@@ -240,14 +240,14 @@ class PesertaMenuState extends State<PesertaMenu> {
                 ),
                 _buildMenuOption(
                   context,
-                  icon: Icons.star,
+                  icon: Icons.star_border,
                   title: "Evaluasi",
                   subtitle: "Hasil penilaian mentor",
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const TugasSayaPeserta(),
+                        builder: (context) => const EvaluasiPeserta(),
                       ),
                     );
                   },
