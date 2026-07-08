@@ -7,6 +7,30 @@ class PesertaHome extends StatefulWidget {
 }
 
 class PesertaHomeState extends State<PesertaHome> {
+  bool _isAbsenLoading = false;
+
+  Future<void> _submitAbsen() async {
+    setState(() {
+      _isAbsenLoading = true;
+    });
+
+    final result = await PesertaService.absen(
+      'hadir',
+      '-6.200000',
+      '106.816666',
+    );
+
+    if (mounted) {
+      setState(() {
+        _isAbsenLoading = false;
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,7 +176,7 @@ class PesertaHomeState extends State<PesertaHome> {
                       ),
                       SizedBox(height: displayHeight(context) * 0.02),
                       ElevatedButton(
-                        onPressed: () {},
+                        onPressed: _isAbsenLoading ? null : _submitAbsen,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE84C63), // Red color
                           shape: RoundedRectangleBorder(
@@ -169,25 +193,34 @@ class PesertaHomeState extends State<PesertaHome> {
                             0,
                           ), // Full width
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.fingerprint,
-                              color: Colors.white,
-                              size: displayWidth(context) * 0.045,
-                            ),
-                            SizedBox(width: displayWidth(context) * 0.02),
-                            Text(
-                              "Presensi Sekarang",
-                              style: TextStyle(
-                                fontSize: displayWidth(context) * 0.035,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                        child: _isAbsenLoading
+                            ? SizedBox(
+                                height: displayHeight(context) * 0.025,
+                                width: displayHeight(context) * 0.025,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 3,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.fingerprint,
+                                    color: Colors.white,
+                                    size: displayWidth(context) * 0.045,
+                                  ),
+                                  SizedBox(width: displayWidth(context) * 0.02),
+                                  Text(
+                                    "Presensi Sekarang",
+                                    style: TextStyle(
+                                      fontSize: displayWidth(context) * 0.035,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
                       ),
                     ],
                   ),
