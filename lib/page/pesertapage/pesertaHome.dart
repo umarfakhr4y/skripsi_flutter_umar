@@ -112,6 +112,69 @@ class PesertaHomeState extends State<PesertaHome> {
     }
   }
 
+  void _showLaporanDialog() {
+    TextEditingController _laporanController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+          ),
+          title: Text(
+            "Laporan Harian",
+            style: TextStyle(
+              fontSize: displayWidth(context) * 0.045,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: TextField(
+            controller: _laporanController,
+            maxLines: 5,
+            decoration: InputDecoration(
+              hintText: "Tuliskan kegiatan magang Anda hari ini...",
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.02,
+                ),
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Tutup dialog
+              },
+              child: const Text("Batal"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // TODO: Hit API to save laporan
+                String isiLaporan = _laporanController.text;
+                Navigator.pop(context); // Tutup dialog
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "Laporan harian berhasil disimpan! (UI Test)",
+                    ),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue[600],
+              ),
+              child: const Text("Kirim", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -335,9 +398,7 @@ class PesertaHomeState extends State<PesertaHome> {
                       if (_sudahAbsen && _waktuKeluar != null) ...[
                         SizedBox(height: displayHeight(context) * 0.015),
                         ElevatedButton(
-                          onPressed: () {
-                            // Navigasi ke form/halaman laporan harian
-                          },
+                          onPressed: _showLaporanDialog,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[600],
                             shape: RoundedRectangleBorder(
