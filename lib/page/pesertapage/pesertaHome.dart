@@ -8,8 +8,72 @@ class PesertaHome extends StatefulWidget {
 
 class PesertaHomeState extends State<PesertaHome> {
   bool _isAbsenLoading = false;
+  bool _isFetchingData = true;
+  bool _sudahAbsen = false;
+  String _waktuMasuk = "";
+  String? _waktuKeluar;
+  String _namaLengkap = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchHomeData();
+  }
+
+  Future<void> _fetchHomeData() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/user'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (mounted) {
+            setState(() {
+              _sudahAbsen = data['sudah_absen'] ?? false;
+              if (_sudahAbsen && data['absen_hari_ini'] != null) {
+                _waktuMasuk = data['absen_hari_ini']['waktu_masuk'] ?? "";
+                _waktuKeluar = data['absen_hari_ini']['waktu_keluar'];
+              }
+              if (data['data'] != null) {
+                _namaLengkap = data['data']['nama_lengkap'] ?? "Peserta";
+              }
+              _isFetchingData = false;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _isFetchingData = false;
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isFetchingData = false;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _isFetchingData = false;
+        });
+      }
+    }
+  }
 
   Future<void> _submitAbsen() async {
+    //sudah berhasil, namun masih static isian absennya
     setState(() {
       _isAbsenLoading = true;
     });
@@ -28,6 +92,23 @@ class PesertaHomeState extends State<PesertaHome> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+
+      if (result['success'] == true) {
+        _fetchHomeData();
+      }
+    }
+  }
+
+  String _getGreeting() {
+    var hour = DateTime.now().hour;
+    if (hour < 11) {
+      return "Selamat Pagi";
+    } else if (hour < 15) {
+      return "Selamat Siang";
+    } else if (hour < 18) {
+      return "Selamat Sore";
+    } else {
+      return "Selamat Malam";
     }
   }
 
@@ -95,7 +176,9 @@ class PesertaHomeState extends State<PesertaHome> {
 
                 // Greeting
                 Text(
-                  "Selamat Pagi, Budi Santoso!",
+                  _isFetchingData
+                      ? "Loading..."
+                      : "${_getGreeting()}, $_namaLengkap!",
                   style: TextStyle(
                     fontSize: displayWidth(context) * 0.035,
                     color: Colors.grey[600],
@@ -155,7 +238,11 @@ class PesertaHomeState extends State<PesertaHome> {
                               ),
                             ),
                             child: Text(
-                              "09:00 WIB",
+                              _isFetchingData
+                                  ? "--:--"
+                                  : (_waktuMasuk.isNotEmpty
+                                        ? "$_waktuMasuk WIB"
+                                        : "09:00 WIB"),
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.028,
                                 fontWeight: FontWeight.w600,
@@ -167,7 +254,13 @@ class PesertaHomeState extends State<PesertaHome> {
                       ),
                       SizedBox(height: displayHeight(context) * 0.01),
                       Text(
-                        "Belum Presensi",
+                        _isFetchingData
+                            ? "Loading..."
+                            : (!_sudahAbsen
+                                  ? "Belum Presensi"
+                                  : (_waktuKeluar == null
+                                        ? "Sudah Presensi Hadir"
+                                        : "Sudah Presensi")),
                         style: TextStyle(
                           fontSize: displayWidth(context) * 0.04,
                           fontWeight: FontWeight.bold,
@@ -176,9 +269,18 @@ class PesertaHomeState extends State<PesertaHome> {
                       ),
                       SizedBox(height: displayHeight(context) * 0.02),
                       ElevatedButton(
-                        onPressed: _isAbsenLoading ? null : _submitAbsen,
+                        onPressed:
+                            (_isFetchingData ||
+                                _isAbsenLoading ||
+                                (_sudahAbsen && _waktuKeluar != null))
+                            ? null
+                            : _submitAbsen,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE84C63), // Red color
+                          disabledBackgroundColor:
+                              (_sudahAbsen && _waktuKeluar != null)
+                              ? Colors.grey[400]
+                              : null,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
                               displayWidth(context) * 0.025,
@@ -206,13 +308,21 @@ class PesertaHomeState extends State<PesertaHome> {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Icon(
-                                    Icons.fingerprint,
+                                    (!_sudahAbsen ||
+                                            (_sudahAbsen &&
+                                                _waktuKeluar == null))
+                                        ? Icons.fingerprint
+                                        : Icons.check_circle,
                                     color: Colors.white,
                                     size: displayWidth(context) * 0.045,
                                   ),
                                   SizedBox(width: displayWidth(context) * 0.02),
                                   Text(
-                                    "Presensi Sekarang",
+                                    !_sudahAbsen
+                                        ? "Presensi Sekarang"
+                                        : (_waktuKeluar == null
+                                              ? "Presensi Pulang"
+                                              : "Sudah Presensi Hari Ini"),
                                     style: TextStyle(
                                       fontSize: displayWidth(context) * 0.035,
                                       fontWeight: FontWeight.bold,
