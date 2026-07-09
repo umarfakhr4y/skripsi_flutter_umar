@@ -8,6 +8,70 @@ class ProfilePage extends StatefulWidget {
 }
 
 class ProfilePageState extends State<ProfilePage> {
+  bool _isLoading = true;
+  String _namaLengkap = "";
+  String _email = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchProfileData();
+  }
+
+  Future<void> _fetchProfileData() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/user'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (mounted) {
+            setState(() {
+              _email = data['email'] ?? "No Email";
+              _namaLengkap = data['data'] != null
+                  ? (data['data']['nama_lengkap'] ?? "No Name")
+                  : "No Name";
+              _isLoading = false;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _namaLengkap = "Gagal memuat";
+              _email = "Gagal memuat";
+              _isLoading = false;
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _namaLengkap = "Error";
+            _email = "Error";
+            _isLoading = false;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _namaLengkap = "Token tidak ditemukan";
+          _email = "Token tidak ditemukan";
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   Widget _buildMenuOption(
     BuildContext context, {
     required IconData icon,
@@ -145,23 +209,57 @@ class ProfilePageState extends State<ProfilePage> {
                         ],
                       ),
                       SizedBox(height: displayHeight(context) * 0.02),
-                      Text(
-                        "Budi Santoso",
-                        style: TextStyle(
-                          fontSize: displayWidth(context) * 0.05,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: displayHeight(context) * 0.005),
-                      Text(
-                        "[EMAIL_ADDRESS]",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: displayWidth(context) * 0.035,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+                      _isLoading
+                          ? Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Column(
+                                children: [
+                                  Container(
+                                    width: displayWidth(context) * 0.4,
+                                    height: displayWidth(context) * 0.05,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: displayHeight(context) * 0.01,
+                                  ),
+                                  Container(
+                                    width: displayWidth(context) * 0.3,
+                                    height: displayWidth(context) * 0.035,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                Text(
+                                  _namaLengkap,
+                                  style: TextStyle(
+                                    fontSize: displayWidth(context) * 0.05,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: displayHeight(context) * 0.005,
+                                ),
+                                Text(
+                                  _email,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: displayWidth(context) * 0.035,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
                     ],
                   ),
                 ),

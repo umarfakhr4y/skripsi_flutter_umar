@@ -12,6 +12,7 @@ import '../size_helper.dart';
 
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shimmer/shimmer.dart';
 
 part '../main.dart';
 part '../splashscreen.dart';
