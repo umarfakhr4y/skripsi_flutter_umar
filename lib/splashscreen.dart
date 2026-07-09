@@ -15,19 +15,37 @@ class _SplashscreenState extends State<Splashscreen> {
   }
 
   Future<void> _checkToken() async {
-    const storage = FlutterSecureStorage();
-    String? token = await storage.read(key: 'access_token');
-    print('===== TOKEN SAAT INI =====');
-    print(token);
-    print('==========================');
+    try {
+      const storage = FlutterSecureStorage();
+      // Tambahkan timeout agar tidak hang selamanya jika keystore bermasalah
+      String? token = await storage
+          .read(key: 'access_token')
+          .timeout(const Duration(seconds: 5));
+      print('===== TOKEN SAAT INI =====');
+      print(token);
+      print('==========================');
 
-    Timer(
-      const Duration(seconds: 1),
-      () => Navigator.pushReplacement(
+      if (!mounted) return;
+
+      Timer(const Duration(seconds: 1), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const loginPage()),
+          );
+        }
+      });
+    } catch (e) {
+      print('===== ERROR BACA TOKEN =====');
+      print(e.toString());
+      print('============================');
+      // Jika error, tetap arahkan ke halaman login
+      if (!mounted) return;
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const loginPage()),
-      ),
-    );
+      );
+    }
   }
 
   @override

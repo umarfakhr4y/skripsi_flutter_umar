@@ -1,4 +1,5 @@
-part of 'conn/auth.dart';
+import 'package:flutter/material.dart';
+import 'conn/auth.dart';
 
 void main() {
   runApp(const MyApp());
