@@ -38,7 +38,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
 
   Widget _buildAbsensiCard(dynamic data) {
     if (data is! Map) return const SizedBox.shrink();
-    
+
     String name = data['nama_lengkap']?.toString() ?? 'Tanpa Nama';
     bool sudahAbsenMasuk = data['sudah_absen_masuk'] == true;
     var absenInfo = data['absen_hari_ini'];
@@ -49,9 +49,23 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
 
     if (sudahAbsenMasuk && absenInfo != null) {
       if (absenInfo['status'] == 'hadir') {
-        statusText = absenInfo['waktu_masuk']?.toString() ?? 'Hadir';
-        statusIcon = Icons.check;
-        iconColor = Colors.green;
+        String _formatTime(String? timeStr) {
+          if (timeStr == null || timeStr.isEmpty) return 'Belum';
+          var parts = timeStr.split(':');
+          return parts.length >= 2 ? '${parts[0]}:${parts[1]}' : timeStr;
+        }
+
+        String masuk = _formatTime(absenInfo['waktu_masuk']?.toString());
+        if (masuk == 'Belum') masuk = '-';
+        String keluar = _formatTime(absenInfo['waktu_keluar']?.toString());
+
+        statusText = "Masuk: $masuk | Pulang: $keluar";
+        statusIcon = (absenInfo['waktu_keluar'] != null)
+            ? Icons.done_all
+            : Icons.check;
+        iconColor = (absenInfo['waktu_keluar'] != null)
+            ? Colors.blue
+            : Colors.green;
       } else if (absenInfo['status'] == 'izin') {
         statusText = "Izin : " + (absenInfo['keterangan']?.toString() ?? '-');
         statusIcon = Icons.priority_high;
@@ -131,7 +145,20 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     DateTime now = DateTime.now();
     String hour = now.hour.toString().padLeft(2, '0');
     String minute = now.minute.toString().padLeft(2, '0');
-    List<String> months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    List<String> months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
     String day = now.day.toString();
     String month = months[now.month - 1];
     String year = now.year.toString();
@@ -140,6 +167,12 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     int sudahAbsen = absensiList.where((p) {
       if (p is Map) {
         return p['sudah_absen_masuk'] == true;
+      }
+      return false;
+    }).length;
+    int sudahAbsenKeluar = absensiList.where((p) {
+      if (p is Map) {
+        return p['sudah_absen_pulang'] == true || (p['absen_hari_ini'] != null && p['absen_hari_ini']['waktu_keluar'] != null);
       }
       return false;
     }).length;
@@ -264,7 +297,35 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                         ),
                         SizedBox(width: displayWidth(context) * 0.03),
                         Text(
-                          "$sudahAbsen dari $totalPeserta peserta sudah Clock in",
+                          "$sudahAbsen dari $totalPeserta peserta sudah absen masuk",
+                          style: TextStyle(
+                            fontSize: displayWidth(context) * 0.03,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: displayHeight(context) * 0.01),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(
+                            displayWidth(context) * 0.015,
+                          ),
+                          decoration: const BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.directions_run,
+                            color: Colors.white,
+                            size: displayWidth(context) * 0.04,
+                          ),
+                        ),
+                        SizedBox(width: displayWidth(context) * 0.03),
+                        Text(
+                          "$sudahAbsenKeluar dari $totalPeserta peserta sudah absen keluar",
                           style: TextStyle(
                             fontSize: displayWidth(context) * 0.03,
                             color: Colors.black87,
@@ -329,9 +390,9 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
 
               // List of Peserta Absensi
               Expanded(
-                child: _isLoading 
-                  ? Center(child: CircularProgressIndicator()) 
-                  : absensiList.isEmpty 
+                child: _isLoading
+                    ? Center(child: CircularProgressIndicator())
+                    : absensiList.isEmpty
                     ? Center(child: Text("Tidak ada peserta magang"))
                     : ListView.builder(
                         itemCount: absensiList.length,
