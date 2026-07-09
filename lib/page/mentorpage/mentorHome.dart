@@ -8,6 +8,81 @@ class MentorHome extends StatefulWidget {
 
 class _MentorHomeState extends State<MentorHome> {
   final iconList = <IconData>[Icons.brightness_5, Icons.brightness_4];
+  String _namaLengkap = "";
+  bool _isFetchingData = true;
+  int _totalPeserta = 0;
+  int _sudahAbsen = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMentorData();
+  }
+
+  Future<void> _fetchMentorData() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/user'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          
+          final absensiResult = await MentorService.getPesertaAbsensi();
+          int tPeserta = 0;
+          int sAbsen = 0;
+          if (absensiResult['success']) {
+             List<dynamic> absensiList = absensiResult['data'];
+             tPeserta = absensiList.length;
+             sAbsen = absensiList.where((p) {
+               if (p is Map) {
+                 return p['sudah_absen_masuk'] == true;
+               }
+               return false;
+             }).length;
+          }
+
+          if (mounted) {
+            setState(() {
+              if (data['data'] != null) {
+                _namaLengkap = data['data']['nama_lengkap'] ?? "Mentor";
+              }
+              _totalPeserta = tPeserta;
+              _sudahAbsen = sAbsen;
+              _isFetchingData = false;
+            });
+          }
+        } else {
+          if (mounted) {
+            setState(() {
+              _isFetchingData = false;
+            });
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isFetchingData = false;
+          });
+        }
+      }
+    } else {
+      if (mounted) {
+        setState(() {
+          _isFetchingData = false;
+        });
+      }
+    }
+  }
+
   Widget _buildQuickAccessCard(
     IconData icon,
     String title,
@@ -65,6 +140,19 @@ class _MentorHomeState extends State<MentorHome> {
         ),
       ),
     );
+  }
+
+  String _getGreeting() {
+    var hour = DateTime.now().hour;
+    if (hour < 11) {
+      return "Selamat Pagi";
+    } else if (hour < 15) {
+      return "Selamat Siang";
+    } else if (hour < 18) {
+      return "Selamat Sore";
+    } else {
+      return "Selamat Malam";
+    }
   }
 
   @override
@@ -135,20 +223,30 @@ class _MentorHomeState extends State<MentorHome> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Selamat Pagi",
+                          _getGreeting(),
                           style: TextStyle(
                             fontSize: displayWidth(context) * 0.03,
                             color: Colors.grey[600],
                           ),
                         ),
-                        Text(
-                          "Umar Fakhriy",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.035,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
+                        _isFetchingData
+                            ? Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.grey[100]!,
+                                child: Container(
+                                  width: displayWidth(context) * 0.3,
+                                  height: displayWidth(context) * 0.04,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                _namaLengkap,
+                                style: TextStyle(
+                                  fontSize: displayWidth(context) * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
                       ],
                     ),
                     const Spacer(),
@@ -229,13 +327,23 @@ class _MentorHomeState extends State<MentorHome> {
                             size: displayWidth(context) * 0.04,
                           ),
                           SizedBox(width: displayWidth(context) * 0.02),
-                          Text(
-                            "10 dari 12 peserta sudah Clock in",
-                            style: TextStyle(
-                              fontSize: displayWidth(context) * 0.03,
-                              color: Colors.black87,
-                            ),
-                          ),
+                          _isFetchingData 
+                              ? Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Container(
+                                    width: displayWidth(context) * 0.4,
+                                    height: displayWidth(context) * 0.03,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  "$_sudahAbsen dari $_totalPeserta peserta sudah Clock in",
+                                  style: TextStyle(
+                                    fontSize: displayWidth(context) * 0.03,
+                                    color: Colors.black87,
+                                  ),
+                                ),
                         ],
                       ),
                       SizedBox(height: displayHeight(context) * 0.01),
