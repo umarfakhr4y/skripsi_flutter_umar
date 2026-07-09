@@ -61,3 +61,29 @@ class PesertaService {
     }
   }
 }
+
+class MentorService {
+  static Future<Map<String, dynamic>> getPesertaAbsensi() async {
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'data': data['data']};
+      } else {
+        return {'success': false, 'message': 'Gagal mengambil data peserta'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan: $e'};
+    }
+  }
+}

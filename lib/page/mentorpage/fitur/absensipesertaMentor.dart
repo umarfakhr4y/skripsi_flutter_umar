@@ -8,41 +8,62 @@ class AbsensiPesertaMentor extends StatefulWidget {
 }
 
 class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
-  // Dummy data untuk mensimulasikan hasil GET API nantinya
-  final List<Map<String, dynamic>> absensiList = [
-    {
-      "name": "Umar Fakhriy",
-      "status_text": "08:30",
-      "status_icon": Icons.check,
-    },
-    {
-      "name": "Galuh Kirana",
-      "status_text": "08:35",
-      "status_icon": Icons.check,
-    },
-    {
-      "name": "Haikal Dzaky",
-      "status_text": "08:41",
-      "status_icon": Icons.check,
-    },
-    {
-      "name": "Ahmad Ghofur",
-      "status_text": "08:57",
-      "status_icon": Icons.check,
-    },
-    {
-      "name": "Fakrazi",
-      "status_text": "Izin : Acara Keluarga",
-      // Menggunakan priority_high untuk menampilkan tanda seru "!"
-      "status_icon": Icons.priority_high,
-    },
-    {"name": "Novalino Hamid", "status_text": "", "status_icon": Icons.close},
-  ];
+  List<dynamic> absensiList = [];
+  bool _isLoading = true;
 
-  Widget _buildAbsensiCard(Map<String, dynamic> data) {
-    bool hasSubtitle =
-        data["status_text"] != null &&
-        data["status_text"].toString().isNotEmpty;
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final result = await MentorService.getPesertaAbsensi();
+    if (mounted) {
+      if (result['success']) {
+        setState(() {
+          absensiList = result['data'];
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Gagal memuat data')),
+        );
+      }
+    }
+  }
+
+  Widget _buildAbsensiCard(dynamic data) {
+    if (data is! Map) return const SizedBox.shrink();
+    
+    String name = data['nama_lengkap']?.toString() ?? 'Tanpa Nama';
+    bool sudahAbsenMasuk = data['sudah_absen_masuk'] == true;
+    var absenInfo = data['absen_hari_ini'];
+
+    String statusText = "Belum Presensi";
+    IconData statusIcon = Icons.close;
+    Color iconColor = Colors.grey;
+
+    if (sudahAbsenMasuk && absenInfo != null) {
+      if (absenInfo['status'] == 'hadir') {
+        statusText = absenInfo['waktu_masuk']?.toString() ?? 'Hadir';
+        statusIcon = Icons.check;
+        iconColor = Colors.green;
+      } else if (absenInfo['status'] == 'izin') {
+        statusText = "Izin : " + (absenInfo['keterangan']?.toString() ?? '-');
+        statusIcon = Icons.priority_high;
+        iconColor = Colors.orange;
+      } else if (absenInfo['status'] == 'sakit') {
+        statusText = "Sakit : " + (absenInfo['keterangan']?.toString() ?? '-');
+        statusIcon = Icons.local_hospital;
+        iconColor = Colors.red;
+      }
+    }
+
+    bool hasSubtitle = statusText.isNotEmpty;
 
     return Container(
       margin: EdgeInsets.only(bottom: displayHeight(context) * 0.015),
@@ -75,7 +96,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  data["name"],
+                  name,
                   style: TextStyle(
                     fontSize: displayWidth(context) * 0.035,
                     fontWeight: FontWeight.w500,
@@ -86,7 +107,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                   SizedBox(height: displayHeight(context) * 0.005),
                 if (hasSubtitle)
                   Text(
-                    data["status_text"],
+                    statusText,
                     style: TextStyle(
                       fontSize: displayWidth(context) * 0.03,
                       color: Colors.grey[600],
@@ -96,8 +117,8 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
             ),
           ),
           Icon(
-            data["status_icon"],
-            color: Colors.black87,
+            statusIcon,
+            color: iconColor,
             size: displayWidth(context) * 0.05,
           ),
         ],
@@ -107,6 +128,22 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
 
   @override
   Widget build(BuildContext context) {
+    DateTime now = DateTime.now();
+    String hour = now.hour.toString().padLeft(2, '0');
+    String minute = now.minute.toString().padLeft(2, '0');
+    List<String> months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+    String day = now.day.toString();
+    String month = months[now.month - 1];
+    String year = now.year.toString();
+
+    int totalPeserta = absensiList.length;
+    int sudahAbsen = absensiList.where((p) {
+      if (p is Map) {
+        return p['sudah_absen_masuk'] == true;
+      }
+      return false;
+    }).length;
+
     return Scaffold(
       backgroundColor: const Color(0xFFEEEEEE),
       appBar: AppBar(
@@ -158,7 +195,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                         Column(
                           children: [
                             Text(
-                              "09:00",
+                              "$hour:$minute",
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.05,
                                 fontWeight: FontWeight.bold,
@@ -187,7 +224,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                         Column(
                           children: [
                             Text(
-                              "1 Januari",
+                              "$day $month",
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.05,
                                 fontWeight: FontWeight.bold,
@@ -195,7 +232,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                               ),
                             ),
                             Text(
-                              "2024",
+                              year,
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.05,
                                 fontWeight: FontWeight.bold,
@@ -227,7 +264,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                         ),
                         SizedBox(width: displayWidth(context) * 0.03),
                         Text(
-                          "10 dari 12 peserta sudah Clock in",
+                          "$sudahAbsen dari $totalPeserta peserta sudah Clock in",
                           style: TextStyle(
                             fontSize: displayWidth(context) * 0.03,
                             color: Colors.black87,
@@ -292,12 +329,16 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
 
               // List of Peserta Absensi
               Expanded(
-                child: ListView.builder(
-                  itemCount: absensiList.length,
-                  itemBuilder: (context, index) {
-                    return _buildAbsensiCard(absensiList[index]);
-                  },
-                ),
+                child: _isLoading 
+                  ? Center(child: CircularProgressIndicator()) 
+                  : absensiList.isEmpty 
+                    ? Center(child: Text("Tidak ada peserta magang"))
+                    : ListView.builder(
+                        itemCount: absensiList.length,
+                        itemBuilder: (context, index) {
+                          return _buildAbsensiCard(absensiList[index]);
+                        },
+                      ),
               ),
             ],
           ),
