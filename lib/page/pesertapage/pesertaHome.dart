@@ -332,6 +332,46 @@ class PesertaHomeState extends State<PesertaHome> {
                                 ],
                               ),
                       ),
+                      if (_sudahAbsen && _waktuKeluar != null) ...[
+                        SizedBox(height: displayHeight(context) * 0.015),
+                        ElevatedButton(
+                          onPressed: () {
+                            // Navigasi ke form/halaman laporan harian
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[600],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                displayWidth(context) * 0.025,
+                              ),
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              vertical: displayHeight(context) * 0.018,
+                            ),
+                            elevation: 0,
+                            minimumSize: const Size(double.infinity, 0),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.edit_document,
+                                color: Colors.white,
+                                size: displayWidth(context) * 0.045,
+                              ),
+                              SizedBox(width: displayWidth(context) * 0.02),
+                              Text(
+                                "Isi Laporan Harian",
+                                style: TextStyle(
+                                  fontSize: displayWidth(context) * 0.035,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
