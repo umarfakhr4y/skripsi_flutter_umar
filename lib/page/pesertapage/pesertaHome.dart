@@ -112,6 +112,71 @@ class PesertaHomeState extends State<PesertaHome> {
     }
   }
 
+  Future<void> _submitLaporan(String isiLaporan) async {
+    if (isiLaporan.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Laporan tidak boleh kosong!"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Tampilkan loading overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/api/laporan'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'laporan': isiLaporan}),
+      );
+
+      Navigator.pop(context); // Tutup loading overlay
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        Navigator.pop(context); // Tutup dialog laporan
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Laporan harian berhasil dikirim!"),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Gagal mengirim laporan!"),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      Navigator.pop(context); // Tutup loading overlay
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Terjadi kesalahan: $e"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   void _showLaporanDialog() {
     TextEditingController _laporanController = TextEditingController();
 
@@ -150,19 +215,7 @@ class PesertaHomeState extends State<PesertaHome> {
             ),
             ElevatedButton(
               onPressed: () {
-                // TODO: Hit API to save laporan
-                String isiLaporan = _laporanController.text;
-                Navigator.pop(context); // Tutup dialog
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      "Laporan harian berhasil disimpan! (UI Test)",
-                    ),
-                    backgroundColor: Colors.green,
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
+                _submitLaporan(_laporanController.text);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[600],
