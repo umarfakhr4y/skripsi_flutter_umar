@@ -10,6 +10,7 @@ class PesertaHomeState extends State<PesertaHome> {
   bool _isAbsenLoading = false;
   bool _isFetchingData = true;
   bool _sudahAbsen = false;
+  bool _sudahIsiLaporan = false;
   String _waktuMasuk = "";
   String? _waktuKeluar;
   String _namaLengkap = "";
@@ -39,6 +40,7 @@ class PesertaHomeState extends State<PesertaHome> {
           if (mounted) {
             setState(() {
               _sudahAbsen = data['sudah_absen'] ?? false;
+              _sudahIsiLaporan = data['sudah_isi_laporan'] ?? false;
               if (_sudahAbsen && data['absen_hari_ini'] != null) {
                 _waktuMasuk = data['absen_hari_ini']['waktu_masuk'] ?? "";
                 _waktuKeluar = data['absen_hari_ini']['waktu_keluar'];
@@ -149,6 +151,12 @@ class PesertaHomeState extends State<PesertaHome> {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         Navigator.pop(context); // Tutup dialog laporan
+        setState(() {
+          _sudahIsiLaporan = true;
+        });
+
+        // Refresh data keseluruhan halaman setelah laporan berhasil
+        _fetchHomeData();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Laporan harian berhasil dikirim!"),
@@ -451,9 +459,12 @@ class PesertaHomeState extends State<PesertaHome> {
                       if (_sudahAbsen && _waktuKeluar != null) ...[
                         SizedBox(height: displayHeight(context) * 0.015),
                         ElevatedButton(
-                          onPressed: _showLaporanDialog,
+                          onPressed: _sudahIsiLaporan
+                              ? null
+                              : _showLaporanDialog,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue[600],
+                            disabledBackgroundColor: Colors.grey[400],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(
                                 displayWidth(context) * 0.025,
@@ -469,13 +480,17 @@ class PesertaHomeState extends State<PesertaHome> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.edit_document,
+                                _sudahIsiLaporan
+                                    ? Icons.check_circle
+                                    : Icons.edit_document,
                                 color: Colors.white,
                                 size: displayWidth(context) * 0.045,
                               ),
                               SizedBox(width: displayWidth(context) * 0.02),
                               Text(
-                                "Isi Laporan Harian",
+                                _sudahIsiLaporan
+                                    ? "Laporan Harian Terkirim"
+                                    : "Isi Laporan Harian",
                                 style: TextStyle(
                                   fontSize: displayWidth(context) * 0.035,
                                   fontWeight: FontWeight.bold,
