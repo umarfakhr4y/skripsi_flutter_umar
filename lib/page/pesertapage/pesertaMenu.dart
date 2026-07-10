@@ -241,8 +241,8 @@ class PesertaMenuState extends State<PesertaMenu> {
                 _buildMenuOption(
                   context,
                   icon: Icons.star_border,
-                  title: "Evaluasi",
-                  subtitle: "Hasil penilaian mentor",
+                  title: "Evaluasi Bulanan",
+                  subtitle: "Hasil penilaian bulanan oleh mentor",
                   onTap: () {
                     Navigator.push(
                       context,

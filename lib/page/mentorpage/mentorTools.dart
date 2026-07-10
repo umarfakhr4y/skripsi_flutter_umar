@@ -174,6 +174,19 @@ class _MentorToolsState extends State<MentorTools> {
                     );
                   },
                 ),
+                _buildToolCard(
+                  icon: Icons.star_border,
+                  title: "Evaluasi Bulanan",
+                  subtitle: "Lihat Evaluasi Bulanan",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EvaluasiBulananPesertaMentor(),
+                      ),
+                    );
+                  },
+                ),
 
                 SizedBox(height: displayHeight(context) * 0.05),
               ],
