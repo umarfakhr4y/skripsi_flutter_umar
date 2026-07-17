@@ -10,26 +10,48 @@ class BimbinganPesertaMentor extends StatefulWidget {
 class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
   String selectedTab = 'Diajukan';
 
-  final List<Map<String, dynamic>> dummyBimbingan = [
-    {
-      "nama": "Umar Fakhriy",
-      "tanggal": "5 Maret 2023",
-      "materi": "Diskusi tentang cara menggunakan API dengan baik dan benar",
-      "isExpanded": true,
-    },
-    {
-      "nama": "Umar Fakhriy",
-      "tanggal": "5 Maret 2023",
-      "materi": "Diskusi tentang cara menggunakan API dengan baik dan benar",
-      "isExpanded": false,
-    },
-    {
-      "nama": "Umar Fakhriy",
-      "tanggal": "5 Maret 2023",
-      "materi": "Diskusi tentang cara menggunakan API dengan baik dan benar",
-      "isExpanded": false,
-    },
-  ];
+  bool _isLoadingBimbingan = true;
+  List<dynamic> _listBimbingan = [];
+  Set<int> _expandedIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchBimbingan();
+  }
+
+  Future<void> _fetchBimbingan() async {
+    setState(() {
+      _isLoadingBimbingan = true;
+    });
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/mentor/bimbingan'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final result = jsonDecode(response.body);
+        setState(() {
+          _listBimbingan = result['data'] ?? [];
+          _isLoadingBimbingan = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingBimbingan = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoadingBimbingan = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,14 +88,54 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
               ),
               SizedBox(height: displayHeight(context) * 0.03),
               // List
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: dummyBimbingan.length,
-                itemBuilder: (context, index) {
-                  return _buildBimbinganCard(index);
-                },
-              ),
+              _isLoadingBimbingan
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFE84C63),
+                        ),
+                      ),
+                    )
+                  : Builder(
+                      builder: (context) {
+                        final displayedList = _listBimbingan.where((item) {
+                          String status = (item['status'] ?? '')
+                              .toString()
+                              .toLowerCase();
+                          if (selectedTab == 'Diajukan')
+                            return status == 'menunggu';
+                          if (selectedTab == 'Dijadwalkan')
+                            return status == 'disetujui';
+                          if (selectedTab == 'Riwayat')
+                            return status == 'selesai' || status == 'ditolak';
+                          return false;
+                        }).toList();
+
+                        if (displayedList.isEmpty) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              top: displayHeight(context) * 0.05,
+                            ),
+                            child: const Center(
+                              child: Text(
+                                "Belum ada data bimbingan",
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: displayedList.length,
+                          itemBuilder: (context, index) {
+                            return _buildBimbinganCard(displayedList[index]);
+                          },
+                        );
+                      },
+                    ),
             ],
           ),
         ),
@@ -111,9 +173,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
     );
   }
 
-  Widget _buildBimbinganCard(int index) {
-    final bimbingan = dummyBimbingan[index];
-    final isExpanded = bimbingan['isExpanded'] as bool;
+  Widget _buildBimbinganCard(dynamic bimbingan) {
+    final int bimbinganId = bimbingan['id'] ?? 0;
+    final bool isExpanded = _expandedIds.contains(bimbinganId);
 
     return Container(
       margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
@@ -126,7 +188,11 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
           ListTile(
             onTap: () {
               setState(() {
-                bimbingan['isExpanded'] = !isExpanded;
+                if (isExpanded) {
+                  _expandedIds.remove(bimbinganId);
+                } else {
+                  _expandedIds.add(bimbinganId);
+                }
               });
             },
             contentPadding: EdgeInsets.symmetric(
@@ -136,21 +202,23 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
             leading: CircleAvatar(
               backgroundColor: const Color(0xFFE84C63),
               radius: displayWidth(context) * 0.055,
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: displayWidth(context) * 0.07,
+              child: Text(
+                (bimbingan['peserta']?['nama'] ?? 'U')[0].toUpperCase(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             title: Text(
-              bimbingan['nama'],
+              bimbingan['peserta']?['nama'] ?? 'Unknown',
               style: TextStyle(
                 fontSize: displayWidth(context) * 0.035,
                 fontWeight: FontWeight.w500,
               ),
             ),
             subtitle: Text(
-              bimbingan['tanggal'],
+              'Dijadwalkan pada :' + bimbingan['tanggal'] ?? '',
               style: TextStyle(
                 fontSize: displayWidth(context) * 0.03,
                 color: Colors.grey[600],
@@ -190,7 +258,7 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                           top: displayHeight(context) * 0.005,
                         ),
                         child: Text(
-                          bimbingan['materi'],
+                          bimbingan['topik'] ?? '-',
                           style: TextStyle(
                             fontSize: displayWidth(context) * 0.032,
                             color: Colors.grey[600],
