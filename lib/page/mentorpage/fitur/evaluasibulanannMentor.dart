@@ -20,6 +20,7 @@ class _EvaluasiBulananPesertaMentorState
   List<Map<String, dynamic>> listPeserta = [];
   bool _isLoadingPeserta = true;
   bool _isSubmitting = false;
+  bool _isSudahEvaluasiBulanIni = false;
 
   @override
   void initState() {
@@ -47,6 +48,8 @@ class _EvaluasiBulananPesertaMentorState
             if (listPeserta.isNotEmpty) {
               selectedPesertaId = listPeserta.first['id'].toString();
               selectedPesertaName = listPeserta.first['nama_lengkap'];
+              _isSudahEvaluasiBulanIni =
+                  listPeserta.first['sudah_dievaluasi_bulan_ini'] ?? false;
             }
             _isLoadingPeserta = false;
           });
@@ -378,9 +381,12 @@ class _EvaluasiBulananPesertaMentorState
                       onSelected: (String id) {
                         setState(() {
                           selectedPesertaId = id;
-                          selectedPesertaName = listPeserta.firstWhere(
+                          final selected = listPeserta.firstWhere(
                             (p) => p['id'].toString() == id,
-                          )['nama_lengkap'];
+                          );
+                          selectedPesertaName = selected['nama_lengkap'];
+                          _isSudahEvaluasiBulanIni =
+                              selected['sudah_dievaluasi_bulan_ini'] ?? false;
                         });
                       },
                       itemBuilder: (BuildContext context) {
@@ -451,16 +457,6 @@ class _EvaluasiBulananPesertaMentorState
                                       fontSize: displayWidth(context) * 0.045,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.black87,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    height: displayHeight(context) * 0.002,
-                                  ),
-                                  Text(
-                                    "Bulan ini",
-                                    style: TextStyle(
-                                      fontSize: displayWidth(context) * 0.032,
-                                      color: Colors.grey[600],
                                     ),
                                   ),
                                 ],
@@ -559,6 +555,45 @@ class _EvaluasiBulananPesertaMentorState
                           borderRadius: BorderRadius.circular(
                             displayWidth(context) * 0.08,
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (_isSudahEvaluasiBulanIni)
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(displayWidth(context) * 0.06),
+                  decoration: BoxDecoration(
+                    color: Colors.green[50],
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.04,
+                    ),
+                    border: Border.all(color: Colors.green[300]!, width: 1.5),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.check_circle,
+                        color: Colors.green,
+                        size: displayWidth(context) * 0.12,
+                      ),
+                      SizedBox(height: displayHeight(context) * 0.02),
+                      Text(
+                        "Evaluasi Selesai",
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.045,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[800],
+                        ),
+                      ),
+                      SizedBox(height: displayHeight(context) * 0.01),
+                      Text(
+                        "Anda sudah mengisi evaluasi bulanan untuk peserta ini pada bulan ini.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.035,
+                          color: Colors.green[700],
                         ),
                       ),
                     ],
