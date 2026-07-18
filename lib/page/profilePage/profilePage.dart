@@ -161,13 +161,18 @@ class ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                   child: InkWell(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const loginPage(),
-                        ),
-                      );
+                    onTap: () async {
+                      const storage = FlutterSecureStorage();
+                      await storage.delete(key: 'access_token');
+                      
+                      if (context.mounted) {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const loginPage(),
+                          ),
+                        );
+                      }
                     },
                     child: Icon(
                       Icons.logout,

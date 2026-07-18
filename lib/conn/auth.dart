@@ -24,6 +24,7 @@ part '../page/profilePage/pengaturanNotifikasiPage.dart';
 part '../page/profilePage/aboutPage.dart';
 part '../page/lupaPasswordPage.dart';
 part '../page/autentikasimain.dart';
+part '../page/getrole.dart';
 
 part '../page/mentorpage/mentorMain.dart';
 part '../page/mentorpage/mentorHome.dart';

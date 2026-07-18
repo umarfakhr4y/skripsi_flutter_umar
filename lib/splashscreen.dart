@@ -29,10 +29,17 @@ class _SplashscreenState extends State<Splashscreen> {
 
       Timer(const Duration(seconds: 1), () {
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const loginPage()),
-          );
+          if (token != null && token.isNotEmpty) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const GetRolePage()),
+            );
+          } else {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const loginPage()),
+            );
+          }
         }
       });
     } catch (e) {
