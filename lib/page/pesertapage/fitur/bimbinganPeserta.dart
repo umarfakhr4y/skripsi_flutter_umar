@@ -65,23 +65,26 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
             Navigator.pop(context);
           },
         ),
-        title: const Text(
+        title: Text(
           'Bimbingan',
           style: TextStyle(
             color: Color(0xFFAD3B3E),
             fontWeight: FontWeight.bold,
-            fontSize: 18,
+            fontSize: displayWidth(context) * 0.045,
           ),
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        padding: EdgeInsets.symmetric(
+          horizontal: displayWidth(context) * 0.05,
+          vertical: displayHeight(context) * 0.025,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Segmented Control
             Container(
-              height: 40,
+              height: displayHeight(context) * 0.05,
               decoration: BoxDecoration(
                 color: const Color(0xFFF5F5F5),
                 borderRadius: BorderRadius.circular(8),
@@ -112,7 +115,7 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                             fontWeight: _selectedIndex == 0
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            fontSize: 13,
+                            fontSize: displayWidth(context) * 0.032,
                           ),
                         ),
                       ),
@@ -142,7 +145,7 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                             fontWeight: _selectedIndex == 1
                                 ? FontWeight.bold
                                 : FontWeight.normal,
-                            fontSize: 13,
+                            fontSize: displayWidth(context) * 0.032,
                           ),
                         ),
                       ),
@@ -160,14 +163,17 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFEA5455),
-                minimumSize: const Size(double.infinity, 50),
+                minimumSize: Size(
+                  double.infinity,
+                  displayHeight(context) * 0.06,
+                ),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
                 elevation: 2,
                 shadowColor: const Color(0xFFEA5455).withOpacity(0.4),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.add_circle_outline, color: Colors.white, size: 20),
@@ -176,7 +182,7 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                     '+ Request Bimbingan',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 14,
+                      fontSize: displayWidth(context) * 0.035,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -186,22 +192,22 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
             const SizedBox(height: 24),
 
             // Section Title
-            const Text(
+            Text(
               'Jadwal Aktif',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: displayWidth(context) * 0.04,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: displayHeight(context) * 0.02),
 
             // Card Lists
             _isLoadingBimbingan
-                ? const Center(
+                ? Center(
                     child: Padding(
-                      padding: EdgeInsets.all(20.0),
-                      child: CircularProgressIndicator(
+                      padding: EdgeInsets.all(displayWidth(context) * 0.05),
+                      child: const CircularProgressIndicator(
                         color: Color(0xFFAD3B3E),
                       ),
                     ),
@@ -217,23 +223,33 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                     ),
                   )
                 : Column(
-                    children: _listBimbingan.map((item) {
+                    children: _listBimbingan.where((item) {
+                      bool isPast = item['is_past'] ?? false;
+                      String rawStatus = (item['status'] ?? '').toString().toUpperCase();
+                      if (_selectedIndex == 0) { // Aktif
+                        return !isPast && rawStatus != 'SELESAI' && rawStatus != 'REJECTED' && rawStatus != 'DITOLAK';
+                      } else { // Riwayat
+                        return isPast || rawStatus == 'SELESAI' || rawStatus == 'REJECTED' || rawStatus == 'DITOLAK';
+                      }
+                    }).map((item) {
                       Color statusBgColor = Colors.grey.shade200;
                       Color statusTextColor = Colors.black54;
 
                       String rawStatus = (item['status'] ?? '')
                           .toString()
                           .toUpperCase();
-                      if (rawStatus == 'MENUNGGU') {
+                      if (rawStatus == 'REQUESTED' || rawStatus == 'MENUNGGU') {
                         statusBgColor = const Color(0xFFEBEBEB);
                         statusTextColor = const Color(0xFF666666);
-                      } else if (rawStatus == 'DISETUJUI') {
-                        statusBgColor = const Color(0xFFFDE8D0);
-                        statusTextColor = const Color(0xFFB87834);
+                      } else if (rawStatus == 'ACCEPTED' ||
+                          rawStatus == 'DISETUJUI') {
+                        statusBgColor = const Color(0xFFE6F4EA);
+                        statusTextColor = const Color(0xFF1E8E3E);
                       } else if (rawStatus == 'SELESAI') {
                         statusBgColor = const Color(0xFFE6F4EA);
                         statusTextColor = const Color(0xFF1E8E3E);
-                      } else if (rawStatus == 'DITOLAK') {
+                      } else if (rawStatus == 'REJECTED' ||
+                          rawStatus == 'DITOLAK') {
                         statusBgColor = const Color(0xFFFCE8E6);
                         statusTextColor = const Color(0xFFD93025);
                       }
@@ -248,6 +264,7 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                           statusTextColor: statusTextColor,
                           icon: Icons.calendar_today_outlined,
                           dateTime: item['tanggal'] ?? '',
+                          linkMeet: item['link_meet'],
                         ),
                       );
                     }).toList(),
@@ -266,9 +283,10 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
     required Color statusTextColor,
     required IconData icon,
     required String dateTime,
+    String? linkMeet,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(displayWidth(context) * 0.04),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -290,18 +308,21 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
-                        fontSize: 15,
+                      style: TextStyle(
+                        fontSize: displayWidth(context) * 0.038,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      role,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF888888),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4.0, right: 5),
+                      child: Text(
+                        role,
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.032,
+                          color: const Color(0xFF888888),
+                        ),
                       ),
                     ),
                   ],
@@ -319,7 +340,7 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                 child: Text(
                   status,
                   style: TextStyle(
-                    fontSize: 9,
+                    fontSize: displayWidth(context) * 0.025,
                     fontWeight: FontWeight.bold,
                     color: statusTextColor,
                     letterSpacing: 0.5,
@@ -341,15 +362,67 @@ class _BimbinganPesertaState extends State<BimbinganPeserta> {
                 const SizedBox(width: 8),
                 Text(
                   dateTime,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF666666),
+                  style: TextStyle(
+                    fontSize: displayWidth(context) * 0.03,
+                    color: const Color(0xFF666666),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
             ),
           ),
+          if (linkMeet != null && linkMeet.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.video_call, size: 20, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Link Google Meet",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        InkWell(
+                          onTap: () {
+                            Clipboard.setData(ClipboardData(text: linkMeet));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Link disalin ke clipboard!"),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          },
+                          child: Text(
+                            linkMeet,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.blue,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
