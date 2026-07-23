@@ -12,6 +12,7 @@ class _MentorHomeState extends State<MentorHome> {
   bool _isFetchingData = true;
   int _totalPeserta = 0;
   int _sudahAbsen = 0;
+  int _sudahLaporan = 0;
 
   @override
   void initState() {
@@ -35,19 +36,26 @@ class _MentorHomeState extends State<MentorHome> {
 
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
-          
+
           final absensiResult = await MentorService.getPesertaAbsensi();
           int tPeserta = 0;
           int sAbsen = 0;
+          int sLaporan = 0;
           if (absensiResult['success']) {
-             List<dynamic> absensiList = absensiResult['data'];
-             tPeserta = absensiList.length;
-             sAbsen = absensiList.where((p) {
-               if (p is Map) {
-                 return p['sudah_absen_masuk'] == true;
-               }
-               return false;
-             }).length;
+            if (absensiResult['summary'] != null) {
+              tPeserta = absensiResult['summary']['total_peserta'] ?? 0;
+              sAbsen = absensiResult['summary']['sudah_clock_in'] ?? 0;
+              sLaporan = absensiResult['summary']['sudah_laporan'] ?? 0;
+            } else {
+              List<dynamic> absensiList = absensiResult['data'] ?? [];
+              tPeserta = absensiList.length;
+              sAbsen = absensiList.where((p) {
+                if (p is Map) {
+                  return p['sudah_absen_masuk'] == true;
+                }
+                return false;
+              }).length;
+            }
           }
 
           if (mounted) {
@@ -57,6 +65,7 @@ class _MentorHomeState extends State<MentorHome> {
               }
               _totalPeserta = tPeserta;
               _sudahAbsen = sAbsen;
+              _sudahLaporan = sLaporan;
               _isFetchingData = false;
             });
           }
@@ -327,7 +336,7 @@ class _MentorHomeState extends State<MentorHome> {
                             size: displayWidth(context) * 0.04,
                           ),
                           SizedBox(width: displayWidth(context) * 0.02),
-                          _isFetchingData 
+                          _isFetchingData
                               ? Shimmer.fromColors(
                                   baseColor: Colors.grey[300]!,
                                   highlightColor: Colors.grey[100]!,
@@ -357,13 +366,23 @@ class _MentorHomeState extends State<MentorHome> {
                           ),
                           SizedBox(width: displayWidth(context) * 0.02),
                           Expanded(
-                            child: Text(
-                              "3 dari 12 peserta sudah mengisi Laporan harian",
-                              style: TextStyle(
-                                fontSize: displayWidth(context) * 0.03,
-                                color: Colors.black87,
-                              ),
-                            ),
+                            child: _isFetchingData
+                                ? Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Container(
+                                      width: displayWidth(context) * 0.4,
+                                      height: displayWidth(context) * 0.03,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    "$_sudahLaporan dari $_totalPeserta peserta sudah mengisi Laporan harian",
+                                    style: TextStyle(
+                                      fontSize: displayWidth(context) * 0.03,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
