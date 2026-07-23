@@ -124,13 +124,13 @@ class _MentorToolsState extends State<MentorTools> {
                 ),
                 _buildToolCard(
                   icon: Icons.people,
-                  title: "Persuratan",
-                  subtitle: "Lihat Pengajuan Persuratan",
+                  title: "Persuratan dan Perizinan",
+                  subtitle: "Lihat Persuratan dan Perizinan",
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => PersuratanPesertaMentor(),
+                        builder: (context) => PersuratanPesertaMentordua(),
                       ),
                     );
                   },

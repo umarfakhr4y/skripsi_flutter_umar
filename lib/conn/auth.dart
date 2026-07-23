@@ -42,6 +42,7 @@ part '../page/mentorpage/fitur/detailtugasMentor.dart';
 part '../page/mentorpage/fitur/lampiraninstruksiMentor.dart';
 part '../page/mentorpage/fitur/evaluasibulanannMentor.dart';
 part '../page/mentorpage/fitur/riwayatevaluasiMentor.dart';
+part '../page/mentorpage/fitur/persuratanpesertaMentor_dua.dart';
 
 part '../page/pesertapage/pesertaMain.dart';
 part '../page/pesertapage/autentikasiPeserta.dart';

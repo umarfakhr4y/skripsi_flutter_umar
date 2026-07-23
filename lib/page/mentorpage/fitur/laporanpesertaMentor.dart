@@ -55,6 +55,74 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
     super.dispose();
   }
 
+  Widget _buildShimmerLaporanCard() {
+    return Container(
+      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
+      width: double.infinity,
+      padding: EdgeInsets.all(displayWidth(context) * 0.04),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: displayWidth(context) * 0.08,
+                      height: displayWidth(context) * 0.08,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.02,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.03),
+                    Container(
+                      width: displayWidth(context) * 0.2,
+                      height: displayWidth(context) * 0.04,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+                Container(
+                  width: displayWidth(context) * 0.2,
+                  height: displayWidth(context) * 0.06,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.05,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: displayHeight(context) * 0.02),
+            Container(
+              width: double.infinity,
+              height: displayHeight(context) * 0.1,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.02,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildLaporanCard(dynamic laporan) {
     String namaPeserta = laporan['nama_peserta'] ?? 'Tanpa Nama';
     String isiLaporan = laporan['laporan'] ?? '-';
@@ -336,7 +404,48 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: _isLoadingPeserta
-                            ? const Center(child: CircularProgressIndicator())
+                            ? Padding(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: displayHeight(context) * 0.015,
+                                ),
+                                child: Shimmer.fromColors(
+                                  baseColor: Colors.grey[300]!,
+                                  highlightColor: Colors.grey[100]!,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            width: displayWidth(context) * 0.05,
+                                            height:
+                                                displayWidth(context) * 0.05,
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: displayWidth(context) * 0.03,
+                                          ),
+                                          Container(
+                                            width: displayWidth(context) * 0.4,
+                                            height:
+                                                displayWidth(context) * 0.035,
+                                            color: Colors.white,
+                                          ),
+                                        ],
+                                      ),
+                                      Icon(
+                                        Icons.keyboard_arrow_down,
+                                        color: Colors.white,
+                                        size: displayWidth(context) * 0.06,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
                             : DropdownButton<String>(
                                 isExpanded: true,
                                 value: selectedPesertaId,
@@ -431,7 +540,8 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
               // Hasil Pencarian Section
               if (_isSearching) ...[
                 SizedBox(height: displayHeight(context) * 0.04),
-                const Center(child: CircularProgressIndicator()),
+                _buildShimmerLaporanCard(),
+                _buildShimmerLaporanCard(),
               ] else if (hasSearched) ...[
                 SizedBox(height: displayHeight(context) * 0.04),
                 Text(
