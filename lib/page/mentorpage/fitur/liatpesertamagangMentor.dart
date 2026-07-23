@@ -75,6 +75,50 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
     }
   }
 
+  Widget _buildShimmerPesertaCard() {
+    return Container(
+      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.015),
+      padding: EdgeInsets.symmetric(
+        horizontal: displayWidth(context) * 0.04,
+        vertical: displayHeight(context) * 0.015,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(displayWidth(context) * 0.02),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              width: displayWidth(context) * 0.1,
+              height: displayWidth(context) * 0.1,
+            ),
+            SizedBox(width: displayWidth(context) * 0.04),
+            Expanded(
+              child: Container(
+                height: displayWidth(context) * 0.035,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(width: displayWidth(context) * 0.1),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white,
+              size: displayWidth(context) * 0.04,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildPesertaCard(dynamic peserta) {
     String name = peserta['nama_lengkap'] ?? 'Unknown';
     return GestureDetector(
@@ -83,7 +127,8 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => DetailPesertaMagangMentor(pesertaId: peserta['id']),
+            builder: (context) =>
+                DetailPesertaMagangMentor(pesertaId: peserta['id']),
           ),
         );
       },
@@ -214,10 +259,11 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
               // List of Peserta
               Expanded(
                 child: _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFE84C63),
-                        ),
+                    ? ListView.builder(
+                        itemCount: 6,
+                        itemBuilder: (context, index) {
+                          return _buildShimmerPesertaCard();
+                        },
                       )
                     : _filteredPesertaList.isEmpty
                     ? const Center(
