@@ -9,16 +9,74 @@ class LiatPesertaMagangMentor extends StatefulWidget {
 }
 
 class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
-  final List<String> pesertaList = [
-    "Umar Fakhriy",
-    "Galuh Kirana",
-    "Haikal Dzaky",
-    "Ahmad Ghofur",
-    "Fakrazi",
-    "Novalino Hamid",
-  ];
+  List<dynamic> _allPesertaList = [];
+  List<dynamic> _filteredPesertaList = [];
+  bool _isLoading = true;
+  final TextEditingController _searchController = TextEditingController();
 
-  Widget _buildPesertaCard(String name) {
+  @override
+  void initState() {
+    super.initState();
+    _fetchPeserta();
+    _searchController.addListener(_filterPeserta);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _filterPeserta() {
+    String query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredPesertaList = _allPesertaList.where((peserta) {
+        String nama = (peserta['nama_lengkap'] ?? '').toLowerCase();
+        return nama.contains(query);
+      }).toList();
+    });
+  }
+
+  Future<void> _fetchPeserta() async {
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            _allPesertaList = data['data'];
+            _filteredPesertaList = data['data'];
+            _isLoading = false;
+          });
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Widget _buildPesertaCard(dynamic peserta) {
+    String name = peserta['nama_lengkap'] ?? 'Unknown';
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -134,6 +192,7 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
                     SizedBox(width: displayWidth(context) * 0.03),
                     Expanded(
                       child: TextField(
+                        controller: _searchController,
                         decoration: InputDecoration(
                           hintText: "Cari Nama Peserta",
                           hintStyle: TextStyle(
@@ -153,12 +212,25 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
 
               // List of Peserta
               Expanded(
-                child: ListView.builder(
-                  itemCount: pesertaList.length,
-                  itemBuilder: (context, index) {
-                    return _buildPesertaCard(pesertaList[index]);
-                  },
-                ),
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFE84C63),
+                        ),
+                      )
+                    : _filteredPesertaList.isEmpty
+                    ? const Center(
+                        child: Text(
+                          "Tidak ada data peserta magang",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: _filteredPesertaList.length,
+                        itemBuilder: (context, index) {
+                          return _buildPesertaCard(_filteredPesertaList[index]);
+                        },
+                      ),
               ),
             ],
           ),
