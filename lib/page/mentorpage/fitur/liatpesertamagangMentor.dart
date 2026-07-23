@@ -79,10 +79,11 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
     String name = peserta['nama_lengkap'] ?? 'Unknown';
     return GestureDetector(
       onTap: () {
+        print(peserta['id']);
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const DetailPesertaMagangMentor(),
+            builder: (context) => DetailPesertaMagangMentor(pesertaId: peserta['id']),
           ),
         );
       },

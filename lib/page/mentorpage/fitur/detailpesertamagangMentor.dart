@@ -1,7 +1,8 @@
 part of '../../../conn/auth.dart';
 
 class DetailPesertaMagangMentor extends StatefulWidget {
-  const DetailPesertaMagangMentor({super.key});
+  final int pesertaId;
+  const DetailPesertaMagangMentor({super.key, required this.pesertaId});
 
   @override
   State<DetailPesertaMagangMentor> createState() =>
@@ -9,6 +10,48 @@ class DetailPesertaMagangMentor extends StatefulWidget {
 }
 
 class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
+  Map<String, dynamic>? _pesertaData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDetailPeserta();
+  }
+
+  Future<void> _fetchDetailPeserta() async {
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+
+      final response = await http.get(
+        Uri.parse(
+          'http://10.0.2.2:8000/api/mentor/peserta/${widget.pesertaId}',
+        ),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            _pesertaData = data['data'];
+            _isLoading = false;
+          });
+        } else {
+          setState(() => _isLoading = false);
+        }
+      } else {
+        setState(() => _isLoading = false);
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,20 +70,31 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: false,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.all(displayWidth(context) * 0.05),
-          child: Column(
-            children: [
-              _buildProfilHeader(),
-              SizedBox(height: displayHeight(context) * 0.02),
-              _buildDataDiri(),
-              SizedBox(height: displayHeight(context) * 0.02),
-              _buildTugasTerbaru(),
-            ],
-          ),
-        ),
-      ),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFE84C63)),
+            )
+          : _pesertaData == null
+          ? const Center(
+              child: Text(
+                "Gagal memuat data peserta",
+                style: TextStyle(color: Colors.grey),
+              ),
+            )
+          : SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(displayWidth(context) * 0.05),
+                child: Column(
+                  children: [
+                    _buildProfilHeader(),
+                    SizedBox(height: displayHeight(context) * 0.02),
+                    _buildDataDiri(),
+                    SizedBox(height: displayHeight(context) * 0.02),
+                    _buildTugasTerbaru(),
+                  ],
+                ),
+              ),
+            ),
     );
   }
 
@@ -66,7 +120,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           ),
           SizedBox(height: displayHeight(context) * 0.02),
           Text(
-            'Budi Santoso',
+            _pesertaData?['nama_lengkap'] ?? 'Unknown',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.045,
               fontWeight: FontWeight.bold,
@@ -75,7 +129,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           ),
           SizedBox(height: displayHeight(context) * 0.005),
           Text(
-            'Universitas Gadjah Mada • Sistem Informasi',
+            '${_pesertaData?['universitas'] ?? '-'} • ${_pesertaData?['prodi'] ?? '-'}',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.03,
               color: Colors.grey[600],
@@ -94,7 +148,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
               border: Border.all(color: Colors.green.withOpacity(0.5)),
             ),
             child: Text(
-              'Aktif',
+              _pesertaData?['status'] ?? 'Aktif',
               style: TextStyle(
                 color: Colors.green[700],
                 fontWeight: FontWeight.bold,
@@ -137,11 +191,14 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
             ],
           ),
           SizedBox(height: displayHeight(context) * 0.02),
-          _buildDataRow('Email', 'budi.santoso@student.ugm.ac.id'),
+          _buildDataRow('Email', _pesertaData?['email'] ?? '-'),
           SizedBox(height: displayHeight(context) * 0.015),
-          _buildDataRow('No. Telepon', '0812-3456-7890'),
+          _buildDataRow('No. Telepon', _pesertaData?['no_telpon'] ?? '-'),
           SizedBox(height: displayHeight(context) * 0.015),
-          _buildDataRow('Periode Magang', '1 Feb 2024 - 31 Jul 2024'),
+          _buildDataRow(
+            'Periode Magang',
+            '${_pesertaData?['periode_masuk'] ?? '-'} s.d ${_pesertaData?['periode_keluar'] ?? '-'}',
+          ),
         ],
       ),
     );
