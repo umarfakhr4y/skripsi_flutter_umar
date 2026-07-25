@@ -16,21 +16,58 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
   bool _isSubmitting = false;
   bool _isLoadingData = true;
   List<dynamic> _persuratanList = [];
+  List<dynamic> _perizinanList = [];
+
+  final TextEditingController _jenisIzinController = TextEditingController();
+  final TextEditingController _keteranganIzinController =
+      TextEditingController();
+  String? _selectedFileIzinName;
+  String? _selectedFileIzinPath;
+  bool _isSubmittingIzin = false;
+  DateTime? _selectedTanggalIzin;
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '-';
+    try {
+      DateTime date = DateTime.parse(dateString);
+      const days = [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu',
+      ];
+      String dayName = days[date.weekday - 1];
+      String day = date.day.toString().padLeft(2, '0');
+      String month = date.month.toString().padLeft(2, '0');
+      String year = date.year.toString();
+      return '$dayName, $day-$month-$year';
+    } catch (e) {
+      return dateString;
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _fetchPersuratanData();
+    _fetchAllData();
+  }
+
+  Future<void> _fetchAllData() async {
+    setState(() => _isLoadingData = true);
+    await Future.wait([_fetchPersuratanData(), _fetchPerizinanData()]);
+    if (mounted) {
+      setState(() => _isLoadingData = false);
+    }
   }
 
   Future<void> _fetchPersuratanData() async {
     const storage = FlutterSecureStorage();
     String? token = await storage.read(key: 'access_token');
 
-    if (token == null) {
-      if (mounted) setState(() => _isLoadingData = false);
-      return;
-    }
+    if (token == null) return;
 
     try {
       final response = await http.get(
@@ -90,310 +127,438 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
             if (mounted) {
               setState(() {
                 _persuratanList = fetchedData;
-                _isLoadingData = false;
               });
             }
           }
         }
-      } else {
-        if (mounted) setState(() => _isLoadingData = false);
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingData = false);
+      print(e);
+    }
+  }
+
+  Future<void> _fetchPerizinanData() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token == null) return;
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/peserta/perizinan'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          final fetchedData = data['data'] as List<dynamic>;
+
+          if (mounted) {
+            List<Future<void>> precacheTasks = [];
+            for (var item in fetchedData) {
+              final filePendukung = item['file_pendukung']?.toString();
+              if (filePendukung != null) {
+                final isImage =
+                    filePendukung.toLowerCase().endsWith('.jpg') ||
+                    filePendukung.toLowerCase().endsWith('.jpeg') ||
+                    filePendukung.toLowerCase().endsWith('.png');
+                if (isImage) {
+                  precacheTasks.add(
+                    precacheImage(
+                      NetworkImage(
+                        'http://10.0.2.2:8000/storage/$filePendukung',
+                      ),
+                      context,
+                    ),
+                  );
+                }
+              }
+            }
+
+            if (precacheTasks.isNotEmpty) {
+              await Future.wait(precacheTasks).catchError((_) => []);
+            }
+
+            if (mounted) {
+              setState(() {
+                _perizinanList = fetchedData;
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F7),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFFAD3B3E)),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: const Text(
-          'Persuratan dan Perizinan',
-          style: TextStyle(
-            color: Color(0xFFAD3B3E),
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF7F7F7),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFFAD3B3E)),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          title: const Text(
+            'Persuratan dan Perizinan',
+            style: TextStyle(
+              color: Color(0xFFAD3B3E),
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTopButton(
-                    title: '+ Request\nSurat',
-                    icon: Icons.description,
-                    isPrimary: true,
-                    onTap: _showRequestSuratDialog,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTopButton(
-                    title: '+ Izin\nKehadiran',
-                    icon: Icons.calendar_today_outlined,
-                    isPrimary: false,
-                    onTap: () {},
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Custom Tabs
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTab = 0;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _selectedTab == 0
-                                ? const Color(0xFFAD3B3E)
-                                : Colors.grey.shade300,
-                            width: _selectedTab == 0 ? 2 : 1,
-                          ),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Persuratan',
-                        style: TextStyle(
-                          color: _selectedTab == 0
-                              ? const Color(0xFFAD3B3E)
-                              : const Color(0xFF666666),
-                          fontWeight: _selectedTab == 0
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          fontSize: 14,
-                        ),
-                      ),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTopButton(
+                      title: '+ Request\nSurat',
+                      icon: Icons.description,
+                      isPrimary: true,
+                      onTap: _showRequestSuratDialog,
                     ),
                   ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedTab = 1;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: _selectedTab == 1
-                                ? const Color(0xFFAD3B3E)
-                                : Colors.grey.shade300,
-                            width: _selectedTab == 1 ? 2 : 1,
-                          ),
-                        ),
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Perizinan',
-                        style: TextStyle(
-                          color: _selectedTab == 1
-                              ? const Color(0xFFAD3B3E)
-                              : const Color(0xFF666666),
-                          fontWeight: _selectedTab == 1
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          fontSize: 14,
-                        ),
-                      ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTopButton(
+                      title: '+ Izin\nKehadiran',
+                      icon: Icons.calendar_today_outlined,
+                      isPrimary: false,
+                      onTap: _showRequestIzinDialog,
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
+                ],
+              ),
+              const SizedBox(height: 24),
 
-            if (_isLoadingData)
-              ...List.generate(
-                3,
-                (index) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Shimmer.fromColors(
-                    baseColor: Colors.grey.shade300,
-                    highlightColor: Colors.grey.shade100,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Container(
-                              width: 4,
-                              decoration: const BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(8),
-                                  bottomLeft: Radius.circular(8),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Container(
-                                          width: 150,
-                                          height: 18,
-                                          color: Colors.white,
-                                        ),
-                                        Container(
-                                          width: 80,
-                                          height: 20,
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
+              TabBar(
+                labelColor: const Color(0xFFAD3B3E),
+                unselectedLabelColor: const Color(0xFF666666),
+                indicatorColor: const Color(0xFFAD3B3E),
+                indicatorWeight: 2,
+                tabs: const [
+                  Tab(text: 'Persuratan'),
+                  Tab(text: 'Perizinan'),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_isLoadingData)
+                            ...List.generate(
+                              3,
+                              (index) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Shimmer.fromColors(
+                                  baseColor: Colors.grey.shade300,
+                                  highlightColor: Colors.grey.shade100,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: IntrinsicHeight(
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Container(
+                                            width: 4,
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.only(
+                                                topLeft: Radius.circular(8),
+                                                bottomLeft: Radius.circular(8),
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ],
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Container(
+                                                        width: 150,
+                                                        height: 18,
+                                                        color: Colors.white,
+                                                      ),
+                                                      Container(
+                                                        width: 80,
+                                                        height: 20,
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                20,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  Container(
+                                                    width: double.infinity,
+                                                    height: 12,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Container(
+                                                    width: 200,
+                                                    height: 12,
+                                                    color: Colors.white,
+                                                  ),
+                                                  const SizedBox(height: 16),
+                                                  Container(
+                                                    width: 120,
+                                                    height: 12,
+                                                    color: Colors.white,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
-                                    const SizedBox(height: 12),
-                                    Container(
-                                      width: double.infinity,
-                                      height: 12,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      width: 200,
-                                      height: 12,
-                                      color: Colors.white,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Container(
-                                      width: 120,
-                                      height: 12,
-                                      color: Colors.white,
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            )
+                          else if (_persuratanList.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(20.0),
+                                child: Text(
+                                  "Belum ada riwayat pengajuan surat.",
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              ),
+                            )
+                          else
+                            ..._persuratanList.map((item) {
+                              String statusText;
+                              IconData statusIcon;
+                              Color statusColor;
+                              Color statusBgColor;
+                              String? catatanTitle;
+                              Color? catatanColor;
+
+                              switch (item['status']) {
+                                case 'diproses':
+                                  statusText = 'Sedang Diproses';
+                                  statusIcon = Icons.remove_circle_outline;
+                                  statusColor = Colors.blue;
+                                  statusBgColor = Colors.blue.withOpacity(0.15);
+                                  catatanTitle = 'PESAN DARI MENTOR';
+                                  catatanColor = Colors.blue;
+                                  break;
+                                case 'selesai':
+                                  statusText = 'Selesai';
+                                  statusIcon = Icons.check_circle;
+                                  statusColor = Colors.green;
+                                  statusBgColor = Colors.green.withOpacity(
+                                    0.15,
+                                  );
+                                  catatanTitle = 'PESAN DARI MENTOR';
+                                  catatanColor = Colors.green;
+                                  break;
+                                case 'ditolak':
+                                  statusText = 'Ditolak';
+                                  statusIcon = Icons.cancel;
+                                  statusColor = const Color(0xFFC7282A);
+                                  statusBgColor = const Color(0xFFF7D8D8);
+                                  catatanTitle = 'ALASAN PENOLAKAN';
+                                  catatanColor = const Color(0xFFC7282A);
+                                  break;
+                                case 'pending':
+                                default:
+                                  statusText = 'Menunggu';
+                                  statusIcon = Icons.access_time;
+                                  statusColor = Colors.orange;
+                                  statusBgColor = Colors.orange.withOpacity(
+                                    0.15,
+                                  );
+                                  catatanTitle = 'PESAN DARI MENTOR';
+                                  catatanColor = Colors.orange;
+                                  break;
+                              }
+
+                              String dateText =
+                                  'Diajukan: ${_formatDate(item['created_at']?.toString())}';
+
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: _buildRequestCard(
+                                  borderColor: statusColor,
+                                  title:
+                                      item['jenis_surat'] ?? 'Tidak ada judul',
+                                  statusText: statusText,
+                                  statusIcon: statusIcon,
+                                  statusColor: statusColor,
+                                  statusBgColor: statusBgColor,
+                                  description: item['keperluan'] ?? '-',
+                                  dateText: dateText,
+                                  linkDokumen: item['link_dokumen'],
+                                  catatanMentor: item['catatan_mentor'],
+                                  catatanTitle: catatanTitle,
+                                  catatanColor: catatanColor,
+                                  filePendukung: item['file_pendukung'],
+                                ),
+                              );
+                            }).toList(),
+                        ],
                       ),
                     ),
-                  ),
+                    _perizinanList.isEmpty
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today_outlined,
+                                    size: 64,
+                                    color: Colors.grey,
+                                  ),
+                                  SizedBox(height: 16),
+                                  Text(
+                                    "Belum ada perizinan",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ..._perizinanList.map((item) {
+                                  String statusText;
+                                  IconData statusIcon;
+                                  Color statusColor;
+                                  Color statusBgColor;
+                                  String catatanTitle;
+                                  Color catatanColor;
+
+                                  switch (item['status']
+                                      ?.toString()
+                                      .toLowerCase()) {
+                                    case 'diproses':
+                                      statusText = 'Diproses';
+                                      statusIcon = Icons.sync;
+                                      statusColor = Colors.blue;
+                                      statusBgColor = Colors.blue.withOpacity(
+                                        0.15,
+                                      );
+                                      catatanTitle = 'PESAN DARI MENTOR';
+                                      catatanColor = Colors.blue;
+                                      break;
+                                    case 'selesai':
+                                      statusText = 'Selesai';
+                                      statusIcon = Icons.check_circle;
+                                      statusColor = Colors.green;
+                                      statusBgColor = Colors.green.withOpacity(
+                                        0.15,
+                                      );
+                                      catatanTitle = 'PESAN DARI MENTOR';
+                                      catatanColor = Colors.green;
+                                      break;
+                                    case 'ditolak':
+                                      statusText = 'Ditolak';
+                                      statusIcon = Icons.cancel;
+                                      statusColor = const Color(0xFFC7282A);
+                                      statusBgColor = const Color(0xFFF7D8D8);
+                                      catatanTitle = 'ALASAN PENOLAKAN';
+                                      catatanColor = const Color(0xFFC7282A);
+                                      break;
+                                    case 'pending':
+                                    default:
+                                      statusText = 'Menunggu';
+                                      statusIcon = Icons.access_time;
+                                      statusColor = Colors.orange;
+                                      statusBgColor = Colors.orange.withOpacity(
+                                        0.15,
+                                      );
+                                      catatanTitle = 'PESAN DARI MENTOR';
+                                      catatanColor = Colors.orange;
+                                      break;
+                                  }
+
+                                  String dateText = '';
+                                  if (item['tanggal_izin'] != null) {
+                                    dateText +=
+                                        'Izin Untuk: ${_formatDate(item['tanggal_izin']?.toString())}\n';
+                                  }
+                                  dateText +=
+                                      'Diajukan: ${_formatDate(item['created_at']?.toString())}';
+
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                      bottom: 16.0,
+                                    ),
+                                    child: _buildRequestCard(
+                                      borderColor: statusColor,
+                                      title:
+                                          item['jenis_izin'] ??
+                                          'Tidak ada judul',
+                                      statusText: statusText,
+                                      statusIcon: statusIcon,
+                                      statusColor: statusColor,
+                                      statusBgColor: statusBgColor,
+                                      description: item['keterangan'] ?? '-',
+                                      dateText: dateText,
+                                      linkDokumen: null,
+                                      catatanMentor: item['catatan_mentor'],
+                                      catatanTitle: catatanTitle,
+                                      catatanColor: catatanColor,
+                                      filePendukung: item['file_pendukung'],
+                                    ),
+                                  );
+                                }).toList(),
+                              ],
+                            ),
+                          ),
+                  ],
                 ),
-              )
-            else if (_persuratanList.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text(
-                    "Belum ada riwayat pengajuan surat.",
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              )
-            else
-              ..._persuratanList.map((item) {
-                String statusText;
-                IconData statusIcon;
-                Color statusColor;
-                Color statusBgColor;
-                String? catatanTitle;
-                Color? catatanColor;
-
-                switch (item['status']) {
-                  case 'diproses':
-                    statusText = 'Sedang Diproses';
-                    statusIcon = Icons.remove_circle_outline;
-                    statusColor = Colors.blue;
-                    statusBgColor = Colors.blue.withOpacity(0.15);
-                    catatanTitle = 'PESAN DARI MENTOR';
-                    catatanColor = Colors.blue;
-                    break;
-                  case 'selesai':
-                    statusText = 'Selesai';
-                    statusIcon = Icons.check_circle;
-                    statusColor = Colors.green;
-                    statusBgColor = Colors.green.withOpacity(0.15);
-                    catatanTitle = 'PESAN DARI MENTOR';
-                    catatanColor = Colors.green;
-                    break;
-                  case 'ditolak':
-                    statusText = 'Ditolak';
-                    statusIcon = Icons.cancel;
-                    statusColor = const Color(0xFFC7282A);
-                    statusBgColor = const Color(0xFFF7D8D8);
-                    catatanTitle = 'ALASAN PENOLAKAN';
-                    catatanColor = const Color(0xFFC7282A);
-                    break;
-                  case 'pending':
-                  default:
-                    statusText = 'Menunggu';
-                    statusIcon = Icons.access_time;
-                    statusColor = Colors.orange;
-                    statusBgColor = Colors.orange.withOpacity(0.15);
-                    catatanTitle = 'PESAN DARI MENTOR';
-                    catatanColor = Colors.orange;
-                    break;
-                }
-
-                String dateText =
-                    'Diajukan: ${item['created_at'] != null ? item['created_at'].toString().substring(0, 10) : '-'}';
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: _buildRequestCard(
-                    borderColor: statusColor,
-                    title: item['jenis_surat'] ?? 'Tidak ada judul',
-                    statusText: statusText,
-                    statusIcon: statusIcon,
-                    statusColor: statusColor,
-                    statusBgColor: statusBgColor,
-                    description: item['keperluan'] ?? '-',
-                    dateText: dateText,
-                    linkDokumen: item['link_dokumen'],
-                    catatanMentor: item['catatan_mentor'],
-                    catatanTitle: catatanTitle,
-                    catatanColor: catatanColor,
-                    filePendukung: item['file_pendukung'],
-                  ),
-                );
-              }).toList(),
-
-            const SizedBox(height: 24),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -449,7 +614,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
             const SnackBar(content: Text('Pengajuan surat berhasil dikirim!')),
           );
           Navigator.pop(context); // Tutup dialog
-          _fetchPersuratanData(); // Refresh list after successful submit
+          _fetchAllData(); // Refresh list after successful submit
         }
       } else {
         throw Exception(
@@ -705,6 +870,387 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                     ),
                   ),
                   child: _isSubmitting
+                      ? const SizedBox(
+                          height: 16,
+                          width: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Kirim',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _submitRequestIzin() async {
+    if (_jenisIzinController.text.trim().isEmpty ||
+        _keteranganIzinController.text.trim().isEmpty ||
+        _selectedTanggalIzin == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Jenis Izin, Tanggal, dan Keterangan wajib diisi!'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmittingIzin = true;
+    });
+
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+
+      if (token == null) {
+        throw Exception('Token tidak ditemukan, silakan login ulang.');
+      }
+
+      var uri = Uri.parse('http://10.0.2.2:8000/api/peserta/perizinan');
+      var request = http.MultipartRequest('POST', uri);
+
+      request.headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      });
+
+      request.fields['jenis_izin'] = _jenisIzinController.text.trim();
+      request.fields['keterangan'] = _keteranganIzinController.text.trim();
+      request.fields['tanggal_izin'] =
+          "${_selectedTanggalIzin!.year}-${_selectedTanggalIzin!.month.toString().padLeft(2, '0')}-${_selectedTanggalIzin!.day.toString().padLeft(2, '0')}";
+
+      if (_selectedFileIzinPath != null) {
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'file_pendukung',
+            _selectedFileIzinPath!,
+          ),
+        );
+      }
+
+      var streamedResponse = await request.send();
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (response.statusCode == 201) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Pengajuan izin berhasil dikirim!')),
+          );
+          Navigator.pop(context); // Tutup dialog
+          _fetchAllData(); // Refresh list after successful submit
+        }
+      } else {
+        throw Exception(
+          'Gagal mengirim pengajuan izin: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmittingIzin = false;
+        });
+      }
+    }
+  }
+
+  void _showRequestIzinDialog() {
+    String? selectedJenisIzin;
+    _jenisIzinController.clear();
+    _keteranganIzinController.clear();
+    _selectedFileIzinName = null;
+    _selectedFileIzinPath = null;
+    _selectedTanggalIzin = null;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                'Ajukan Perizinan',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Jenis Izin',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        hintText: 'Pilih Jenis Izin',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      value: selectedJenisIzin,
+                      icon: const Icon(
+                        Icons.arrow_drop_down,
+                        color: Colors.grey,
+                      ),
+                      isExpanded: true,
+                      items: ['Sakit', 'Terlambat', 'Lainnya'].map((
+                        String value,
+                      ) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        if (newValue != null) {
+                          setStateDialog(() {
+                            selectedJenisIzin = newValue;
+                            if (newValue != 'Lainnya') {
+                              _jenisIzinController.text = newValue;
+                            } else {
+                              _jenisIzinController.clear();
+                            }
+                          });
+                        }
+                      },
+                    ),
+                    if (selectedJenisIzin == 'Lainnya') ...[
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Jenis Izin Lainnya',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _jenisIzinController,
+                        decoration: InputDecoration(
+                          hintText: 'Cth: Izin Lomba',
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade400,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(color: Colors.grey.shade300),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Tanggal Izin',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () async {
+                        final pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: _selectedTanggalIzin ?? DateTime.now(),
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime(2100),
+                        );
+                        if (pickedDate != null) {
+                          setStateDialog(() {
+                            _selectedTanggalIzin = pickedDate;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade300),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              _selectedTanggalIzin != null
+                                  ? "${_selectedTanggalIzin!.day.toString().padLeft(2, '0')}-${_selectedTanggalIzin!.month.toString().padLeft(2, '0')}-${_selectedTanggalIzin!.year}"
+                                  : 'Pilih Tanggal Izin',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: _selectedTanggalIzin != null
+                                    ? Colors.black87
+                                    : Colors.grey.shade400,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Keterangan',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _keteranganIzinController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Jelaskan alasan izin...',
+                        hintStyle: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade400,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'File Pendukung (Opsional)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    InkWell(
+                      onTap: () async {
+                        FilePickerResult? result = await FilePicker.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: [
+                            'jpg',
+                            'jpeg',
+                            'png',
+                            'pdf',
+                            'doc',
+                            'docx',
+                          ],
+                        );
+
+                        if (result != null) {
+                          setStateDialog(() {
+                            _selectedFileIzinName = result.files.single.name;
+                            _selectedFileIzinPath = result.files.single.path;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade100,
+                          border: Border.all(
+                            color: Colors.grey.shade300,
+                            style: BorderStyle.solid,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.upload_file,
+                              color: Colors.grey.shade600,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _selectedFileIzinName ?? 'Pilih file (Max 5MB)',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: _selectedFileIzinName != null
+                                      ? Colors.black87
+                                      : Colors.grey.shade600,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: _isSubmittingIzin
+                      ? null
+                      : () => Navigator.pop(context),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: _isSubmittingIzin ? null : _submitRequestIzin,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFAD3B3E),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: _isSubmittingIzin
                       ? const SizedBox(
                           height: 16,
                           width: 16,

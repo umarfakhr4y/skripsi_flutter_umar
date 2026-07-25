@@ -11,6 +11,7 @@ class PersuratanPesertaMentordua extends StatefulWidget {
 class _PersuratanPesertaMentorduaState
     extends State<PersuratanPesertaMentordua> {
   List<dynamic> dataPersuratan = [];
+  List<dynamic> dataPerizinan = [];
   bool _isLoading = true;
   final _storage = const FlutterSecureStorage();
   String _searchQuery = '';
@@ -18,16 +19,19 @@ class _PersuratanPesertaMentorduaState
   @override
   void initState() {
     super.initState();
-    _fetchPersuratan();
+    _fetchAllData();
+  }
+
+  Future<void> _fetchAllData() async {
+    setState(() => _isLoading = true);
+    await Future.wait([_fetchPersuratan(), _fetchPerizinan()]);
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _fetchPersuratan() async {
     try {
       final token = await _storage.read(key: 'access_token');
-      if (token == null) {
-        setState(() => _isLoading = false);
-        return;
-      }
+      if (token == null) return;
 
       final response = await http.get(
         Uri.parse('http://10.0.2.2:8000/api/mentor/persuratan'),
@@ -47,26 +51,34 @@ class _PersuratanPesertaMentorduaState
             for (var item in fetchedData) {
               final linkDokumen = item['link_dokumen']?.toString();
               if (linkDokumen != null) {
-                final isImage = linkDokumen.toLowerCase().endsWith('.jpg') ||
+                final isImage =
+                    linkDokumen.toLowerCase().endsWith('.jpg') ||
                     linkDokumen.toLowerCase().endsWith('.jpeg') ||
                     linkDokumen.toLowerCase().endsWith('.png');
                 if (isImage) {
-                  precacheTasks.add(precacheImage(
-                    NetworkImage('http://10.0.2.2:8000/storage/$linkDokumen'),
-                    context,
-                  ));
+                  precacheTasks.add(
+                    precacheImage(
+                      NetworkImage('http://10.0.2.2:8000/storage/$linkDokumen'),
+                      context,
+                    ),
+                  );
                 }
               }
               final filePendukung = item['file_pendukung']?.toString();
               if (filePendukung != null) {
-                final isImage2 = filePendukung.toLowerCase().endsWith('.jpg') ||
+                final isImage2 =
+                    filePendukung.toLowerCase().endsWith('.jpg') ||
                     filePendukung.toLowerCase().endsWith('.jpeg') ||
                     filePendukung.toLowerCase().endsWith('.png');
                 if (isImage2) {
-                  precacheTasks.add(precacheImage(
-                    NetworkImage('http://10.0.2.2:8000/storage/$filePendukung'),
-                    context,
-                  ));
+                  precacheTasks.add(
+                    precacheImage(
+                      NetworkImage(
+                        'http://10.0.2.2:8000/storage/$filePendukung',
+                      ),
+                      context,
+                    ),
+                  );
                 }
               }
             }
@@ -78,19 +90,70 @@ class _PersuratanPesertaMentorduaState
             if (mounted) {
               setState(() {
                 dataPersuratan = fetchedData;
-                _isLoading = false;
               });
             }
           }
-        } else {
-          if (mounted) setState(() => _isLoading = false);
         }
-      } else {
-        setState(() => _isLoading = false);
       }
     } catch (e) {
       print('Error fetching persuratan: $e');
-      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchPerizinan() async {
+    try {
+      final token = await _storage.read(key: 'access_token');
+      if (token == null) return;
+
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/mentor/perizinan'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> body = json.decode(response.body);
+        if (body['success']) {
+          final fetchedData = body['data'] as List<dynamic>;
+
+          if (mounted) {
+            List<Future<void>> precacheTasks = [];
+            for (var item in fetchedData) {
+              final filePendukung = item['file_pendukung']?.toString();
+              if (filePendukung != null) {
+                final isImage2 =
+                    filePendukung.toLowerCase().endsWith('.jpg') ||
+                    filePendukung.toLowerCase().endsWith('.jpeg') ||
+                    filePendukung.toLowerCase().endsWith('.png');
+                if (isImage2) {
+                  precacheTasks.add(
+                    precacheImage(
+                      NetworkImage(
+                        'http://10.0.2.2:8000/storage/$filePendukung',
+                      ),
+                      context,
+                    ),
+                  );
+                }
+              }
+            }
+
+            if (precacheTasks.isNotEmpty) {
+              await Future.wait(precacheTasks).catchError((_) => []);
+            }
+
+            if (mounted) {
+              setState(() {
+                dataPerizinan = fetchedData;
+              });
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching perizinan: $e');
     }
   }
 
@@ -133,12 +196,7 @@ class _PersuratanPesertaMentorduaState
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildDaftarSurat(),
-            const Center(child: Text("Halaman Perizinan")),
-          ],
-        ),
+        body: TabBarView(children: [_buildDaftarSurat(), _buildDaftarIzin()]),
       ),
     );
   }
@@ -224,7 +282,93 @@ class _PersuratanPesertaMentorduaState
     return _ExpandableSuratCard(
       data: data,
       onStatusUpdated: () {
-        _fetchPersuratan();
+        _fetchAllData();
+      },
+    );
+  }
+
+  Widget _buildDaftarIzin() {
+    final filteredData = dataPerizinan.where((item) {
+      final name =
+          item['peserta']?['nama_lengkap']?.toString().toLowerCase() ?? '';
+      final type = item['jenis_izin']?.toString().toLowerCase() ?? '';
+      final query = _searchQuery.toLowerCase();
+      return name.contains(query) || type.contains(query);
+    }).toList();
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.all(displayWidth(context) * 0.05),
+        child: Column(
+          children: [
+            // Search Bar & Filter
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: displayHeight(context) * 0.045,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: displayWidth(context) * 0.04,
+                      vertical: displayHeight(context) * 0.004,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(
+                        displayWidth(context) * 0.08,
+                      ),
+                    ),
+                    child: TextField(
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        icon: Icon(Icons.search, color: Colors.grey[400]),
+                        hintText: "Cari izin atau nama...",
+                        hintStyle: TextStyle(color: Colors.grey[400]),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: displayHeight(context) * 0.03),
+            // ListView
+            _isLoading
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFAD3B3E),
+                      ),
+                    ),
+                  )
+                : dataPerizinan.isEmpty
+                ? const Center(child: Text("Belum ada pengajuan perizinan."))
+                : filteredData.isEmpty
+                ? const Center(child: Text("Hasil pencarian tidak ditemukan."))
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredData.length,
+                    itemBuilder: (context, index) {
+                      final item = filteredData[index];
+                      return _buildIzinCard(item as Map<String, dynamic>);
+                    },
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIzinCard(Map<String, dynamic> data) {
+    return _ExpandableIzinCard(
+      data: data,
+      onStatusUpdated: () {
+        _fetchAllData();
       },
     );
   }
@@ -245,6 +389,29 @@ class _ExpandableSuratCard extends StatefulWidget {
 
 class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
   bool _isExpanded = false;
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '-';
+    try {
+      DateTime date = DateTime.parse(dateString);
+      const days = [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu',
+      ];
+      String dayName = days[date.weekday - 1];
+      String day = date.day.toString().padLeft(2, '0');
+      String month = date.month.toString().padLeft(2, '0');
+      String year = date.year.toString();
+      return '$dayName, $day-$month-$year';
+    } catch (e) {
+      return dateString;
+    }
+  }
 
   Future<void> _updateStatus(
     String newStatus, {
@@ -636,9 +803,9 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                   ),
                                   _buildInfoItem(
                                     "Tanggal Pengajuan",
-                                    widget.data['created_at'] != null
-                                        ? "${DateTime.parse(widget.data['created_at']).day.toString().padLeft(2, '0')}-${DateTime.parse(widget.data['created_at']).month.toString().padLeft(2, '0')}-${DateTime.parse(widget.data['created_at']).year}"
-                                        : '-',
+                                    _formatDate(
+                                      widget.data['created_at']?.toString(),
+                                    ),
                                   ),
                                   SizedBox(
                                     height: displayHeight(context) * 0.015,
@@ -783,42 +950,95 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                                 top: 10,
                                                                 right: 10,
                                                                 child: Row(
-                                                                  mainAxisSize: MainAxisSize.min,
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
                                                                   children: [
                                                                     IconButton(
-                                                                      icon: const Icon(Icons.download, color: Colors.white, size: 30),
+                                                                      icon: const Icon(
+                                                                        Icons
+                                                                            .download,
+                                                                        color: Colors
+                                                                            .white,
+                                                                        size:
+                                                                            30,
+                                                                      ),
                                                                       onPressed: () async {
-                                                                        final url = Uri.parse('http://10.0.2.2:8000/storage/$filePendukung');
+                                                                        final url =
+                                                                            Uri.parse(
+                                                                              'http://10.0.2.2:8000/storage/$filePendukung',
+                                                                            );
                                                                         try {
-                                                                          ScaffoldMessenger.of(context).showSnackBar(
-                                                                            const SnackBar(content: Text('Menyimpan gambar...'), duration: Duration(seconds: 1)),
+                                                                          ScaffoldMessenger.of(
+                                                                            context,
+                                                                          ).showSnackBar(
+                                                                            const SnackBar(
+                                                                              content: Text(
+                                                                                'Menyimpan gambar...',
+                                                                              ),
+                                                                              duration: Duration(
+                                                                                seconds: 1,
+                                                                              ),
+                                                                            ),
                                                                           );
-                                                                          final request = await HttpClient().getUrl(url);
-                                                                          final response = await request.close();
-                                                                          if (response.statusCode == 200) {
-                                                                            final bytes = await consolidateHttpClientResponseBytes(response);
-                                                                            await Gal.putImageBytes(bytes);
-                                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                                              const SnackBar(content: Text('Gambar berhasil disimpan ke Galeri!')),
+                                                                          final request = await HttpClient().getUrl(
+                                                                            url,
+                                                                          );
+                                                                          final response =
+                                                                              await request.close();
+                                                                          if (response.statusCode ==
+                                                                              200) {
+                                                                            final bytes = await consolidateHttpClientResponseBytes(
+                                                                              response,
+                                                                            );
+                                                                            await Gal.putImageBytes(
+                                                                              bytes,
+                                                                            );
+                                                                            ScaffoldMessenger.of(
+                                                                              context,
+                                                                            ).showSnackBar(
+                                                                              const SnackBar(
+                                                                                content: Text(
+                                                                                  'Gambar berhasil disimpan ke Galeri!',
+                                                                                ),
+                                                                              ),
                                                                             );
                                                                           } else {
-                                                                            throw Exception('Gagal mengunduh: ${response.statusCode}');
+                                                                            throw Exception(
+                                                                              'Gagal mengunduh: ${response.statusCode}',
+                                                                            );
                                                                           }
-                                                                        } catch (e) {
-                                                                          ScaffoldMessenger.of(context).showSnackBar(
-                                                                            SnackBar(content: Text('Gagal menyimpan gambar: $e')),
+                                                                        } catch (
+                                                                          e
+                                                                        ) {
+                                                                          ScaffoldMessenger.of(
+                                                                            context,
+                                                                          ).showSnackBar(
+                                                                            SnackBar(
+                                                                              content: Text(
+                                                                                'Gagal menyimpan gambar: $e',
+                                                                              ),
+                                                                            ),
                                                                           );
                                                                         }
                                                                       },
                                                                     ),
-                                                                    const SizedBox(width: 8),
+                                                                    const SizedBox(
+                                                                      width: 8,
+                                                                    ),
                                                                     IconButton(
                                                                       icon: const Icon(
-                                                                        Icons.close,
-                                                                        color: Colors.white,
-                                                                        size: 30,
+                                                                        Icons
+                                                                            .close,
+                                                                        color: Colors
+                                                                            .white,
+                                                                        size:
+                                                                            30,
                                                                       ),
-                                                                      onPressed: () => Navigator.pop(context),
+                                                                      onPressed: () =>
+                                                                          Navigator.pop(
+                                                                            context,
+                                                                          ),
                                                                     ),
                                                                   ],
                                                                 ),
@@ -1173,42 +1393,95 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                                   top: 10,
                                                                   right: 10,
                                                                   child: Row(
-                                                                    mainAxisSize: MainAxisSize.min,
+                                                                    mainAxisSize:
+                                                                        MainAxisSize
+                                                                            .min,
                                                                     children: [
                                                                       IconButton(
-                                                                        icon: const Icon(Icons.download, color: Colors.white, size: 30),
+                                                                        icon: const Icon(
+                                                                          Icons
+                                                                              .download,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          size:
+                                                                              30,
+                                                                        ),
                                                                         onPressed: () async {
-                                                                          final url = Uri.parse('http://10.0.2.2:8000/storage/$linkDokumen');
+                                                                          final url = Uri.parse(
+                                                                            'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                                          );
                                                                           try {
-                                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                                              const SnackBar(content: Text('Menyimpan gambar...'), duration: Duration(seconds: 1)),
+                                                                            ScaffoldMessenger.of(
+                                                                              context,
+                                                                            ).showSnackBar(
+                                                                              const SnackBar(
+                                                                                content: Text(
+                                                                                  'Menyimpan gambar...',
+                                                                                ),
+                                                                                duration: Duration(
+                                                                                  seconds: 1,
+                                                                                ),
+                                                                              ),
                                                                             );
-                                                                            final request = await HttpClient().getUrl(url);
-                                                                            final response = await request.close();
-                                                                            if (response.statusCode == 200) {
-                                                                              final bytes = await consolidateHttpClientResponseBytes(response);
-                                                                              await Gal.putImageBytes(bytes);
-                                                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                                                const SnackBar(content: Text('Gambar berhasil disimpan ke Galeri!')),
+                                                                            final request = await HttpClient().getUrl(
+                                                                              url,
+                                                                            );
+                                                                            final response =
+                                                                                await request.close();
+                                                                            if (response.statusCode ==
+                                                                                200) {
+                                                                              final bytes = await consolidateHttpClientResponseBytes(
+                                                                                response,
+                                                                              );
+                                                                              await Gal.putImageBytes(
+                                                                                bytes,
+                                                                              );
+                                                                              ScaffoldMessenger.of(
+                                                                                context,
+                                                                              ).showSnackBar(
+                                                                                const SnackBar(
+                                                                                  content: Text(
+                                                                                    'Gambar berhasil disimpan ke Galeri!',
+                                                                                  ),
+                                                                                ),
                                                                               );
                                                                             } else {
-                                                                              throw Exception('Gagal mengunduh: ${response.statusCode}');
+                                                                              throw Exception(
+                                                                                'Gagal mengunduh: ${response.statusCode}',
+                                                                              );
                                                                             }
-                                                                          } catch (e) {
-                                                                            ScaffoldMessenger.of(context).showSnackBar(
-                                                                              SnackBar(content: Text('Gagal menyimpan gambar: $e')),
+                                                                          } catch (
+                                                                            e
+                                                                          ) {
+                                                                            ScaffoldMessenger.of(
+                                                                              context,
+                                                                            ).showSnackBar(
+                                                                              SnackBar(
+                                                                                content: Text(
+                                                                                  'Gagal menyimpan gambar: $e',
+                                                                                ),
+                                                                              ),
                                                                             );
                                                                           }
                                                                         },
                                                                       ),
-                                                                      const SizedBox(width: 8),
+                                                                      const SizedBox(
+                                                                        width:
+                                                                            8,
+                                                                      ),
                                                                       IconButton(
                                                                         icon: const Icon(
-                                                                          Icons.close,
-                                                                          color: Colors.white,
-                                                                          size: 30,
+                                                                          Icons
+                                                                              .close,
+                                                                          color:
+                                                                              Colors.white,
+                                                                          size:
+                                                                              30,
                                                                         ),
-                                                                        onPressed: () => Navigator.pop(context),
+                                                                        onPressed: () =>
+                                                                            Navigator.pop(
+                                                                              context,
+                                                                            ),
                                                                       ),
                                                                     ],
                                                                   ),
@@ -1652,6 +1925,726 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                   ),
                   child: Text(
                     value,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.025,
+                      fontWeight: FontWeight.bold,
+                      color: value == 'PENDING'
+                          ? Colors.orange[700]
+                          : value == 'DIPROSES'
+                          ? Colors.blue[700]
+                          : value == 'SELESAI'
+                          ? Colors.green[700]
+                          : Colors.red[700],
+                    ),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: displayWidth(context) * 0.03,
+                    color: Colors.grey[600],
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExpandableIzinCard extends StatefulWidget {
+  final Map<String, dynamic> data;
+  final VoidCallback onStatusUpdated;
+
+  const _ExpandableIzinCard({
+    required this.data,
+    required this.onStatusUpdated,
+  });
+
+  @override
+  State<_ExpandableIzinCard> createState() => _ExpandableIzinCardState();
+}
+
+class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
+  bool _isExpanded = false;
+
+  String _formatDate(String? dateString) {
+    if (dateString == null) return '-';
+    try {
+      DateTime date = DateTime.parse(dateString);
+      const days = [
+        'Senin',
+        'Selasa',
+        'Rabu',
+        'Kamis',
+        'Jumat',
+        'Sabtu',
+        'Minggu',
+      ];
+      String dayName = days[date.weekday - 1];
+      String day = date.day.toString().padLeft(2, '0');
+      String month = date.month.toString().padLeft(2, '0');
+      String year = date.year.toString();
+      return '$dayName, $day-$month-$year';
+    } catch (e) {
+      return dateString;
+    }
+  }
+
+  Future<void> _updateStatus(String newStatus, {String? catatan}) async {
+    const storage = FlutterSecureStorage();
+    final token = await storage.read(key: 'access_token');
+    final id = widget.data['id'];
+
+    final uri = Uri.parse(
+      'http://10.0.2.2:8000/api/mentor/perizinan/$id/status',
+    );
+    var request = http.MultipartRequest('POST', uri);
+
+    request.headers['Authorization'] = 'Bearer $token';
+    request.headers['Accept'] = 'application/json';
+
+    request.fields['status'] = newStatus;
+
+    if (catatan != null && catatan.isNotEmpty) {
+      request.fields['catatan_mentor'] = catatan;
+    }
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: Color(0xFFAD3B3E)),
+        ),
+      );
+
+      final response = await request.send();
+      Navigator.pop(context); // close loading
+
+      if (response.statusCode == 200) {
+        widget.onStatusUpdated();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Berhasil mengubah status izin.')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal mengubah status!')),
+          );
+        }
+      }
+    } catch (e) {
+      Navigator.pop(context); // close loading
+      print('Exception update status: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Terjadi kesalahan koneksi.')),
+        );
+      }
+    }
+  }
+
+  void _showTolakDialog() {
+    TextEditingController catatanController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Tolak Pengajuan'),
+        content: TextField(
+          controller: catatanController,
+          decoration: const InputDecoration(
+            hintText: 'Masukkan alasan penolakan...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (catatanController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Alasan penolakan tidak boleh kosong!'),
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(context);
+              _updateStatus('ditolak', catatan: catatanController.text);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Tolak', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSelesaiDialog() {
+    TextEditingController catatanController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Setujui Pengajuan'),
+        content: TextField(
+          controller: catatanController,
+          decoration: const InputDecoration(
+            hintText: 'Pesan untuk peserta (opsional)...',
+            border: OutlineInputBorder(),
+          ),
+          maxLines: 3,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _updateStatus('selesai', catatan: catatanController.text);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFAD3B3E),
+            ),
+            child: const Text('Setujui', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(width: 4, color: const Color(0xFFAD3B3E)),
+              Expanded(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isExpanded = !_isExpanded;
+                        });
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(displayWidth(context) * 0.04),
+                        color: Colors.white,
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: Colors.grey[200],
+                              radius: displayWidth(context) * 0.06,
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.grey[400],
+                                size: displayWidth(context) * 0.07,
+                              ),
+                            ),
+                            SizedBox(width: displayWidth(context) * 0.04),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    height: displayHeight(context) * 0.005,
+                                  ),
+                                  Text(
+                                    widget.data['peserta'] != null
+                                        ? widget.data['peserta']['nama_lengkap']
+                                        : '-',
+                                    style: TextStyle(
+                                      fontSize: displayWidth(context) * 0.035,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  if (widget.data['jenis_izin'] != null &&
+                                      widget.data['jenis_izin']
+                                          .toString()
+                                          .isNotEmpty) ...[
+                                    SizedBox(
+                                      height: displayHeight(context) * 0.009,
+                                    ),
+                                    Text(
+                                      'Izin "${widget.data['jenis_izin']}"',
+                                      style: TextStyle(
+                                        fontSize: displayWidth(context) * 0.03,
+                                        color: Colors.grey[600],
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: displayWidth(context) * 0.02),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Builder(
+                                  builder: (context) {
+                                    String status =
+                                        widget.data['status']
+                                            ?.toString()
+                                            .toUpperCase() ??
+                                        'PENDING';
+                                    Color statusColor;
+                                    if (status == 'PENDING')
+                                      statusColor = Colors.orange;
+                                    else if (status == 'DIPROSES')
+                                      statusColor = Colors.blue;
+                                    else if (status == 'SELESAI')
+                                      statusColor = Colors.green;
+                                    else
+                                      statusColor = Colors.red;
+
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: statusColor.withOpacity(0.15),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        status == 'SELESAI'
+                                            ? 'DISETUJUI'
+                                            : status,
+                                        style: TextStyle(
+                                          color: statusColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize:
+                                              displayWidth(context) * 0.025,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 8),
+                                Icon(
+                                  _isExpanded
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.grey[400],
+                                  size: displayWidth(context) * 0.05,
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (_isExpanded) ...[
+                      Divider(color: Colors.grey[200], height: 1),
+                      Padding(
+                        padding: EdgeInsets.all(displayWidth(context) * 0.04),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildInfoItem(
+                                    "Nama Pemohon",
+                                    widget.data['peserta'] != null
+                                        ? widget.data['peserta']['nama_lengkap']
+                                        : '-',
+                                  ),
+                                  SizedBox(
+                                    height: displayHeight(context) * 0.015,
+                                  ),
+                                  _buildInfoItem(
+                                    "Keterangan",
+                                    widget.data['keterangan'] ?? '-',
+                                  ),
+                                  SizedBox(
+                                    height: displayHeight(context) * 0.015,
+                                  ),
+                                  _buildInfoItem(
+                                    "Tanggal Izin",
+                                    _formatDate(
+                                      widget.data['tanggal_izin']?.toString(),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: displayHeight(context) * 0.015,
+                                  ),
+                                  _buildInfoItem(
+                                    "Tanggal Pengajuan",
+                                    _formatDate(
+                                      widget.data['created_at']?.toString(),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    height: displayHeight(context) * 0.015,
+                                  ),
+                                  if (widget.data['file_pendukung'] != null &&
+                                      widget.data['file_pendukung']
+                                          .toString()
+                                          .isNotEmpty &&
+                                      widget.data['file_pendukung']
+                                              .toString() !=
+                                          'null') ...[
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Dokumen Pendukung",
+                                          style: TextStyle(
+                                            fontSize:
+                                                displayWidth(context) * 0.03,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height:
+                                              displayHeight(context) * 0.005,
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            left: displayWidth(context) * 0.02,
+                                          ),
+                                          child: Builder(
+                                            builder: (context) {
+                                              final filePendukung = widget
+                                                  .data['file_pendukung']
+                                                  .toString();
+                                              final isImage =
+                                                  filePendukung
+                                                      .toLowerCase()
+                                                      .endsWith('.jpg') ||
+                                                  filePendukung
+                                                      .toLowerCase()
+                                                      .endsWith('.jpeg') ||
+                                                  filePendukung
+                                                      .toLowerCase()
+                                                      .endsWith('.png');
+
+                                              if (isImage) {
+                                                return GestureDetector(
+                                                  onTap: () {},
+                                                  child: ClipRRect(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                    child: Image.network(
+                                                      'http://10.0.2.2:8000/storage/$filePendukung',
+                                                      height:
+                                                          displayHeight(
+                                                            context,
+                                                          ) *
+                                                          0.1,
+                                                      width:
+                                                          displayWidth(
+                                                            context,
+                                                          ) *
+                                                          0.2,
+                                                      fit: BoxFit.cover,
+                                                    ),
+                                                  ),
+                                                );
+                                              } else {
+                                                return InkWell(
+                                                  onTap: () async {
+                                                    final url = Uri.parse(
+                                                      'http://10.0.2.2:8000/storage/$filePendukung',
+                                                    );
+                                                    try {
+                                                      await launchUrl(
+                                                        url,
+                                                        mode: LaunchMode
+                                                            .externalApplication,
+                                                      );
+                                                    } catch (e) {
+                                                      print(
+                                                        'Could not launch $url: $e',
+                                                      );
+                                                    }
+                                                  },
+                                                  child: Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                          horizontal:
+                                                              displayWidth(
+                                                                context,
+                                                              ) *
+                                                              0.03,
+                                                          vertical:
+                                                              displayHeight(
+                                                                context,
+                                                              ) *
+                                                              0.01,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color:
+                                                          Colors.grey.shade100,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: Colors
+                                                            .grey
+                                                            .shade300,
+                                                      ),
+                                                    ),
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Icon(
+                                                          Icons
+                                                              .insert_drive_file,
+                                                          size:
+                                                              displayWidth(
+                                                                context,
+                                                              ) *
+                                                              0.04,
+                                                          color: Colors
+                                                              .grey
+                                                              .shade700,
+                                                        ),
+                                                        SizedBox(
+                                                          width:
+                                                              displayWidth(
+                                                                context,
+                                                              ) *
+                                                              0.02,
+                                                        ),
+                                                        Text(
+                                                          'Lihat Dokumen',
+                                                          style: TextStyle(
+                                                            fontSize:
+                                                                displayWidth(
+                                                                  context,
+                                                                ) *
+                                                                0.03,
+                                                            color: Colors
+                                                                .grey
+                                                                .shade800,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                );
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: displayHeight(context) * 0.015,
+                                    ),
+                                  ],
+                                  if (widget.data['catatan_mentor'] !=
+                                      null) ...[
+                                    const Divider(color: Colors.grey),
+                                    SizedBox(
+                                      height: displayHeight(context) * 0.015,
+                                    ),
+                                    Text(
+                                      "Balasan / Catatan Anda",
+                                      style: TextStyle(
+                                        fontSize: displayWidth(context) * 0.035,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: displayHeight(context) * 0.015,
+                                    ),
+                                    _buildInfoItem(
+                                      "Catatan",
+                                      widget.data['catatan_mentor'],
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final status =
+                              widget.data['status']?.toString().toUpperCase() ??
+                              'PENDING';
+
+                          if (status == 'PENDING') {
+                            return Row(
+                              children: [
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () {
+                                      _showTolakDialog();
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical:
+                                            displayHeight(context) * 0.015,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red[50],
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(
+                                            displayWidth(context) * 0.04,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            Icons.close,
+                                            color: Colors.red[600],
+                                            size: displayWidth(context) * 0.05,
+                                          ),
+                                          SizedBox(
+                                            height:
+                                                displayHeight(context) * 0.005,
+                                          ),
+                                          Text(
+                                            "Tolak",
+                                            style: TextStyle(
+                                              color: Colors.red[600],
+                                              fontSize:
+                                                  displayWidth(context) * 0.025,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: InkWell(
+                                    onTap: () {
+                                      _showSelesaiDialog();
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical:
+                                            displayHeight(context) * 0.015,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green,
+                                        borderRadius: BorderRadius.only(
+                                          bottomRight: Radius.circular(
+                                            displayWidth(context) * 0.04,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Icon(
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: displayWidth(context) * 0.05,
+                                          ),
+                                          SizedBox(
+                                            height:
+                                                displayHeight(context) * 0.005,
+                                          ),
+                                          Text(
+                                            "Setujui",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize:
+                                                  displayWidth(context) * 0.025,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return const SizedBox.shrink();
+                          }
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String title, String value, {bool isStatus = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: displayWidth(context) * 0.03,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        SizedBox(height: displayHeight(context) * 0.005),
+        Padding(
+          padding: EdgeInsets.only(left: displayWidth(context) * 0.02),
+          child: isStatus
+              ? Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: value == 'PENDING'
+                        ? Colors.orange.withOpacity(0.15)
+                        : value == 'DIPROSES'
+                        ? Colors.blue.withOpacity(0.15)
+                        : value == 'SELESAI'
+                        ? Colors.green.withOpacity(0.15)
+                        : Colors.red.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    value == 'SELESAI' ? 'DISETUJUI' : value,
                     style: TextStyle(
                       fontSize: displayWidth(context) * 0.025,
                       fontWeight: FontWeight.bold,
