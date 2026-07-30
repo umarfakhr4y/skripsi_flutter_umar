@@ -10,17 +10,35 @@ class AbsensiPesertaMentor extends StatefulWidget {
 class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
   List<dynamic> absensiList = [];
   bool _isLoading = true;
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchData();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _fetchData(silent: true);
+    });
   }
 
-  Future<void> _fetchData() async {
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _fetchData({bool silent = false}) async {
+    if (!silent) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
     final result = await MentorService.getPesertaAbsensi();
     if (mounted) {
       if (result['success']) {
+        if (silent && absensiList.isNotEmpty && result['data'] is List) {
+          _checkRealtimeChanges(absensiList, result['data']);
+        }
         setState(() {
           absensiList = result['data'];
           _isLoading = false;
@@ -29,10 +47,73 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'] ?? 'Gagal memuat data')),
-        );
+        if (!silent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(result['message'] ?? 'Gagal memuat data')),
+          );
+        }
       }
+    }
+  }
+
+  void _checkRealtimeChanges(List<dynamic> oldList, List<dynamic> newList) {
+    List<String> changes = [];
+
+    for (var newItem in newList) {
+      if (newItem is! Map) continue;
+      final oldItem = oldList.cast<dynamic>().firstWhere(
+        (item) =>
+            item is Map &&
+            ((item['id'] != null && item['id'] == newItem['id']) ||
+                item['nama_lengkap'] == newItem['nama_lengkap']),
+        orElse: () => null,
+      );
+
+      if (oldItem != null && oldItem is Map) {
+        String name = newItem['nama_lengkap']?.toString() ?? 'Peserta';
+        bool oldMasuk = oldItem['sudah_absen_masuk'] == true;
+        bool newMasuk = newItem['sudah_absen_masuk'] == true;
+        bool oldPulang = oldItem['sudah_absen_pulang'] == true;
+        bool newPulang = newItem['sudah_absen_pulang'] == true;
+
+        if (!oldMasuk && newMasuk) {
+          changes.add("$name baru saja presensi masuk");
+        } else if (!oldPulang && newPulang) {
+          changes.add("$name baru saja presensi pulang");
+        }
+      }
+    }
+
+    if (changes.isNotEmpty && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.notifications_active,
+                color: Colors.white,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  "${changes.join(', ')}",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFAD3B3E),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          duration: const Duration(seconds: 4),
+        ),
+      );
     }
   }
 
@@ -172,7 +253,9 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     }).length;
     int sudahAbsenKeluar = absensiList.where((p) {
       if (p is Map) {
-        return p['sudah_absen_pulang'] == true || (p['absen_hari_ini'] != null && p['absen_hari_ini']['waktu_keluar'] != null);
+        return p['sudah_absen_pulang'] == true ||
+            (p['absen_hari_ini'] != null &&
+                p['absen_hari_ini']['waktu_keluar'] != null);
       }
       return false;
     }).length;
