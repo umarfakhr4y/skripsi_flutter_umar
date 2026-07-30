@@ -313,7 +313,12 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
               ),
               GestureDetector(
                 onTap: () {
-                  // handle kumpulkan
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DetailTugasPeserta(),
+                    ),
+                  );
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(
@@ -325,7 +330,7 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
-                    'Kumpulkan',
+                    'Lihat Detail',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,

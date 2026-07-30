@@ -10,20 +10,49 @@ class TambahTugasMentor extends StatefulWidget {
 class _TambahTugasMentorState extends State<TambahTugasMentor> {
   // State for form
   bool isTugasIndividu = true;
-  String? selectedPeserta =
-      "Umar Fakhriy"; // Static dummy data, prepared for API
-
-  // Nanti list ini akan diisi dari get API
-  final List<String> listPeserta = [
-    'Umar Fakhriy',
-    'Galuh Kirana',
-    'Haikal Dzaky',
-  ];
+  List<Map<String, dynamic>> listPeserta = [];
+  Map<String, dynamic>? selectedPeserta;
+  bool _isLoadingPeserta = true;
 
   // Controllers for input fields
   final TextEditingController judulController = TextEditingController();
   final TextEditingController deskripsiController = TextEditingController();
   final TextEditingController deadlineController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPeserta();
+  }
+
+  Future<void> _fetchPeserta() async {
+    setState(() {
+      _isLoadingPeserta = true;
+    });
+    final result = await MentorService.getPesertaAbsensi();
+    if (mounted) {
+      if (result['success'] && result['data'] is List) {
+        final List<dynamic> data = result['data'];
+        setState(() {
+          listPeserta = data
+              .map((item) => item as Map<String, dynamic>)
+              .toList();
+          if (listPeserta.isNotEmpty) {
+            selectedPeserta = listPeserta.first;
+          }
+          _isLoadingPeserta = false;
+        });
+      } else {
+        setState(() {
+          _isLoadingPeserta = false;
+        });
+      }
+    }
+  }
+
+  List<File> _selectedImages = [];
+  bool _isSubmitting = false;
+  DateTime? _selectedDeadlineDate;
 
   @override
   void dispose() {
@@ -33,15 +62,147 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
     super.dispose();
   }
 
-  void _submitData() {
-    // Siap untuk dipost ke API
-    print("=== DATA TUGAS ===");
-    print("Tugas Individu: $isTugasIndividu");
-    print("Peserta: $selectedPeserta");
-    print("Judul: ${judulController.text}");
-    print("Deskripsi: ${deskripsiController.text}");
-    print("Deadline: ${deadlineController.text}");
-    // TODO: Post to API
+  Future<void> _pickImages() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+      allowMultiple: true,
+    );
+    if (result != null) {
+      setState(() {
+        for (var file in result.files) {
+          if (file.path != null) {
+            final f = File(file.path!);
+            if (f.existsSync()) {
+              _selectedImages.add(f);
+            }
+          }
+        }
+      });
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  Future<void> _selectDeadline() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFFE84C63),
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        _selectedDeadlineDate = picked;
+        deadlineController.text =
+            "${picked.day.toString().padLeft(2, '0')} ${picked.month.toString().padLeft(2, '0')} ${picked.year}";
+      });
+    }
+  }
+
+  Future<void> _submitData() async {
+    if (selectedPeserta == null || selectedPeserta?['id'] == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Pilih peserta magang terlebih dahulu"),
+          backgroundColor: Color(0xFFE84C63),
+        ),
+      );
+      return;
+    }
+
+    if (judulController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Judul tugas tidak boleh kosong"),
+          backgroundColor: Color(0xFFE84C63),
+        ),
+      );
+      return;
+    }
+
+    if (deskripsiController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Deskripsi tugas tidak boleh kosong"),
+          backgroundColor: Color(0xFFE84C63),
+        ),
+      );
+      return;
+    }
+
+    if (deadlineController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Deadline tugas harus dipilih"),
+          backgroundColor: Color(0xFFE84C63),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    final int pesertaId = int.tryParse(selectedPeserta!['id'].toString()) ?? 0;
+
+    String deadlineForApi = "";
+    if (_selectedDeadlineDate != null) {
+      deadlineForApi =
+          "${_selectedDeadlineDate!.year}-${_selectedDeadlineDate!.month.toString().padLeft(2, '0')}-${_selectedDeadlineDate!.day.toString().padLeft(2, '0')}";
+    } else {
+      deadlineForApi = deadlineController.text.trim();
+    }
+
+    final result = await MentorService.createPenugasan(
+      pesertaId: pesertaId,
+      judulTugas: judulController.text.trim(),
+      deskripsi: deskripsiController.text.trim(),
+      deadline: deadlineForApi,
+      fotoPetunjuk: _selectedImages,
+    );
+
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+      });
+
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result['message'] ?? 'Tugas berhasil ditambahkan!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['message'] ?? 'Gagal membuat tugas. Silakan coba lagi.',
+            ),
+            backgroundColor: const Color(0xFFE84C63),
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -69,33 +230,6 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Checkbox Tugas Individu
-              Row(
-                children: [
-                  SizedBox(
-                    width: displayWidth(context) * 0.06,
-                    height: displayWidth(context) * 0.06,
-                    child: Checkbox(
-                      value: isTugasIndividu,
-                      activeColor: const Color(0xFFE84C63),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          isTugasIndividu = value ?? false;
-                        });
-                      },
-                    ),
-                  ),
-                  SizedBox(width: displayWidth(context) * 0.03),
-                  Text(
-                    'Tugas Individu',
-                    style: TextStyle(
-                      fontSize: displayWidth(context) * 0.035,
-                      color: Colors.black87,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: displayHeight(context) * 0.02),
 
               // Dropdown Peserta
               _buildDropdownPeserta(),
@@ -128,8 +262,10 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
               // Deadline Field
               _buildTextField(
                 'Deadline',
-                'Masukan Tenggat Waktu',
+                'Pilih Tenggat Waktu',
                 deadlineController,
+                readOnly: true,
+                onTap: _selectDeadline,
               ),
 
               SizedBox(height: displayHeight(context) * 0.02),
@@ -138,9 +274,10 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _submitData,
+                  onPressed: _isSubmitting ? null : _submitData,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE84C63),
+                    disabledBackgroundColor: Colors.grey,
                     padding: EdgeInsets.symmetric(
                       vertical: displayHeight(context) * 0.018,
                     ),
@@ -151,14 +288,23 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    'Tambah Tugas',
-                    style: TextStyle(
-                      fontSize: displayWidth(context) * 0.04,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isSubmitting
+                      ? SizedBox(
+                          height: displayWidth(context) * 0.05,
+                          width: displayWidth(context) * 0.05,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          'Tambah Tugas',
+                          style: TextStyle(
+                            fontSize: displayWidth(context) * 0.04,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
               ),
               SizedBox(
@@ -193,52 +339,93 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
             color: const Color(0xFFF9F9F9), // Almost white
             borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              isExpanded: true,
-              value: selectedPeserta,
-              hint: Text(
-                "Pilih Peserta",
-                style: TextStyle(fontSize: displayWidth(context) * 0.035),
-              ),
-              icon: Icon(
-                Icons.arrow_drop_down,
-                color: Colors.black,
-                size: displayWidth(context) * 0.06,
-              ),
-              items: listPeserta.map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: const Color(0xFFE84C63),
-                        radius: displayWidth(context) * 0.045,
-                        child: Icon(
-                          Icons.person,
-                          color: Colors.white,
-                          size: displayWidth(context) * 0.06,
-                        ),
-                      ),
-                      SizedBox(width: displayWidth(context) * 0.03),
-                      Text(
-                        value,
-                        style: TextStyle(
-                          fontSize: displayWidth(context) * 0.035,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
+          child: _isLoadingPeserta
+              ? Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: displayHeight(context) * 0.015,
                   ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedPeserta = newValue;
-                });
-              },
-            ),
-          ),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Color(0xFFE84C63),
+                      ),
+                    ),
+                  ),
+                )
+              : DropdownButtonHideUnderline(
+                  child: DropdownButton<Map<String, dynamic>>(
+                    isExpanded: true,
+                    value: selectedPeserta,
+                    hint: Text(
+                      listPeserta.isEmpty
+                          ? "Tidak ada peserta magang"
+                          : "Pilih Peserta",
+                      style: TextStyle(fontSize: displayWidth(context) * 0.035),
+                    ),
+                    icon: Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.black,
+                      size: displayWidth(context) * 0.06,
+                    ),
+                    items: listPeserta.map((Map<String, dynamic> value) {
+                      String nama =
+                          value['nama_lengkap']?.toString() ?? 'Tanpa Nama';
+                      String nim = value['nim']?.toString() ?? '-';
+                      return DropdownMenuItem<Map<String, dynamic>>(
+                        value: value,
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              backgroundColor: const Color(0xFFE84C63),
+                              radius: displayWidth(context) * 0.045,
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: displayWidth(context) * 0.06,
+                              ),
+                            ),
+                            SizedBox(width: displayWidth(context) * 0.03),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    nama,
+                                    style: TextStyle(
+                                      fontSize: displayWidth(context) * 0.035,
+                                      color: Colors.black87,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    nim,
+                                    style: TextStyle(
+                                      fontSize: displayWidth(context) * 0.028,
+                                      color: Colors.grey[600],
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (Map<String, dynamic>? newValue) {
+                      setState(() {
+                        selectedPeserta = newValue;
+                      });
+                    },
+                  ),
+                ),
         ),
         SizedBox(height: displayHeight(context) * 0.02),
       ],
@@ -250,6 +437,8 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
     String hint,
     TextEditingController controller, {
     int maxLines = 1,
+    bool readOnly = false,
+    VoidCallback? onTap,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -271,6 +460,8 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
           child: TextField(
             controller: controller,
             maxLines: maxLines,
+            readOnly: readOnly,
+            onTap: onTap,
             style: TextStyle(fontSize: displayWidth(context) * 0.035),
             decoration: InputDecoration(
               hintText: hint,
@@ -296,7 +487,7 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Gambar',
+          'Foto Petunjuk (Bisa >1 foto)',
           style: TextStyle(
             fontSize: displayWidth(context) * 0.035,
             color: Colors.black87,
@@ -304,60 +495,93 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
           ),
         ),
         SizedBox(height: displayHeight(context) * 0.01),
-        Row(
-          children: [
-            // Dummy selected image placeholder
-            Container(
-              width: displayWidth(context) * 0.25,
-              height: displayWidth(context) * 0.2,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(
-                  displayWidth(context) * 0.03,
-                ),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  displayWidth(context) * 0.03,
-                ),
-                child: Image.network(
-                  'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/QR_code_for_mobile_English_Wikipedia.svg/1200px-QR_code_for_mobile_English_Wikipedia.svg.png', // Temporary image
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    Icons.image,
-                    color: Colors.grey,
-                    size: displayWidth(context) * 0.1,
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: displayWidth(context) * 0.03),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              ..._selectedImages.asMap().entries.map((entry) {
+                int idx = entry.key;
+                File file = entry.value;
+                return Stack(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(
+                        right: displayWidth(context) * 0.03,
+                      ),
+                      width: displayWidth(context) * 0.22,
+                      height: displayWidth(context) * 0.2,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.03,
+                        ),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.03,
+                        ),
+                        child: Image.file(file, fit: BoxFit.cover),
+                      ),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: displayWidth(context) * 0.035,
+                      child: GestureDetector(
+                        onTap: () => _removeImage(idx),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE84C63),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: displayWidth(context) * 0.035,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
 
-            // Upload button
-            GestureDetector(
-              onTap: () {
-                // Action upload gambar disiapkan
-                print("Tap upload gambar");
-              },
-              child: Container(
-                width: displayWidth(context) * 0.22,
-                height: displayWidth(context) * 0.2,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE84C63),
-                  borderRadius: BorderRadius.circular(
-                    displayWidth(context) * 0.04,
+              // Upload button
+              GestureDetector(
+                onTap: _pickImages,
+                child: Container(
+                  width: displayWidth(context) * 0.22,
+                  height: displayWidth(context) * 0.2,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE84C63),
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.04,
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.white,
-                    size: displayWidth(context) * 0.1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.add_photo_alternate,
+                        color: Colors.white,
+                        size: displayWidth(context) * 0.08,
+                      ),
+                      SizedBox(height: displayHeight(context) * 0.003),
+                      Text(
+                        'Upload',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: displayWidth(context) * 0.025,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         SizedBox(height: displayHeight(context) * 0.02),
       ],

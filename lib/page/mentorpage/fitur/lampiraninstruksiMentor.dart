@@ -1,7 +1,8 @@
 part of '../../../conn/auth.dart';
 
 class LampiranInstruksiMentor extends StatefulWidget {
-  const LampiranInstruksiMentor({super.key});
+  final List<String>? images;
+  const LampiranInstruksiMentor({super.key, this.images});
 
   @override
   State<LampiranInstruksiMentor> createState() =>
@@ -54,12 +55,24 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount: dummyImages.length,
+                itemCount:
+                    widget.images != null && widget.images!.isNotEmpty
+                        ? widget.images!.length
+                        : dummyImages.length,
                 itemBuilder: (context, index) {
-                  return _buildLampiranCard(
-                    dummyImages[index]['name']!,
-                    dummyImages[index]['url']!,
-                  );
+                  if (widget.images != null && widget.images!.isNotEmpty) {
+                    String path = widget.images![index];
+                    String fullUrl = path.startsWith('http')
+                        ? path
+                        : 'http://10.0.2.2:8000/storage/$path';
+                    String fileName = path.split('/').last;
+                    return _buildLampiranCard(fileName, fullUrl);
+                  } else {
+                    return _buildLampiranCard(
+                      dummyImages[index]['name']!,
+                      dummyImages[index]['url']!,
+                    );
+                  }
                 },
               ),
 
