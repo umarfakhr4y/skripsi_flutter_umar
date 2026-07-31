@@ -1,7 +1,8 @@
 part of '../../../conn/auth.dart';
 
 class TambahTugasMentor extends StatefulWidget {
-  const TambahTugasMentor({super.key});
+  final Map<String, dynamic>? editTask;
+  const TambahTugasMentor({super.key, this.editTask});
 
   @override
   State<TambahTugasMentor> createState() => _TambahTugasMentorState();
@@ -13,6 +14,8 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
   List<Map<String, dynamic>> listPeserta = [];
   Map<String, dynamic>? selectedPeserta;
   bool _isLoadingPeserta = true;
+  String _selectedStatus = 'Aktif';
+  List<String> _existingImages = [];
 
   // Controllers for input fields
   final TextEditingController judulController = TextEditingController();
@@ -22,6 +25,34 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
   @override
   void initState() {
     super.initState();
+    if (widget.editTask != null) {
+      judulController.text = widget.editTask!['judul_tugas'] ?? '';
+      deskripsiController.text = widget.editTask!['deskripsi'] ?? '';
+      _selectedStatus = widget.editTask!['status_tugas'] ?? 'Aktif';
+      String dl = widget.editTask!['deadline'] ?? '';
+      if (dl.isNotEmpty) {
+        try {
+          DateTime dt;
+          if (dl.contains('-') && dl.split('-')[0].length == 4) {
+            dt = DateTime.parse(dl);
+          } else {
+            final p = dl.split('-');
+            dt = DateTime(int.parse(p[2]), int.parse(p[1]), int.parse(p[0]));
+          }
+          _selectedDeadlineDate = dt;
+          deadlineController.text =
+              "${dt.day.toString().padLeft(2, '0')} ${dt.month.toString().padLeft(2, '0')} ${dt.year}";
+        } catch (_) {
+          deadlineController.text = dl;
+        }
+      }
+      if (widget.editTask!['foto_petunjuk'] != null &&
+          widget.editTask!['foto_petunjuk'] is List) {
+        _existingImages = (widget.editTask!['foto_petunjuk'] as List)
+            .map((e) => e.toString())
+            .toList();
+      }
+    }
     _fetchPeserta();
   }
 
@@ -37,7 +68,16 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
           listPeserta = data
               .map((item) => item as Map<String, dynamic>)
               .toList();
-          if (listPeserta.isNotEmpty) {
+          if (widget.editTask != null && widget.editTask!['peserta'] != null) {
+            final targetId = widget.editTask!['peserta']['id'];
+            try {
+              selectedPeserta = listPeserta.firstWhere(
+                (p) => p['id'] == targetId,
+              );
+            } catch (_) {
+              if (listPeserta.isNotEmpty) selectedPeserta = listPeserta.first;
+            }
+          } else if (listPeserta.isNotEmpty) {
             selectedPeserta = listPeserta.first;
           }
           _isLoadingPeserta = false;
@@ -80,6 +120,12 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
         }
       });
     }
+  }
+
+  void _removeExistingImage(int index) {
+    setState(() {
+      _existingImages.removeAt(index);
+    });
   }
 
   void _removeImage(int index) {
@@ -171,13 +217,28 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
       deadlineForApi = deadlineController.text.trim();
     }
 
-    final result = await MentorService.createPenugasan(
-      pesertaId: pesertaId,
-      judulTugas: judulController.text.trim(),
-      deskripsi: deskripsiController.text.trim(),
-      deadline: deadlineForApi,
-      fotoPetunjuk: _selectedImages,
-    );
+    Map<String, dynamic> result;
+    if (widget.editTask != null) {
+      final int id = int.tryParse(widget.editTask!['id'].toString()) ?? 0;
+      result = await MentorService.updatePenugasan(
+        id: id,
+        pesertaId: pesertaId,
+        judulTugas: judulController.text.trim(),
+        deskripsi: deskripsiController.text.trim(),
+        deadline: deadlineForApi,
+        statusTugas: _selectedStatus,
+        fotoPetunjuk: _selectedImages,
+        existingFotoPetunjuk: _existingImages,
+      );
+    } else {
+      result = await MentorService.createPenugasan(
+        pesertaId: pesertaId,
+        judulTugas: judulController.text.trim(),
+        deskripsi: deskripsiController.text.trim(),
+        deadline: deadlineForApi,
+        fotoPetunjuk: _selectedImages,
+      );
+    }
 
     if (mounted) {
       setState(() {
@@ -187,7 +248,12 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message'] ?? 'Tugas berhasil ditambahkan!'),
+            content: Text(
+              result['message'] ??
+                  (widget.editTask != null
+                      ? 'Tugas berhasil diperbarui!'
+                      : 'Tugas berhasil ditambahkan!'),
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -205,13 +271,62 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
     }
   }
 
+  Widget _buildStatusDropdown() {
+    return Padding(
+      padding: EdgeInsets.only(bottom: displayHeight(context) * 0.025),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Status Tugas',
+            style: TextStyle(
+              fontSize: displayWidth(context) * 0.04,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          SizedBox(height: displayHeight(context) * 0.01),
+          Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: displayWidth(context) * 0.04,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _selectedStatus,
+                isExpanded: true,
+                items: ['Aktif', 'Ditinjau', 'Selesai']
+                    .map(
+                      (status) =>
+                          DropdownMenuItem(value: status, child: Text(status)),
+                    )
+                    .toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _selectedStatus = val;
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEEEEEE),
       appBar: AppBar(
         title: Text(
-          'Tambahkan Tugas',
+          widget.editTask != null ? 'Edit Tugas' : 'Tambahkan Tugas',
           style: TextStyle(
             color: Colors.black,
             fontWeight: FontWeight.bold,
@@ -268,6 +383,8 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                 onTap: _selectDeadline,
               ),
 
+              if (widget.editTask != null) _buildStatusDropdown(),
+
               SizedBox(height: displayHeight(context) * 0.02),
 
               // Submit Button
@@ -298,7 +415,9 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                           ),
                         )
                       : Text(
-                          'Tambah Tugas',
+                          widget.editTask != null
+                              ? 'Simpan Perubahan'
+                              : 'Tambah Tugas',
                           style: TextStyle(
                             fontSize: displayWidth(context) * 0.04,
                             fontWeight: FontWeight.bold,
@@ -499,6 +618,64 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
+              ..._existingImages.asMap().entries.map((entry) {
+                int idx = entry.key;
+                String path = entry.value;
+                String fullUrl = path.startsWith('http')
+                    ? path
+                    : 'http://10.0.2.2:8000/storage/$path';
+                return Stack(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.only(
+                        right: displayWidth(context) * 0.03,
+                      ),
+                      width: displayWidth(context) * 0.22,
+                      height: displayWidth(context) * 0.2,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.03,
+                        ),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.03,
+                        ),
+                        child: Image.network(
+                          fullUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.broken_image,
+                                color: Colors.grey,
+                              ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 2,
+                      right: displayWidth(context) * 0.035,
+                      child: GestureDetector(
+                        onTap: () => _removeExistingImage(idx),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE84C63),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.close,
+                            color: Colors.white,
+                            size: displayWidth(context) * 0.035,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }),
               ..._selectedImages.asMap().entries.map((entry) {
                 int idx = entry.key;
                 File file = entry.value;

@@ -114,14 +114,17 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
   @override
   Widget build(BuildContext context) {
     String status = (taskData?['status_tugas'] ?? 'Aktif').toString();
-    Color tagBgColor = const Color(0xFFE84C63);
-    Color tagTextColor = Colors.white;
+    Color tagBgColor = const Color(0xFFE3F2FD);
+    Color tagTextColor = const Color(0xFF1976D2);
     if (status.toLowerCase() == 'ditinjau') {
       tagBgColor = const Color(0xFFFFF8E1);
       tagTextColor = const Color(0xFFB8860B);
     } else if (status.toLowerCase() == 'selesai') {
       tagBgColor = const Color(0xFFE8F5E9);
       tagTextColor = const Color(0xFF2E7D32);
+    } else if (status.toLowerCase() == 'revisi') {
+      tagBgColor = const Color(0xFFFFF0E6);
+      tagTextColor = const Color(0xFFD9534F);
     }
 
     String judul = taskData?['judul_tugas'] ?? 'Detail Tugas';
@@ -442,7 +445,19 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
                         SizedBox(width: displayWidth(context) * 0.04),
                         Expanded(
                           child: OutlinedButton.icon(
-                            onPressed: () {},
+                            onPressed: () async {
+                              if (taskData == null) return;
+                              final updated = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      TambahTugasMentor(editTask: taskData),
+                                ),
+                              );
+                              if (updated == true) {
+                                _fetchDetail();
+                              }
+                            },
                             icon: Icon(
                               Icons.edit_outlined,
                               color: Colors.black87,

@@ -38,6 +38,7 @@ part '../page/mentorpage/fitur/liatpesertamagangMentor.dart';
 part '../page/mentorpage/fitur/absensipesertaMentor.dart';
 part '../page/mentorpage/fitur/persuratanpesertaMentor.dart';
 part '../page/mentorpage/mentorTools.dart';
+part '../page/mentorpage/autentikasiMentor.dart';
 part '../page/mentorpage/fitur/manajementugasMentor.dart';
 part '../page/mentorpage/fitur/manajementugasMentor_dua.dart';
 part '../page/mentorpage/fitur/bimbinganpesertaMentor.dart';
