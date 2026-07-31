@@ -8,10 +8,108 @@ class TugasSayaPeserta extends StatefulWidget {
 }
 
 class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _listTugas = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTugas();
+  }
+
+  Future<void> _fetchTugas() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final res = await PesertaService.getPenugasanPeserta();
+    if (mounted) {
+      if (res['success'] == true) {
+        final List<dynamic> data = res['data'] ?? [];
+        setState(() {
+          _listTugas = data.map((e) => Map<String, dynamic>.from(e)).toList();
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _listTugas = [];
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  bool _isOverdue(Map<String, dynamic> task) {
+    final dl = task['deadline']?.toString() ?? '';
+    final status = task['status_tugas']?.toString() ?? '';
+    if (status == 'Selesai') return false;
+    if (dl.isEmpty) return false;
+    try {
+      DateTime dt = DateTime.parse(dl);
+      DateTime today = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      );
+      DateTime target = DateTime(dt.year, dt.month, dt.day);
+      return today.isAfter(target);
+    } catch (_) {}
+    return false;
+  }
+
+  List<Map<String, dynamic>> _getFilteredTasks(String type) {
+    switch (type) {
+      case 'Semua Tugas':
+        return _listTugas;
+      case 'Menunggu Review':
+        return _listTugas.where((t) {
+          return (t['status_tugas']?.toString() ?? '') == 'Ditinjau';
+        }).toList();
+      case 'Selesai':
+        return _listTugas.where((t) {
+          return (t['status_tugas']?.toString() ?? '') == 'Selesai';
+        }).toList();
+      default:
+        return [];
+    }
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '-';
+    try {
+      final parts = dateStr.split('-');
+      if (parts.length == 3) {
+        return "${parts[2]}-${parts[1]}-${parts[0]}";
+      }
+    } catch (_) {}
+    return dateStr;
+  }
+
+  String _calculateTimeRemaining(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '-';
+    try {
+      DateTime dt = DateTime.parse(dateStr);
+      DateTime today = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      );
+      DateTime target = DateTime(dt.year, dt.month, dt.day);
+      int diff = target.difference(today).inDays;
+      if (diff > 0) {
+        return "$diff Hari Lagi";
+      } else if (diff == 0) {
+        return "Hari Ini";
+      } else {
+        return "Terlambat ${diff.abs()} Hari";
+      }
+    } catch (_) {}
+    return '-';
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 3,
       child: Scaffold(
         backgroundColor: const Color(0xFFF7F7F7),
         appBar: AppBar(
@@ -48,26 +146,40 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
               fontSize: 13,
             ),
             tabs: [
-              Tab(text: 'Aktif'),
-              Tab(text: 'Selesai'),
-              Tab(text: 'Terlambat'),
+              Tab(text: 'Semua Tugas'),
               Tab(text: 'Menunggu Review'),
+              Tab(text: 'Selesai'),
             ],
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildAktifTab(),
-            const Center(child: Text("Selesai")),
-            const Center(child: Text("Terlambat")),
-            const Center(child: Text("Menunggu Review")),
-          ],
-        ),
+        body: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Color(0xFFAD3B3E)),
+              )
+            : TabBarView(
+                children: [
+                  _buildTabContent(
+                    'Semua Tugas',
+                    _getFilteredTasks('Semua Tugas'),
+                  ),
+                  _buildTabContent(
+                    'Menunggu Review',
+                    _getFilteredTasks('Menunggu Review'),
+                  ),
+                  _buildTabContent('Selesai', _getFilteredTasks('Selesai')),
+                ],
+              ),
       ),
     );
   }
 
-  Widget _buildAktifTab() {
+  Widget _buildTabContent(String tabTitle, List<Map<String, dynamic>> tasks) {
+    int selesaiCount = _listTugas
+        .where((t) => (t['status_tugas']?.toString() ?? '') == 'Selesai')
+        .length;
+    int totalCount = _listTugas.length;
+    double percent = totalCount > 0 ? selesaiCount / totalCount : 0.0;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
@@ -116,9 +228,9 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Kamu telah menyelesaikan 4\ndari 6 tugas!',
-                        style: TextStyle(
+                      Text(
+                        'Kamu telah menyelesaikan $selesaiCount\ndari $totalCount tugas!',
+                        style: const TextStyle(
                           color: Color(0xFF6B1D1F),
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -129,7 +241,6 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
                       // Progress bar
                       LayoutBuilder(
                         builder: (context, constraints) {
-                          double percent = 4 / 6;
                           return Stack(
                             children: [
                               Container(
@@ -160,24 +271,22 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
           ),
           const SizedBox(height: 24),
 
-          // Tugas Aktif Header
+          // Header Kategori Tab
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Tugas Aktif',
-                style: TextStyle(
+              Text(
+                tabTitle == 'Semua Tugas' ? 'Semua Tugas' : 'Tugas $tabTitle',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  // Navigate to calendar or something
-                },
+                onTap: _fetchTugas,
                 child: const Text(
-                  'Lihat Kalender',
+                  'Refresh',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -189,46 +298,70 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
           ),
           const SizedBox(height: 16),
 
-          // List of Tasks
-          _buildTaskCard(
-            category: 'DEVELOPMENT',
-            timeRemaining: '2 Hari Lagi',
-            title: 'Implementasi API Dashboard',
-            description:
-                'Integrasi endpoint data statistik mingguan ke dalam komponen grafik di dashboard utama.',
-            dueDate: '24 Okt 2024',
-          ),
-          const SizedBox(height: 16),
-          _buildTaskCard(
-            category: 'DESIGN',
-            timeRemaining: '5 Hari Lagi',
-            title: 'Desain UI Mobile - Profile',
-            description:
-                'Membuat high-fidelity mockup untuk halaman profil intern dan mentor dengan gaya minimalis.',
-            dueDate: '27 Okt 2024',
-          ),
-          const SizedBox(height: 16),
-          _buildTaskCard(
-            category: 'COPYWRITING',
-            timeRemaining: '1 Minggu Lagi',
-            title: 'Drafting Documentation',
-            description:
-                'Menulis panduan penggunaan fitur baru untuk pengguna akhir dalam Bahasa Indonesia yang..',
-            dueDate: '30 Okt 2024',
-          ),
-          const SizedBox(height: 24), // bottom padding
+          // List of Tasks or Empty State
+          if (tasks.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.assignment_outlined,
+                      size: 50,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Belum ada tugas di kategori ini',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...tasks.map((task) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: _buildTaskCard(task: task),
+              );
+            }),
+
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildTaskCard({
-    required String category,
-    required String timeRemaining,
-    required String title,
-    required String description,
-    required String dueDate,
-  }) {
+  Widget _buildTaskCard({required Map<String, dynamic> task}) {
+    final status = task['status_tugas']?.toString() ?? 'Aktif';
+    String category = 'AKTIF';
+    Color badgeColor = const Color(0xFFE3F2FD);
+    Color badgeTextColor = const Color(0xFF1976D2);
+
+    if (status == 'Revisi') {
+      category = 'REVISI';
+      badgeColor = const Color(0xFFFFF0E6);
+      badgeTextColor = const Color(0xFFD9534F);
+    } else if (status == 'Ditinjau') {
+      category = 'DITINJAU';
+      badgeColor = const Color(0xFFFFF8E1);
+      badgeTextColor = const Color(0xFFB8860B);
+    } else if (status == 'Selesai') {
+      category = 'SELESAI';
+      badgeColor = const Color(0xFFE8F5E9);
+      badgeTextColor = const Color(0xFF2E7D32);
+    }
+    final mentorName = task['mentor']?['nama_lengkap']?.toString() ?? '';
+
+    final title = task['judul_tugas']?.toString() ?? 'Tanpa Judul';
+    final description = task['deskripsi']?.toString() ?? '-';
+    final dueDate = _formatDate(task['deadline']?.toString());
+    final timeRemaining = _calculateTimeRemaining(task['deadline']?.toString());
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -251,19 +384,33 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF2F2F2),
+                  color: badgeColor,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   category,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF666666),
+                    color: badgeTextColor,
                     letterSpacing: 0.5,
                   ),
                 ),
               ),
+              if (mentorName.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '• MENTOR: ${mentorName.toUpperCase()}',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
               const Spacer(),
               const Icon(Icons.access_time, size: 14, color: Color(0xFFC74346)),
               const SizedBox(width: 4),
@@ -316,9 +463,11 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const DetailTugasPeserta(),
+                      builder: (context) => DetailTugasPeserta(task: task),
                     ),
-                  );
+                  ).then((_) {
+                    _fetchTugas();
+                  });
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(

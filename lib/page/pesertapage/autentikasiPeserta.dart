@@ -60,16 +60,14 @@ class PesertaService {
       return {'success': false, 'message': 'Terjadi kesalahan: $e'};
     }
   }
-}
 
-class MentorService {
-  static Future<Map<String, dynamic>> getPesertaAbsensi() async {
+  static Future<Map<String, dynamic>> getPenugasanPeserta() async {
     try {
       const storage = FlutterSecureStorage();
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -80,19 +78,20 @@ class MentorService {
         final data = jsonDecode(response.body);
         return {'success': true, 'data': data['data']};
       } else {
-        return {'success': false, 'message': 'Gagal mengambil data peserta'};
+        return {
+          'success': false,
+          'message': 'Gagal mengambil data penugasan peserta',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Terjadi kesalahan: $e'};
     }
   }
 
-  static Future<Map<String, dynamic>> createPenugasan({
-    required int pesertaId,
-    required String judulTugas,
-    required String deskripsi,
-    required String deadline,
-    required List<File> fotoPetunjuk,
+  static Future<Map<String, dynamic>> submitPenugasan({
+    required int id,
+    String? catatanPeserta,
+    List<File>? files,
   }) async {
     try {
       const storage = FlutterSecureStorage();
@@ -100,21 +99,27 @@ class MentorService {
 
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan'),
+        Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan/$id/submit'),
       );
 
-      request.headers['Authorization'] = 'Bearer $token';
+      if (token != null) {
+        request.headers['Authorization'] = 'Bearer $token';
+      }
       request.headers['Accept'] = 'application/json';
 
-      request.fields['peserta_magang_id'] = pesertaId.toString();
-      request.fields['judul_tugas'] = judulTugas;
-      request.fields['deskripsi'] = deskripsi;
-      request.fields['deadline'] = deadline;
+      if (catatanPeserta != null) {
+        request.fields['catatan_peserta'] = catatanPeserta;
+      }
 
-      for (var file in fotoPetunjuk) {
-        request.files.add(
-          await http.MultipartFile.fromPath('foto_petunjuk[]', file.path),
-        );
+      if (files != null && files.isNotEmpty) {
+        for (var file in files) {
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'file_pengumpulan[]',
+              file.path,
+            ),
+          );
+        }
       }
 
       var streamedResponse = await request.send();
@@ -122,71 +127,16 @@ class MentorService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        return {
-          'success': true,
-          'message': data['message'] ?? 'Tugas berhasil dibuat',
-          'data': data['data'],
-        };
+        return {'success': true, 'message': data['message'], 'data': data['data']};
       } else {
-        final errorData = jsonDecode(response.body);
-        return {
-          'success': false,
-          'message': errorData['message'] ?? 'Gagal membuat tugas',
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Terjadi kesalahan: $e'};
-    }
-  }
-
-  static Future<Map<String, dynamic>> getPenugasanMentor() async {
-    try {
-      const storage = FlutterSecureStorage();
-      String? token = await storage.read(key: 'access_token');
-
-      final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {'success': true, 'data': data['data']};
-      } else {
-        return {
-          'success': false,
-          'message': 'Gagal mengambil data penugasan mentor',
-        };
-      }
-    } catch (e) {
-      return {'success': false, 'message': 'Terjadi kesalahan: $e'};
-    }
-  }
-
-  static Future<Map<String, dynamic>> deletePenugasanMentor(int id) async {
-    try {
-      const storage = FlutterSecureStorage();
-      String? token = await storage.read(key: 'access_token');
-
-      final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan/$id'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return {
-          'success': true,
-          'message': data['message'] ?? 'Penugasan berhasil dihapus',
-        };
-      } else {
-        return {'success': false, 'message': 'Gagal menghapus penugasan'};
+        String msg = 'Gagal mengumpulkan tugas (${response.statusCode})';
+        try {
+          final err = jsonDecode(response.body);
+          if (err['message'] != null) {
+            msg = err['message'];
+          }
+        } catch (_) {}
+        return {'success': false, 'message': msg};
       }
     } catch (e) {
       return {'success': false, 'message': 'Terjadi kesalahan: $e'};
