@@ -28,6 +28,85 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
     },
   ];
 
+  Future<void> _downloadImage(String imageUrl, String fileName) async {
+    try {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Menyimpan $fileName ke Galeri HP...'),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode == 200) {
+        await Gal.putImageBytes(response.bodyBytes);
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('$fileName berhasil disimpan di Galeri HP!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        throw Exception('Status ${response.statusCode}');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal menyimpan gambar: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _downloadAllImages() async {
+    final list = widget.images != null && widget.images!.isNotEmpty
+        ? widget.images!
+        : dummyImages.map((e) => e['url']!).toList();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Menyimpan semua lampiran ke Galeri HP...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    int successCount = 0;
+    for (int i = 0; i < list.length; i++) {
+      try {
+        String path = list[i];
+        String fullUrl = path.startsWith('http')
+            ? path
+            : 'http://10.0.2.2:8000/storage/$path';
+        final response = await http.get(Uri.parse(fullUrl));
+        if (response.statusCode == 200) {
+          await Gal.putImageBytes(response.bodyBytes);
+          successCount++;
+        }
+      } catch (_) {}
+    }
+
+    if (!mounted) return;
+    if (successCount > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '$successCount lampiran berhasil disimpan di Galeri HP!',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Gagal menyimpan lampiran'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,21 +134,20 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
-                itemCount:
-                    widget.images != null && widget.images!.isNotEmpty
-                        ? widget.images!.length
-                        : dummyImages.length,
+                itemCount: widget.images != null && widget.images!.isNotEmpty
+                    ? widget.images!.length
+                    : dummyImages.length,
                 itemBuilder: (context, index) {
+                  String fileName = 'petunjuk_${index + 1}.jpg';
                   if (widget.images != null && widget.images!.isNotEmpty) {
                     String path = widget.images![index];
                     String fullUrl = path.startsWith('http')
                         ? path
                         : 'http://10.0.2.2:8000/storage/$path';
-                    String fileName = path.split('/').last;
                     return _buildLampiranCard(fileName, fullUrl);
                   } else {
                     return _buildLampiranCard(
-                      dummyImages[index]['name']!,
+                      fileName,
                       dummyImages[index]['url']!,
                     );
                   }
@@ -107,9 +185,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Aksi download semua
-        },
+        onPressed: _downloadAllImages,
         backgroundColor: const Color(0xFFA63C40), // Darker red from screenshot
         elevation: 4,
         child: Icon(
@@ -190,10 +266,14 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                     letterSpacing: 0.5,
                   ),
                 ),
-                Icon(
-                  Icons.file_download_outlined,
-                  color: const Color(0xFFA63C40),
-                  size: displayWidth(context) * 0.05,
+                IconButton(
+                  onPressed: () => _downloadImage(imageUrl, name),
+                  icon: Icon(
+                    Icons.file_download_outlined,
+                    color: const Color(0xFFA63C40),
+                    size: displayWidth(context) * 0.06,
+                  ),
+                  tooltip: 'Simpan ke Galeri',
                 ),
               ],
             ),

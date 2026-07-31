@@ -531,7 +531,7 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
     String fullUrl = firstPath.startsWith('http')
         ? firstPath
         : 'http://10.0.2.2:8000/storage/$firstPath';
-    String fileName = firstPath.split('/').last;
+    String fileName = 'petunjuk_1.jpg';
 
     return GestureDetector(
       onTap: () {
@@ -574,7 +574,7 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
               SizedBox(width: displayWidth(context) * 0.02),
               Expanded(
                 child: Text(
-                  fileName,
+                  'petunjuk_satu.jpg',
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
