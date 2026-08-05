@@ -13,6 +13,7 @@ class _MentorHomeState extends State<MentorHome> {
   int _totalPeserta = 0;
   int _sudahAbsen = 0;
   int _sudahLaporan = 0;
+  int _unreadNotifCount = 0;
 
   Timer? _pollingTimer;
 
@@ -20,6 +21,7 @@ class _MentorHomeState extends State<MentorHome> {
   void initState() {
     super.initState();
     _fetchMentorData();
+    _fetchUnreadNotifCount();
     _startPolling();
   }
 
@@ -32,7 +34,40 @@ class _MentorHomeState extends State<MentorHome> {
   void _startPolling() {
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _fetchDashboardStats();
+      _fetchUnreadNotifCount();
     });
+  }
+
+  Future<void> _fetchUnreadNotifCount() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/notifikasi'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['success'] == true) {
+            List<dynamic> notifList = data['data'] ?? [];
+            int unread = notifList.where((n) => n['is_read'] == false).length;
+            if (mounted && _unreadNotifCount != unread) {
+              setState(() {
+                _unreadNotifCount = unread;
+              });
+            }
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   Future<void> _fetchDashboardStats() async {
@@ -331,19 +366,7 @@ class _MentorHomeState extends State<MentorHome> {
                       ],
                     ),
                     const Spacer(),
-                    Container(
-                      padding: EdgeInsets.all(displayWidth(context) * 0.02),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFE84C63),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.chat_bubble_outline,
-                        color: Colors.white,
-                        size: displayWidth(context) * 0.045,
-                      ),
-                    ),
-                    SizedBox(width: displayWidth(context) * 0.02),
+
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
@@ -351,19 +374,54 @@ class _MentorHomeState extends State<MentorHome> {
                           MaterialPageRoute(
                             builder: (context) => const MentorNotif(),
                           ),
-                        );
+                        ).then((_) {
+                          _fetchUnreadNotifCount();
+                        });
                       },
-                      child: Container(
-                        padding: EdgeInsets.all(displayWidth(context) * 0.02),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFE84C63),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.notifications_none,
-                          color: Colors.white,
-                          size: displayWidth(context) * 0.045,
-                        ),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(
+                              displayWidth(context) * 0.02,
+                            ),
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _unreadNotifCount > 0
+                                  ? Icons.notifications_active
+                                  : Icons.notifications_none,
+                              color: const Color(0xFFE84C63),
+                              size: displayWidth(context) * 0.045,
+                            ),
+                          ),
+                          if (_unreadNotifCount > 0)
+                            Positioned(
+                              right: -displayWidth(context) * 0.01,
+                              top: -displayHeight(context) * 0.005,
+                              child: Container(
+                                padding: EdgeInsets.all(
+                                  displayWidth(context) * 0.012,
+                                ),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Text(
+                                  _unreadNotifCount > 9
+                                      ? '9+'
+                                      : '$_unreadNotifCount',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: displayWidth(context) * 0.025,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],

@@ -15,11 +15,72 @@ class PesertaHomeState extends State<PesertaHome> {
   String? _waktuKeluar;
   String _statusAbsen = "";
   String _namaLengkap = "";
+  List<dynamic> _tugasAktif = [];
+  Timer? _pollingTimer;
 
   @override
   void initState() {
     super.initState();
     _fetchHomeData();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _fetchTugasDataSilent();
+    });
+  }
+
+  Future<void> _fetchTugasDataSilent() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token != null) {
+      try {
+        final responseTugas = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        if (responseTugas.statusCode == 200) {
+          final dataTugas = jsonDecode(responseTugas.body);
+          if (dataTugas['success'] == true) {
+            List<dynamic> newTugasList = dataTugas['data'] ?? [];
+            if (mounted) {
+              if (newTugasList.length != _tugasAktif.length) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text(
+                      'Ada pembaruan pada data Tugas Aktif Anda!',
+                    ),
+                    backgroundColor: const Color(0xFF1976D2),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
+              setState(() {
+                _tugasAktif = newTugasList;
+              });
+            }
+          }
+        }
+      } catch (e) {
+        // Abaikan error saat polling di background
+      }
+    }
   }
 
   Future<void> _fetchHomeData() async {
@@ -36,8 +97,25 @@ class PesertaHomeState extends State<PesertaHome> {
           },
         );
 
+        final responseTugas = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
+
+          List<dynamic> tugasList = [];
+          if (responseTugas.statusCode == 200) {
+            final dataTugas = jsonDecode(responseTugas.body);
+            if (dataTugas['success'] == true) {
+              tugasList = dataTugas['data'] ?? [];
+            }
+          }
+
           if (mounted) {
             setState(() {
               _sudahAbsen = data['sudah_absen'] ?? false;
@@ -50,6 +128,7 @@ class PesertaHomeState extends State<PesertaHome> {
               if (data['data'] != null) {
                 _namaLengkap = data['data']['nama_lengkap'] ?? "Peserta";
               }
+              _tugasAktif = tugasList;
               _isFetchingData = false;
             });
           }
@@ -565,14 +644,24 @@ class PesertaHomeState extends State<PesertaHome> {
                         color: Colors.black87,
                       ),
                     ),
-                    Text(
-                      "LIHAT SEMUA",
-                      style: TextStyle(
-                        fontSize: displayWidth(context) * 0.03,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(
-                          0xFF983A46,
-                        ), // Darker red as per image
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TugasSayaPeserta(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        "LIHAT SEMUA",
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.03,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(
+                            0xFF983A46,
+                          ), // Darker red as per image
+                        ),
                       ),
                     ),
                   ],
@@ -582,29 +671,67 @@ class PesertaHomeState extends State<PesertaHome> {
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
                   child: Row(
-                    children: [
-                      _buildTugasCard(
-                        context,
-                        tag: "DEVELOPMENT",
-                        tagColor: const Color(0xFFFDE8EB), // Light red bg
-                        tagTextColor: const Color(0xFF983A46),
-                        title: "Implementasi API",
-                        description: "Integrasi endpoint dashboard...",
-                      ),
-                      SizedBox(width: displayWidth(context) * 0.04),
-                      _buildTugasCard(
-                        context,
-                        tag: "DESIGN",
-                        tagColor: const Color(
-                          0xFFFDF4E6,
-                        ), // Light yellow/orange bg
-                        tagTextColor: const Color(
-                          0xFF8B6508,
-                        ), // Dark golden/brown text
-                        title: "Desain UI",
-                        description: "High-fidelity prototype...",
-                      ),
-                    ],
+                    children:
+                        _tugasAktif
+                            .where((t) => t['status_tugas'] != 'Selesai')
+                            .isEmpty
+                        ? [
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: displayWidth(context) * 0.04,
+                              ),
+                              child: Text(
+                                "Belum ada tugas aktif",
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ]
+                        : _tugasAktif
+                              .where((t) => t['status_tugas'] != 'Selesai')
+                              .take(5)
+                              .map((tugas) {
+                                Color tagColor = const Color(0xFFE3F2FD);
+                                Color tagTextColor = const Color(0xFF1976D2);
+                                String tag = "AKTIF";
+
+                                if (tugas['status_tugas'] == 'Revisi') {
+                                  tagColor = const Color(0xFFFFEBEE);
+                                  tagTextColor = const Color(0xFFD32F2F);
+                                  tag = "REVISI";
+                                } else if (tugas['status_tugas'] ==
+                                    'Ditinjau') {
+                                  tagColor = const Color(0xFFFFF3E0);
+                                  tagTextColor = const Color(0xFFF57C00);
+                                  tag = "DITINJAU";
+                                }
+
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    right: displayWidth(context) * 0.04,
+                                  ),
+                                  child: _buildTugasCard(
+                                    context,
+                                    tag: tag,
+                                    tagColor: tagColor,
+                                    tagTextColor: tagTextColor,
+                                    title: tugas['judul_tugas'] ?? '-',
+                                    description: tugas['deskripsi'] ?? '-',
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              DetailTugasPeserta(task: tugas),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                );
+                              })
+                              .toList(),
                   ),
                 ),
                 SizedBox(height: displayHeight(context) * 0.04),
@@ -659,75 +786,74 @@ class PesertaHomeState extends State<PesertaHome> {
     required Color tagTextColor,
     required String title,
     required String description,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      width: displayWidth(context) * 0.6,
-      padding: EdgeInsets.all(displayWidth(context) * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: displayWidth(context) * 0.02,
-                  vertical: displayHeight(context) * 0.003,
-                ),
-                decoration: BoxDecoration(
-                  color: tagColor,
-                  borderRadius: BorderRadius.circular(
-                    displayWidth(context) * 0.01,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: displayWidth(context) * 0.6,
+        padding: EdgeInsets.all(displayWidth(context) * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: displayWidth(context) * 0.02,
+                    vertical: displayHeight(context) * 0.003,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tagColor,
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.01,
+                    ),
+                  ),
+                  child: Text(
+                    tag,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.02,
+                      fontWeight: FontWeight.bold,
+                      color: tagTextColor,
+                    ),
                   ),
                 ),
-                child: Text(
-                  tag,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.02,
-                    fontWeight: FontWeight.bold,
-                    color: tagTextColor,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.more_vert,
-                size: displayWidth(context) * 0.04,
-                color: Colors.grey[600],
-              ),
-            ],
-          ),
-          SizedBox(height: displayHeight(context) * 0.02),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: displayWidth(context) * 0.04,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
+              ],
             ),
-          ),
-          SizedBox(height: displayHeight(context) * 0.005),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: displayWidth(context) * 0.03,
-              color: Colors.grey[500],
+            SizedBox(height: displayHeight(context) * 0.02),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: displayWidth(context) * 0.04,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: displayHeight(context) * 0.03),
-        ],
+            SizedBox(height: displayHeight(context) * 0.005),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: displayWidth(context) * 0.03,
+                color: Colors.grey[500],
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: displayHeight(context) * 0.03),
+          ],
+        ),
       ),
     );
   }
