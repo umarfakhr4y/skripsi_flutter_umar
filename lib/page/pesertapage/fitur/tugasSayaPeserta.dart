@@ -361,6 +361,7 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
     final description = task['deskripsi']?.toString() ?? '-';
     final dueDate = _formatDate(task['deadline']?.toString());
     final timeRemaining = _calculateTimeRemaining(task['deadline']?.toString());
+    final isLate = timeRemaining.startsWith('Terlambat') && status != 'Selesai';
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -412,16 +413,43 @@ class _TugasSayaPesertaState extends State<TugasSayaPeserta> {
                 ),
               ],
               const Spacer(),
-              const Icon(Icons.access_time, size: 14, color: Color(0xFFC74346)),
-              const SizedBox(width: 4),
-              Text(
-                timeRemaining,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFC74346),
+              if (status != 'Selesai')
+                Container(
+                  padding: isLate
+                      ? const EdgeInsets.symmetric(horizontal: 6, vertical: 3)
+                      : EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    color: isLate
+                        ? const Color(0xFFFFEBEE)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                    border: isLate
+                        ? Border.all(color: const Color(0xFFEF9A9A), width: 0.5)
+                        : null,
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: isLate
+                            ? const Color(0xFFD32F2F)
+                            : const Color(0xFFC74346),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        timeRemaining,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: isLate
+                              ? const Color(0xFFD32F2F)
+                              : const Color(0xFFC74346),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: 12),

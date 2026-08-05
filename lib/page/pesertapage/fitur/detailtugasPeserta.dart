@@ -502,13 +502,14 @@ class _DetailTugasPesertaState extends State<DetailTugasPeserta> {
                                     color: Colors.black87,
                                   ),
                                 ),
-                                Text(
-                                  timeRemaining,
-                                  style: TextStyle(
-                                    color: const Color(0xFFE84C63),
-                                    fontSize: displayWidth(context) * 0.025,
+                                if (status != 'Selesai')
+                                  Text(
+                                    timeRemaining,
+                                    style: TextStyle(
+                                      color: const Color(0xFFE84C63),
+                                      fontSize: displayWidth(context) * 0.025,
+                                    ),
                                   ),
-                                ),
                               ],
                             ),
                           ),
