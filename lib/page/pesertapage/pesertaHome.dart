@@ -380,15 +380,28 @@ class PesertaHomeState extends State<PesertaHome> {
                 SizedBox(height: displayHeight(context) * 0.04),
 
                 // Greeting
-                Text(
-                  _isFetchingData
-                      ? "Loading..."
-                      : "${_getGreeting()}, $_namaLengkap!",
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.035,
-                    color: Colors.grey[600],
-                  ),
-                ),
+                _isFetchingData
+                    ? Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Container(
+                          width: displayWidth(context) * 0.4,
+                          height: displayWidth(context) * 0.04,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(
+                              displayWidth(context) * 0.01,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Text(
+                        "${_getGreeting()}, $_namaLengkap!",
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.035,
+                          color: Colors.grey[600],
+                        ),
+                      ),
                 SizedBox(height: displayHeight(context) * 0.01),
                 Text(
                   "Semangat Magang Hari Ini!",
@@ -442,39 +455,60 @@ class PesertaHomeState extends State<PesertaHome> {
                                 displayWidth(context) * 0.04,
                               ),
                             ),
-                            child: Text(
-                              _isFetchingData
-                                  ? "--:--"
-                                  : (_waktuMasuk.isNotEmpty
+                            child: _isFetchingData
+                                ? Shimmer.fromColors(
+                                    baseColor: Colors.grey[300]!,
+                                    highlightColor: Colors.grey[100]!,
+                                    child: Container(
+                                      width: displayWidth(context) * 0.12,
+                                      height: displayWidth(context) * 0.03,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    _waktuMasuk.isNotEmpty
                                         ? "$_waktuMasuk WIB"
-                                        : "09:00 WIB"),
-                              style: TextStyle(
-                                fontSize: displayWidth(context) * 0.028,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
+                                        : "09:00 WIB",
+                                    style: TextStyle(
+                                      fontSize: displayWidth(context) * 0.028,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
                       SizedBox(height: displayHeight(context) * 0.01),
-                      Text(
-                        _isFetchingData
-                            ? "Loading..."
-                            : (!_sudahAbsen
+                      _isFetchingData
+                          ? Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Container(
+                                width: displayWidth(context) * 0.4,
+                                height: displayWidth(context) * 0.05,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(
+                                    displayWidth(context) * 0.01,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              !_sudahAbsen
                                   ? "Belum Presensi"
                                   : ((_statusAbsen == 'izin' ||
                                             _statusAbsen == 'sakit')
                                         ? "Izin/Sakit Disetujui"
                                         : (_waktuKeluar == null
                                               ? "Sudah Presensi Hadir"
-                                              : "Sudah Presensi"))),
-                        style: TextStyle(
-                          fontSize: displayWidth(context) * 0.04,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
+                                              : "Sudah Presensi")),
+                              style: TextStyle(
+                                fontSize: displayWidth(context) * 0.04,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
                       SizedBox(height: displayHeight(context) * 0.02),
                       ElevatedButton(
                         onPressed:
@@ -551,7 +585,7 @@ class PesertaHomeState extends State<PesertaHome> {
                                 ],
                               ),
                       ),
-                      if (!_sudahAbsen) ...[
+                      if (!_isFetchingData && !_sudahAbsen) ...[
                         SizedBox(height: displayHeight(context) * 0.01),
                         Center(
                           child: TextButton(
@@ -671,10 +705,32 @@ class PesertaHomeState extends State<PesertaHome> {
                   scrollDirection: Axis.horizontal,
                   clipBehavior: Clip.none,
                   child: Row(
-                    children:
-                        _tugasAktif
-                            .where((t) => t['status_tugas'] != 'Selesai')
-                            .isEmpty
+                    children: _isFetchingData
+                        ? List.generate(
+                            2,
+                            (index) => Padding(
+                              padding: EdgeInsets.only(
+                                right: displayWidth(context) * 0.04,
+                              ),
+                              child: Shimmer.fromColors(
+                                baseColor: Colors.grey[300]!,
+                                highlightColor: Colors.grey[100]!,
+                                child: Container(
+                                  width: displayWidth(context) * 0.6,
+                                  height: displayHeight(context) * 0.15,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(
+                                      displayWidth(context) * 0.03,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        : _tugasAktif
+                              .where((t) => t['status_tugas'] != 'Selesai')
+                              .isEmpty
                         ? [
                             Padding(
                               padding: EdgeInsets.symmetric(
