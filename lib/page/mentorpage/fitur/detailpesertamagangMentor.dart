@@ -90,6 +90,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
                     SizedBox(height: displayHeight(context) * 0.02),
                     _buildDataDiri(),
                     SizedBox(height: displayHeight(context) * 0.02),
+                    _buildRekapAbsensi(),
+                    SizedBox(height: displayHeight(context) * 0.02),
                     _buildTugasTerbaru(),
                   ],
                 ),
@@ -225,6 +227,126 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRekapAbsensi() {
+    final Map<String, dynamic>? rekap = _pesertaData?['rekap_absensi'];
+    final int hadir = rekap?['hadir'] ?? 0;
+    final int izin = rekap?['izin'] ?? 0;
+    final int sakit = rekap?['sakit'] ?? 0;
+
+    final List<String> bulan = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    final namaBulan = bulan[DateTime.now().month - 1];
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(displayWidth(context) * 0.05),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today_outlined,
+                color: const Color(0xFFE57373),
+                size: displayWidth(context) * 0.05,
+              ),
+              SizedBox(width: displayWidth(context) * 0.02),
+              Text(
+                'Kehadiran Bulan Ini ($namaBulan)',
+                style: TextStyle(
+                  fontSize: displayWidth(context) * 0.04,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: displayHeight(context) * 0.02),
+          Row(
+            children: [
+              _buildAbsensiCounter(
+                title: 'Hadir',
+                count: hadir.toString(),
+                color: const Color(0xFF4CAF50), // Green
+                icon: Icons.check_circle_outline,
+              ),
+              SizedBox(width: displayWidth(context) * 0.03),
+              _buildAbsensiCounter(
+                title: 'Izin',
+                count: izin.toString(),
+                color: const Color(0xFFF57C00), // Orange
+                icon: Icons.assignment_late_outlined,
+              ),
+              SizedBox(width: displayWidth(context) * 0.03),
+              _buildAbsensiCounter(
+                title: 'Sakit',
+                count: sakit.toString(),
+                color: const Color(0xFFD32F2F), // Red
+                icon: Icons.local_hospital_outlined,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAbsensiCounter({
+    required String title,
+    required String count,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: displayHeight(context) * 0.015),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(displayWidth(context) * 0.03),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: displayWidth(context) * 0.06),
+            SizedBox(height: displayHeight(context) * 0.005),
+            Text(
+              count,
+              style: TextStyle(
+                fontSize: displayWidth(context) * 0.045,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: displayWidth(context) * 0.03,
+                fontWeight: FontWeight.w600,
+                color: color.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

@@ -13,6 +13,7 @@ class PesertaHomeState extends State<PesertaHome> {
   bool _sudahIsiLaporan = false;
   String _waktuMasuk = "";
   String? _waktuKeluar;
+  String _statusAbsen = "";
   String _namaLengkap = "";
 
   @override
@@ -44,6 +45,7 @@ class PesertaHomeState extends State<PesertaHome> {
               if (_sudahAbsen && data['absen_hari_ini'] != null) {
                 _waktuMasuk = data['absen_hari_ini']['waktu_masuk'] ?? "";
                 _waktuKeluar = data['absen_hari_ini']['waktu_keluar'];
+                _statusAbsen = data['absen_hari_ini']['status'] ?? "";
               }
               if (data['data'] != null) {
                 _namaLengkap = data['data']['nama_lengkap'] ?? "Peserta";
@@ -382,9 +384,12 @@ class PesertaHomeState extends State<PesertaHome> {
                             ? "Loading..."
                             : (!_sudahAbsen
                                   ? "Belum Presensi"
-                                  : (_waktuKeluar == null
-                                        ? "Sudah Presensi Hadir"
-                                        : "Sudah Presensi")),
+                                  : ((_statusAbsen == 'izin' ||
+                                            _statusAbsen == 'sakit')
+                                        ? "Izin/Sakit Disetujui"
+                                        : (_waktuKeluar == null
+                                              ? "Sudah Presensi Hadir"
+                                              : "Sudah Presensi"))),
                         style: TextStyle(
                           fontSize: displayWidth(context) * 0.04,
                           fontWeight: FontWeight.bold,
@@ -396,13 +401,19 @@ class PesertaHomeState extends State<PesertaHome> {
                         onPressed:
                             (_isFetchingData ||
                                 _isAbsenLoading ||
-                                (_sudahAbsen && _waktuKeluar != null))
+                                (_sudahAbsen &&
+                                    (_waktuKeluar != null ||
+                                        _statusAbsen == 'izin' ||
+                                        _statusAbsen == 'sakit')))
                             ? null
                             : _submitAbsen,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFE84C63), // Red color
                           disabledBackgroundColor:
-                              (_sudahAbsen && _waktuKeluar != null)
+                              (_sudahAbsen &&
+                                  (_waktuKeluar != null ||
+                                      _statusAbsen == 'izin' ||
+                                      _statusAbsen == 'sakit'))
                               ? Colors.grey[400]
                               : null,
                           shape: RoundedRectangleBorder(
@@ -434,7 +445,9 @@ class PesertaHomeState extends State<PesertaHome> {
                                   Icon(
                                     (!_sudahAbsen ||
                                             (_sudahAbsen &&
-                                                _waktuKeluar == null))
+                                                _waktuKeluar == null &&
+                                                !(_statusAbsen == 'izin' ||
+                                                    _statusAbsen == 'sakit')))
                                         ? Icons.fingerprint
                                         : Icons.check_circle,
                                     color: Colors.white,
@@ -444,9 +457,12 @@ class PesertaHomeState extends State<PesertaHome> {
                                   Text(
                                     !_sudahAbsen
                                         ? "Presensi Sekarang"
-                                        : (_waktuKeluar == null
-                                              ? "Presensi Pulang"
-                                              : "Sudah Presensi Hari Ini"),
+                                        : ((_statusAbsen == 'izin' ||
+                                                  _statusAbsen == 'sakit')
+                                              ? "Sudah Tercatat Izin/Sakit"
+                                              : (_waktuKeluar == null
+                                                    ? "Presensi Pulang"
+                                                    : "Sudah Presensi Hari Ini")),
                                     style: TextStyle(
                                       fontSize: displayWidth(context) * 0.035,
                                       fontWeight: FontWeight.bold,
@@ -456,6 +472,37 @@ class PesertaHomeState extends State<PesertaHome> {
                                 ],
                               ),
                       ),
+                      if (!_sudahAbsen) ...[
+                        SizedBox(height: displayHeight(context) * 0.01),
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const PersuratanPeserta(),
+                                ),
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              padding: EdgeInsets.zero,
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            child: Text(
+                              'Tidak hadir hari ini? Ajukan Izin/Sakit',
+                              style: TextStyle(
+                                fontSize: displayWidth(context) * 0.03,
+                                color: const Color(0xFFE84C63),
+                                decoration: TextDecoration.underline,
+                                decorationColor: const Color(0xFFE84C63),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                       if (_sudahAbsen && _waktuKeluar != null) ...[
                         SizedBox(height: displayHeight(context) * 0.015),
                         ElevatedButton(
