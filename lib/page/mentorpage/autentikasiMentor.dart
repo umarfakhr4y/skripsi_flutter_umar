@@ -16,7 +16,11 @@ class MentorService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'data': data['data']};
+        return {
+          'success': true,
+          'data': data['data'],
+          'summary': data['summary'],
+        };
       } else {
         return {'success': false, 'message': 'Gagal mengambil data peserta'};
       }

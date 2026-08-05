@@ -14,10 +14,82 @@ class _MentorHomeState extends State<MentorHome> {
   int _sudahAbsen = 0;
   int _sudahLaporan = 0;
 
+  Timer? _pollingTimer;
+
   @override
   void initState() {
     super.initState();
     _fetchMentorData();
+    _startPolling();
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPolling() {
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      _fetchDashboardStats();
+    });
+  }
+
+  Future<void> _fetchDashboardStats() async {
+    try {
+      final absensiResult = await MentorService.getPesertaAbsensi();
+      if (absensiResult['success']) {
+        int tPeserta = 0;
+        int sAbsen = 0;
+        int sLaporan = 0;
+
+        if (absensiResult['summary'] != null) {
+          tPeserta = absensiResult['summary']['total_peserta'] ?? 0;
+          sAbsen = absensiResult['summary']['sudah_clock_in'] ?? 0;
+          sLaporan = absensiResult['summary']['sudah_laporan'] ?? 0;
+        } else {
+          List<dynamic> absensiList = absensiResult['data'] ?? [];
+          tPeserta = absensiList.length;
+          sAbsen = absensiList.where((p) {
+            if (p is Map) return p['sudah_absen_masuk'] == true;
+            return false;
+          }).length;
+        }
+
+        if (mounted) {
+          if (sAbsen > _sudahAbsen) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Terdapat peserta yang baru saja melakukan absensi.',
+                ),
+                backgroundColor: Color(0xFF4CAF50),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+          if (sLaporan > _sudahLaporan) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Terdapat peserta yang baru saja mengisi laporan harian.',
+                ),
+                backgroundColor: Color(0xFF2196F3),
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+
+          setState(() {
+            _totalPeserta = tPeserta;
+            _sudahAbsen = sAbsen;
+            _sudahLaporan = sLaporan;
+          });
+        }
+      }
+    } catch (e) {
+      // Abaikan error polling agar tidak mengganggu UI
+    }
   }
 
   Future<void> _fetchMentorData() async {
