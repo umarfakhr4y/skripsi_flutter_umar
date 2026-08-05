@@ -156,28 +156,62 @@ class PesertaHomeState extends State<PesertaHome> {
   }
 
   Future<void> _submitAbsen() async {
-    //sudah berhasil, namun masih static isian absennya
     setState(() {
       _isAbsenLoading = true;
     });
 
-    final result = await PesertaService.absen(
-      'hadir',
-      '-6.200000',
-      '106.816666',
-    );
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Layanan lokasi (GPS) tidak aktif. Silakan aktifkan terlebih dahulu.');
+      }
 
-    if (mounted) {
-      setState(() {
-        _isAbsenLoading = false;
-      });
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Izin lokasi ditolak.');
+        }
+      }
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Izin lokasi ditolak secara permanen. Silakan atur di pengaturan perangkat.');
+      }
 
-      if (result['success'] == true) {
-        _fetchHomeData();
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final result = await PesertaService.absen(
+        'hadir',
+        position.latitude.toString(),
+        position.longitude.toString(),
+      );
+
+      if (mounted) {
+        setState(() {
+          _isAbsenLoading = false;
+        });
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+
+        if (result['success'] == true) {
+          _fetchHomeData();
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isAbsenLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

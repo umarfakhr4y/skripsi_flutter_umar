@@ -127,8 +127,12 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     String statusText = "Belum Presensi";
     IconData statusIcon = Icons.close;
     Color iconColor = Colors.grey;
+    String? latitude;
+    String? longitude;
 
     if (sudahAbsenMasuk && absenInfo != null) {
+      latitude = absenInfo['latitude']?.toString();
+      longitude = absenInfo['longitude']?.toString();
       if (absenInfo['status'] == 'hadir') {
         String _formatTime(String? timeStr) {
           if (timeStr == null || timeStr.isEmpty) return 'Belum';
@@ -211,6 +215,23 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
               ],
             ),
           ),
+          if (latitude != null && longitude != null)
+            IconButton(
+              icon: Icon(Icons.location_on, color: const Color(0xFFEA6E7D), size: displayWidth(context) * 0.05),
+              onPressed: () async {
+                final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
+                final uri = Uri.parse(url);
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Tidak dapat membuka Google Maps')),
+                    );
+                  }
+                }
+              },
+            ),
           Icon(
             statusIcon,
             color: iconColor,
