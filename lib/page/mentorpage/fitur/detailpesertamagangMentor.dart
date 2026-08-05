@@ -229,6 +229,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
   }
 
   Widget _buildTugasTerbaru() {
+    final List<dynamic> tugasList = _pesertaData?['tugas'] ?? [];
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(displayWidth(context) * 0.05),
@@ -263,38 +265,93 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
             ],
           ),
           SizedBox(height: displayHeight(context) * 0.02),
-          _buildTugasCard(
-            icon: Icons.code,
-            iconBgColor: const Color(0xFFE8EAF6), // Light Indigo
-            iconColor: const Color(0xFF3F51B5), // Indigo
-            title: 'Implementasi API Login',
-            subtitle: 'Deadline: 15 Mei 2024',
-            badgeText: 'PROSES',
-            badgeColor: const Color(0xFFF57C00), // Orange
-            badgeBgColor: const Color(0xFFFFF3E0), // Light Orange
-          ),
-          SizedBox(height: displayHeight(context) * 0.015),
-          _buildTugasCard(
-            icon: Icons.check_circle_outline,
-            iconBgColor: const Color(0xFFE8F5E9), // Light Green
-            iconColor: const Color(0xFF4CAF50), // Green
-            title: 'Desain UI Dashboard',
-            subtitle: 'Diselesaikan: 10 Mei 2024',
-            badgeText: 'SELESAI',
-            badgeColor: const Color(0xFF4CAF50), // Green
-            badgeBgColor: const Color(0xFFE8F5E9), // Light Green
-          ),
-          SizedBox(height: displayHeight(context) * 0.015),
-          _buildTugasCard(
-            icon: Icons.design_services_outlined,
-            iconBgColor: const Color(0xFFFFF3E0), // Light Orange
-            iconColor: const Color(0xFFFF9800), // Orange
-            title: 'Riset User Persona',
-            subtitle: 'Menunggu Review Mentor',
-            badgeText: 'REVIEW',
-            badgeColor: const Color(0xFF2196F3), // Blue
-            badgeBgColor: const Color(0xFFE3F2FD), // Light Blue
-          ),
+          if (tugasList.isEmpty)
+            Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: displayHeight(context) * 0.02,
+                ),
+                child: Text(
+                  'Belum ada tugas yang diberikan.',
+                  style: TextStyle(
+                    color: Colors.grey[500],
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+            )
+          else
+            ...tugasList.take(5).map((tugas) {
+              final status = (tugas['status_tugas'] ?? 'aktif')
+                  .toString()
+                  .toLowerCase();
+              final judul = tugas['judul_tugas'] ?? '-';
+
+              String subtitle = '';
+              String badgeText = '';
+              Color badgeColor = Colors.grey;
+              Color badgeBgColor = Colors.grey.shade200;
+              IconData icon = Icons.assignment_outlined;
+              Color iconColor = Colors.grey;
+              Color iconBgColor = Colors.grey.shade100;
+
+              if (status == 'selesai') {
+                subtitle = 'Selesai';
+                badgeText = 'SELESAI';
+                badgeColor = const Color(0xFF4CAF50); // Green
+                badgeBgColor = const Color(0xFFE8F5E9); // Light Green
+                icon = Icons.check_circle_outline;
+                iconColor = const Color(0xFF4CAF50);
+                iconBgColor = const Color(0xFFE8F5E9);
+              } else if (status == 'ditinjau') {
+                subtitle = 'Menunggu Review';
+                badgeText = 'DITINJAU';
+                badgeColor = const Color(0xFFF57C00); // Orange
+                badgeBgColor = const Color(0xFFFFF3E0);
+                icon = Icons.design_services_outlined;
+                iconColor = const Color(0xFFFF9800);
+                iconBgColor = const Color(0xFFFFF3E0);
+              } else if (status == 'revisi') {
+                subtitle = 'Perlu Revisi';
+                badgeText = 'REVISI';
+                badgeColor = const Color(0xFFD32F2F); // Red
+                badgeBgColor = const Color(0xFFFFEBEE);
+                icon = Icons.sync_problem;
+                iconColor = const Color(0xFFD32F2F);
+                iconBgColor = const Color(0xFFFFEBEE);
+              } else {
+                // Aktif
+                final deadlineStr = tugas['deadline'];
+                if (deadlineStr != null && deadlineStr.toString().isNotEmpty) {
+                  final rawDate = deadlineStr.toString().split('T')[0];
+                  subtitle = 'Deadline: $rawDate';
+                } else {
+                  subtitle = 'Sedang dikerjakan';
+                }
+                badgeText = 'AKTIF';
+                badgeColor = const Color(0xFF1976D2); // Blue
+                badgeBgColor = const Color(0xFFE3F2FD);
+                icon = Icons.code;
+                iconColor = const Color(0xFF1976D2);
+                iconBgColor = const Color(0xFFE3F2FD);
+              }
+
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: displayHeight(context) * 0.015,
+                ),
+                child: _buildTugasCard(
+                  icon: icon,
+                  iconBgColor: iconBgColor,
+                  iconColor: iconColor,
+                  title: judul,
+                  subtitle: subtitle,
+                  badgeText: badgeText,
+                  badgeColor: badgeColor,
+                  badgeBgColor: badgeBgColor,
+                ),
+              );
+            }).toList(),
         ],
       ),
     );
