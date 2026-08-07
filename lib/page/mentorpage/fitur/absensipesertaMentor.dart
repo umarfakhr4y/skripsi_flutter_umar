@@ -11,6 +11,9 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
   List<dynamic> absensiList = [];
   bool _isLoading = true;
   Timer? _pollingTimer;
+  String _batasAbsenSekarang = "08:00";
+  String? _batasAbsenMendatang;
+  String? _tanggalBatasMendatang;
 
   @override
   void initState() {
@@ -34,7 +37,23 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
       });
     }
     final result = await MentorService.getPesertaAbsensi();
+    final pengaturanRes = await MentorService.getPengaturanAbsen();
     if (mounted) {
+      if (pengaturanRes['success'] == true) {
+        setState(() {
+          _batasAbsenSekarang =
+              pengaturanRes['batas_waktu_sekarang']?.toString().substring(
+                0,
+                5,
+              ) ??
+              '08:00';
+          _batasAbsenMendatang = pengaturanRes['batas_waktu_mendatang']
+              ?.toString()
+              .substring(0, 5);
+          _tanggalBatasMendatang = pengaturanRes['tanggal_berlaku_mendatang']
+              ?.toString();
+        });
+      }
       if (result['success']) {
         if (silent && absensiList.isNotEmpty && result['data'] is List) {
           _checkRealtimeChanges(absensiList, result['data']);
@@ -117,6 +136,49 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     }
   }
 
+  Future<void> _editBatasAbsen() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: int.tryParse(_batasAbsenSekarang.split(':')[0]) ?? 8,
+        minute: int.tryParse(_batasAbsenSekarang.split(':')[1]) ?? 0,
+      ),
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
+
+    if (pickedTime != null && mounted) {
+      String formattedTime =
+          '${pickedTime.hour.toString().padLeft(2, '0')}:${pickedTime.minute.toString().padLeft(2, '0')}';
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      final res = await MentorService.setPengaturanAbsen(formattedTime);
+
+      if (mounted) {
+        Navigator.pop(context); // close loading
+        if (res['success'] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res['message'] ?? 'Berhasil disimpan!')),
+          );
+          _fetchData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res['message'] ?? 'Gagal menyimpan')),
+          );
+        }
+      }
+    }
+  }
+
   Widget _buildAbsensiCard(dynamic data) {
     if (data is! Map) return const SizedBox.shrink();
 
@@ -133,7 +195,7 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     if (sudahAbsenMasuk && absenInfo != null) {
       latitude = absenInfo['latitude']?.toString();
       longitude = absenInfo['longitude']?.toString();
-      if (absenInfo['status'] == 'hadir') {
+      if (absenInfo['status'] == 'hadir' || absenInfo['status'] == 'telat') {
         String _formatTime(String? timeStr) {
           if (timeStr == null || timeStr.isEmpty) return 'Belum';
           var parts = timeStr.split(':');
@@ -144,13 +206,18 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
         if (masuk == 'Belum') masuk = '-';
         String keluar = _formatTime(absenInfo['waktu_keluar']?.toString());
 
-        statusText = "Masuk: $masuk | Pulang: $keluar";
+        if (absenInfo['status'] == 'telat') {
+          statusText = "Terlambat Masuk: $masuk | Pulang: $keluar";
+        } else {
+          statusText = "Masuk: $masuk | Pulang: $keluar";
+        }
+
         statusIcon = (absenInfo['waktu_keluar'] != null)
             ? Icons.done_all
             : Icons.check;
         iconColor = (absenInfo['waktu_keluar'] != null)
             ? Colors.blue
-            : Colors.green;
+            : (absenInfo['status'] == 'telat' ? Colors.orange : Colors.green);
       } else if (absenInfo['status'] == 'izin') {
         statusText = "Izin : " + (absenInfo['keterangan']?.toString() ?? '-');
         statusIcon = Icons.priority_high;
@@ -159,6 +226,10 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
         statusText = "Sakit : " + (absenInfo['keterangan']?.toString() ?? '-');
         statusIcon = Icons.local_hospital;
         iconColor = Colors.red;
+      } else if (absenInfo['status'] == 'alpa') {
+        statusText = "Alpa (Tanpa Keterangan)";
+        statusIcon = Icons.person_off;
+        iconColor = Colors.grey;
       }
     }
 
@@ -382,6 +453,74 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
                       ],
                     ),
                     SizedBox(height: displayHeight(context) * 0.02),
+                    Divider(color: Colors.grey[300]),
+                    SizedBox(height: displayHeight(context) * 0.01),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Batas Absen Hari Ini: $_batasAbsenSekarang",
+                              style: TextStyle(
+                                fontSize: displayWidth(context) * 0.035,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            if (_batasAbsenMendatang != null)
+                              Text(
+                                "Besok batas absen menjadi $_batasAbsenMendatang",
+                                style: TextStyle(
+                                  fontSize: displayWidth(context) * 0.03,
+                                  color: Colors.grey[600],
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                          ],
+                        ),
+                        InkWell(
+                          onTap: _editBatasAbsen,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: displayWidth(context) * 0.03,
+                              vertical: displayHeight(context) * 0.008,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEA6E7D).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(
+                                displayWidth(context) * 0.02,
+                              ),
+                              border: Border.all(
+                                color: const Color(0xFFEA6E7D),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.edit_calendar,
+                                  size: displayWidth(context) * 0.04,
+                                  color: const Color(0xFFEA6E7D),
+                                ),
+                                SizedBox(width: displayWidth(context) * 0.01),
+                                Text(
+                                  "Ubah",
+                                  style: TextStyle(
+                                    fontSize: displayWidth(context) * 0.03,
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFFEA6E7D),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: displayHeight(context) * 0.01),
+                    Divider(color: Colors.grey[300]),
+                    SizedBox(height: displayHeight(context) * 0.01),
                     // Ringkasan Kehadiran
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

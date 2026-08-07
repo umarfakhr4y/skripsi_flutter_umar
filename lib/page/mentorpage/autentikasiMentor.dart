@@ -276,4 +276,46 @@ class MentorService {
       return {'success': false, 'message': 'Terjadi kesalahan: $e'};
     }
   }
+
+  static Future<Map<String, dynamic>> getPengaturanAbsen() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token == null) return {'success': false, 'message': 'No token'};
+
+    try {
+      final response = await http.get(
+        Uri.parse('http://10.0.2.2:8000/api/mentor/pengaturan-absen'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> setPengaturanAbsen(String waktu) async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token == null) return {'success': false, 'message': 'No token'};
+
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:8000/api/mentor/pengaturan-absen'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'batas_waktu': waktu}),
+      );
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': e.toString()};
+    }
+  }
 }
