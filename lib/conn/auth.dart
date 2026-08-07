@@ -31,10 +31,10 @@ part '../page/profilePage/aboutPage.dart';
 part '../page/lupaPasswordPage.dart';
 part '../page/autentikasimain.dart';
 part '../page/getrole.dart';
+part '../page/aktifitasTerbaru.dart';
 
 part '../page/mentorpage/mentorMain.dart';
 part '../page/mentorpage/mentorHome.dart';
-part '../page/mentorpage/mentorNotif.dart';
 part '../page/mentorpage/fitur/liatpesertamagangMentor.dart';
 part '../page/mentorpage/fitur/absensipesertaMentor.dart';
 part '../page/mentorpage/fitur/persuratanpesertaMentor.dart';

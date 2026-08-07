@@ -163,7 +163,9 @@ class PesertaHomeState extends State<PesertaHome> {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        throw Exception('Layanan lokasi (GPS) tidak aktif. Silakan aktifkan terlebih dahulu.');
+        throw Exception(
+          'Layanan lokasi (GPS) tidak aktif. Silakan aktifkan terlebih dahulu.',
+        );
       }
 
       LocationPermission permission = await Geolocator.checkPermission();
@@ -175,7 +177,9 @@ class PesertaHomeState extends State<PesertaHome> {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        throw Exception('Izin lokasi ditolak secara permanen. Silakan atur di pengaturan perangkat.');
+        throw Exception(
+          'Izin lokasi ditolak secara permanen. Silakan atur di pengaturan perangkat.',
+        );
       }
 
       Position position = await Geolocator.getCurrentPosition(
@@ -404,10 +408,20 @@ class PesertaHomeState extends State<PesertaHome> {
                         ],
                       ),
                     ),
-                    Icon(
-                      Icons.notifications_none,
-                      color: Colors.black87,
-                      size: displayWidth(context) * 0.06,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AktifitasTerbaru(),
+                          ),
+                        );
+                      },
+                      child: Icon(
+                        Icons.notifications_none,
+                        color: Colors.black87,
+                        size: displayWidth(context) * 0.06,
+                      ),
                     ),
                   ],
                 ),

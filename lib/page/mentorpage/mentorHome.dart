@@ -372,7 +372,7 @@ class _MentorHomeState extends State<MentorHome> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const MentorNotif(),
+                            builder: (context) => const AktifitasTerbaru(),
                           ),
                         ).then((_) {
                           _fetchUnreadNotifCount();

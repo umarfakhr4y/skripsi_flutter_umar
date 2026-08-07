@@ -1,13 +1,13 @@
-part of '../../conn/auth.dart';
+part of '../conn/auth.dart';
 
-class MentorNotif extends StatefulWidget {
-  const MentorNotif({super.key});
+class AktifitasTerbaru extends StatefulWidget {
+  const AktifitasTerbaru({super.key});
 
   @override
-  State<MentorNotif> createState() => _MentorNotifState();
+  State<AktifitasTerbaru> createState() => _AktifitasTerbaruState();
 }
 
-class _MentorNotifState extends State<MentorNotif> {
+class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
   List<dynamic> _notifikasiList = [];
   bool _isLoading = true;
 
@@ -105,6 +105,14 @@ class _MentorNotifState extends State<MentorNotif> {
             context,
             MaterialPageRoute(
               builder: (context) => const AbsensiPesertaMentor(),
+            ),
+          );
+        } else if (tipe == 'tugas_terlambat') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ManajemenTugasMentordua(),
             ),
           );
         }
