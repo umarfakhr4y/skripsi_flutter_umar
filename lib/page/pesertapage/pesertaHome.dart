@@ -614,12 +614,14 @@ class PesertaHomeState extends State<PesertaHome> {
                           : Text(
                               !_sudahAbsen
                                   ? "Belum Presensi"
-                                  : ((_statusAbsen == 'izin' ||
-                                            _statusAbsen == 'sakit')
-                                        ? "Izin/Sakit Disetujui"
-                                        : (_waktuKeluar == null
-                                              ? "Sudah Presensi Hadir"
-                                              : "Sudah Presensi")),
+                                  : (_statusAbsen == 'alpa'
+                                      ? "Alpa (Tanpa Keterangan)"
+                                      : ((_statusAbsen == 'izin' ||
+                                                _statusAbsen == 'sakit')
+                                            ? "Izin/Sakit Disetujui"
+                                            : (_waktuKeluar == null
+                                                  ? (_statusAbsen == 'telat' ? "Sudah Presensi (Terlambat)" : "Sudah Presensi Hadir")
+                                                  : (_statusAbsen == 'telat' ? "Sudah Presensi (Terlambat)" : "Sudah Presensi")))),
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.04,
                                 fontWeight: FontWeight.bold,
@@ -634,7 +636,8 @@ class PesertaHomeState extends State<PesertaHome> {
                                 (_sudahAbsen &&
                                     (_waktuKeluar != null ||
                                         _statusAbsen == 'izin' ||
-                                        _statusAbsen == 'sakit')))
+                                        _statusAbsen == 'sakit' ||
+                                        _statusAbsen == 'alpa')))
                             ? null
                             : _submitAbsen,
                         style: ElevatedButton.styleFrom(
@@ -643,7 +646,8 @@ class PesertaHomeState extends State<PesertaHome> {
                               (_sudahAbsen &&
                                   (_waktuKeluar != null ||
                                       _statusAbsen == 'izin' ||
-                                      _statusAbsen == 'sakit'))
+                                      _statusAbsen == 'sakit' ||
+                                      _statusAbsen == 'alpa'))
                               ? Colors.grey[400]
                               : null,
                           shape: RoundedRectangleBorder(
@@ -687,12 +691,13 @@ class PesertaHomeState extends State<PesertaHome> {
                                   Text(
                                     !_sudahAbsen
                                         ? "Presensi Sekarang"
-                                        : ((_statusAbsen == 'izin' ||
-                                                  _statusAbsen == 'sakit')
-                                              ? "Sudah Tercatat Izin/Sakit"
-                                              : (_waktuKeluar == null
-                                                    ? "Presensi Pulang"
-                                                    : "Sudah Presensi Hari Ini")),
+                                        : (_statusAbsen == 'alpa'
+                                            ? "Absen Hari Ini Ditutup"
+                                            : ((_statusAbsen == 'izin' || _statusAbsen == 'sakit')
+                                                ? "Sudah Tercatat Izin/Sakit"
+                                                : (_waktuKeluar == null
+                                                      ? "Presensi Pulang"
+                                                      : "Sudah Presensi Hari Ini"))),
                                     style: TextStyle(
                                       fontSize: displayWidth(context) * 0.035,
                                       fontWeight: FontWeight.bold,
