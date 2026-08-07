@@ -235,6 +235,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
     final int hadir = rekap?['hadir'] ?? 0;
     final int izin = rekap?['izin'] ?? 0;
     final int sakit = rekap?['sakit'] ?? 0;
+    final int telat = rekap?['telat'] ?? 0;
+    final int alpa = rekap?['alpa'] ?? 0;
 
     final List<String> bulan = [
       'Januari',
@@ -291,18 +293,40 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
               ),
               SizedBox(width: displayWidth(context) * 0.03),
               _buildAbsensiCounter(
+                title: 'Telat',
+                count: telat.toString(),
+                color: const Color(0xFFFBC02D), // Yellow/Orange
+                icon: Icons.watch_later_outlined,
+              ),
+              SizedBox(width: displayWidth(context) * 0.03),
+              _buildAbsensiCounter(
                 title: 'Izin',
                 count: izin.toString(),
                 color: const Color(0xFFF57C00), // Orange
                 icon: Icons.assignment_late_outlined,
               ),
-              SizedBox(width: displayWidth(context) * 0.03),
+            ],
+          ),
+          SizedBox(height: displayHeight(context) * 0.02),
+          Row(
+            children: [
               _buildAbsensiCounter(
                 title: 'Sakit',
                 count: sakit.toString(),
                 color: const Color(0xFFD32F2F), // Red
                 icon: Icons.local_hospital_outlined,
               ),
+              SizedBox(width: displayWidth(context) * 0.03),
+              _buildAbsensiCounter(
+                title: 'Alpa',
+                count: alpa.toString(),
+                color: Colors.grey[700]!, // Grey
+                icon: Icons.person_off_outlined,
+              ),
+              SizedBox(width: displayWidth(context) * 0.03),
+              Expanded(
+                child: const SizedBox.shrink(),
+              ), // Placeholder to keep sizes consistent
             ],
           ),
         ],
