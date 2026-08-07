@@ -794,6 +794,28 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
     );
   }
 
+  String _calculateTimeRemaining(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return '-';
+    try {
+      DateTime dt = DateTime.parse(dateStr);
+      DateTime today = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      );
+      DateTime target = DateTime(dt.year, dt.month, dt.day);
+      int diff = target.difference(today).inDays;
+      if (diff > 0) {
+        return "$diff Hari Lagi";
+      } else if (diff == 0) {
+        return "Hari Ini";
+      } else {
+        return "Terlambat ${diff.abs()} Hari";
+      }
+    } catch (_) {}
+    return '-';
+  }
+
   Widget _buildTaskCard(Map<String, dynamic> task) {
     String tag = (task['status_tugas'] ?? 'Aktif').toString().toUpperCase();
     Color tagBgColor = const Color(0xFFE3F2FD);
@@ -822,6 +844,12 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
     if (task['peserta'] is Map) {
       namaPeserta = task['peserta']['nama_lengkap'] ?? '-';
     }
+
+    final String timeRemaining = _calculateTimeRemaining(
+      task['deadline']?.toString(),
+    );
+    final bool isLate =
+        timeRemaining.startsWith('Terlambat') && tag != 'SELESAI';
 
     return Container(
       margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
@@ -864,23 +892,63 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
                   ),
                 ),
               ),
-              Row(
-                children: [
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: displayWidth(context) * 0.038,
-                    color: Colors.grey[600],
+              if (tag != 'SELESAI')
+                Container(
+                  padding: isLate
+                      ? const EdgeInsets.symmetric(horizontal: 6, vertical: 3)
+                      : EdgeInsets.zero,
+                  decoration: BoxDecoration(
+                    color: isLate
+                        ? const Color(0xFFFFEBEE)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                    border: isLate
+                        ? Border.all(color: const Color(0xFFEF9A9A), width: 0.5)
+                        : null,
                   ),
-                  SizedBox(width: displayWidth(context) * 0.015),
-                  Text(
-                    deadline,
-                    style: TextStyle(
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: displayWidth(context) * 0.038,
+                        color: isLate
+                            ? const Color(0xFFD32F2F)
+                            : Colors.grey[600],
+                      ),
+                      SizedBox(width: displayWidth(context) * 0.015),
+                      Text(
+                        timeRemaining,
+                        style: TextStyle(
+                          color: isLate
+                              ? const Color(0xFFD32F2F)
+                              : Colors.grey[600],
+                          fontSize: displayWidth(context) * 0.032,
+                          fontWeight: isLate
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_outlined,
+                      size: displayWidth(context) * 0.038,
                       color: Colors.grey[600],
-                      fontSize: displayWidth(context) * 0.032,
                     ),
-                  ),
-                ],
-              ),
+                    SizedBox(width: displayWidth(context) * 0.015),
+                    Text(
+                      deadline,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: displayWidth(context) * 0.032,
+                      ),
+                    ),
+                  ],
+                ),
             ],
           ),
           SizedBox(height: displayHeight(context) * 0.015),
