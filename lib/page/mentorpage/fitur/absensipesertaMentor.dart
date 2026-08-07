@@ -217,19 +217,20 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
           ),
           if (latitude != null && longitude != null)
             IconButton(
-              icon: Icon(Icons.location_on, color: const Color(0xFFEA6E7D), size: displayWidth(context) * 0.05),
-              onPressed: () async {
-                final url = 'https://www.google.com/maps/search/?api=1&query=$latitude,$longitude';
-                final uri = Uri.parse(url);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                } else {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tidak dapat membuka Google Maps')),
-                    );
-                  }
-                }
+              icon: Icon(
+                Icons.location_on,
+                color: const Color(0xFFEA6E7D),
+                size: displayWidth(context) * 0.05,
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => MapDialog(
+                    latitude: latitude!,
+                    longitude: longitude!,
+                    namaPeserta: name,
+                  ),
+                );
               },
             ),
           Icon(
@@ -507,6 +508,116 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class MapDialog extends StatefulWidget {
+  final String latitude;
+  final String longitude;
+  final String namaPeserta;
+
+  const MapDialog({
+    super.key,
+    required this.latitude,
+    required this.longitude,
+    required this.namaPeserta,
+  });
+
+  @override
+  State<MapDialog> createState() => _MapDialogState();
+}
+
+class _MapDialogState extends State<MapDialog> {
+  late final WebViewController _controller;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final String htmlContent =
+        '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <style>
+      body, html { height: 100%; margin: 0; padding: 0; }
+    </style>
+  </head>
+  <body>
+    <iframe 
+      width="100%" 
+      height="100%" 
+      frameborder="0" 
+      scrolling="no" 
+      marginheight="0" 
+      marginwidth="0" 
+      src="https://maps.google.com/maps?q=${widget.latitude},${widget.longitude}&z=15&output=embed">
+    </iframe>
+  </body>
+</html>
+''';
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onPageFinished: (String url) {
+            if (mounted) {
+              setState(() {
+                _isLoading = false;
+              });
+            }
+          },
+        ),
+      )
+      ..loadHtmlString(htmlContent);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      contentPadding: EdgeInsets.zero,
+      titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              "Lokasi: ${widget.namaPeserta}",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          IconButton(
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+            icon: const Icon(Icons.close, color: Colors.red),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 400,
+        child: Stack(
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(15),
+                bottomRight: Radius.circular(15),
+              ),
+              child: WebViewWidget(controller: _controller),
+            ),
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(color: Color(0xFFEA6E7D)),
+              ),
+          ],
         ),
       ),
     );
