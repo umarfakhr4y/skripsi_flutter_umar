@@ -17,11 +17,13 @@ class PesertaHomeState extends State<PesertaHome> {
   String _namaLengkap = "";
   List<dynamic> _tugasAktif = [];
   Timer? _pollingTimer;
+  int _unreadNotifCount = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchHomeData();
+    _fetchUnreadNotifCount();
     _startPolling();
   }
 
@@ -34,7 +36,40 @@ class PesertaHomeState extends State<PesertaHome> {
   void _startPolling() {
     _pollingTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _fetchTugasDataSilent();
+      _fetchUnreadNotifCount();
     });
+  }
+
+  Future<void> _fetchUnreadNotifCount() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('http://10.0.2.2:8000/api/notifikasi'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          if (data['success'] == true) {
+            List<dynamic> notifList = data['data'] ?? [];
+            int unread = notifList.where((n) => n['is_read'] == false).length;
+            if (mounted && _unreadNotifCount != unread) {
+              setState(() {
+                _unreadNotifCount = unread;
+              });
+            }
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   Future<void> _fetchTugasDataSilent() async {
@@ -415,12 +450,46 @@ class PesertaHomeState extends State<PesertaHome> {
                           MaterialPageRoute(
                             builder: (context) => const AktifitasTerbaru(),
                           ),
-                        );
+                        ).then((_) {
+                          _fetchUnreadNotifCount();
+                        });
                       },
-                      child: Icon(
-                        Icons.notifications_none,
-                        color: Colors.black87,
-                        size: displayWidth(context) * 0.06,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Icon(
+                            Icons.notifications_none,
+                            color: Colors.black87,
+                            size: displayWidth(context) * 0.06,
+                          ),
+                          if (_unreadNotifCount > 0)
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFEA6E7D),
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: displayWidth(context) * 0.035,
+                                  minHeight: displayWidth(context) * 0.035,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    '$_unreadNotifCount',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],

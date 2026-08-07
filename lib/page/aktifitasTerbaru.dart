@@ -61,8 +61,11 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
       if (diff.inMinutes < 1) return 'Baru saja';
       if (diff.inHours < 1) return '${diff.inMinutes} menit lalu';
       if (diff.inDays < 1) return '${diff.inHours} jam lalu';
-      if (diff.inDays < 7) return '${diff.inDays} hari lalu';
-      return '${date.day}/${date.month}/${date.year}';
+      if (diff.inDays <= 3) return '${diff.inDays} hari lalu';
+      
+      String day = date.day.toString().padLeft(2, '0');
+      String month = date.month.toString().padLeft(2, '0');
+      return '$day-$month-${date.year}';
     } catch (e) {
       return '';
     }
@@ -113,6 +116,14 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
             context,
             MaterialPageRoute(
               builder: (context) => const ManajemenTugasMentordua(),
+            ),
+          );
+        } else if (tipe == 'tugas_baru') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TugasSayaPeserta(),
             ),
           );
         }
