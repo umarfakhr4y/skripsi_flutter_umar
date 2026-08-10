@@ -155,8 +155,9 @@ class PesertaHomeState extends State<PesertaHome> {
             setState(() {
               _sudahAbsen = data['sudah_absen'] ?? false;
               _sudahIsiLaporan = data['sudah_isi_laporan'] ?? false;
+              _waktuMasuk = data['batas_waktu_absen'] ?? "08:00";
+
               if (_sudahAbsen && data['absen_hari_ini'] != null) {
-                _waktuMasuk = data['absen_hari_ini']['waktu_masuk'] ?? "";
                 _waktuKeluar = data['absen_hari_ini']['waktu_keluar'];
                 _statusAbsen = data['absen_hari_ini']['status'] ?? "";
               }
@@ -553,7 +554,7 @@ class PesertaHomeState extends State<PesertaHome> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "STATUS PRESENSI",
+                            "PRESENSI",
                             style: TextStyle(
                               fontSize: displayWidth(context) * 0.028,
                               fontWeight: FontWeight.w600,
@@ -584,8 +585,8 @@ class PesertaHomeState extends State<PesertaHome> {
                                   )
                                 : Text(
                                     _waktuMasuk.isNotEmpty
-                                        ? "$_waktuMasuk WIB"
-                                        : "09:00 WIB",
+                                        ? " Batas Presensi: $_waktuMasuk WIB"
+                                        : "Batas Presensi: 09:00 WIB",
                                     style: TextStyle(
                                       fontSize: displayWidth(context) * 0.028,
                                       fontWeight: FontWeight.w600,
@@ -615,13 +616,17 @@ class PesertaHomeState extends State<PesertaHome> {
                               !_sudahAbsen
                                   ? "Belum Presensi"
                                   : (_statusAbsen == 'alpa'
-                                      ? "Alpa (Tanpa Keterangan)"
-                                      : ((_statusAbsen == 'izin' ||
-                                                _statusAbsen == 'sakit')
-                                            ? "Izin/Sakit Disetujui"
-                                            : (_waktuKeluar == null
-                                                  ? (_statusAbsen == 'telat' ? "Sudah Presensi (Terlambat)" : "Sudah Presensi Hadir")
-                                                  : (_statusAbsen == 'telat' ? "Sudah Presensi (Terlambat)" : "Sudah Presensi")))),
+                                        ? "Alpa (Tanpa Keterangan)"
+                                        : ((_statusAbsen == 'izin' ||
+                                                  _statusAbsen == 'sakit')
+                                              ? "Izin/Sakit Disetujui"
+                                              : (_waktuKeluar == null
+                                                    ? (_statusAbsen == 'telat'
+                                                          ? "Sudah Presensi (Terlambat)"
+                                                          : "Sudah Presensi Hadir")
+                                                    : (_statusAbsen == 'telat'
+                                                          ? "Sudah Presensi (Terlambat)"
+                                                          : "Sudah Presensi")))),
                               style: TextStyle(
                                 fontSize: displayWidth(context) * 0.04,
                                 fontWeight: FontWeight.bold,
@@ -692,12 +697,13 @@ class PesertaHomeState extends State<PesertaHome> {
                                     !_sudahAbsen
                                         ? "Presensi Sekarang"
                                         : (_statusAbsen == 'alpa'
-                                            ? "Absen Hari Ini Ditutup"
-                                            : ((_statusAbsen == 'izin' || _statusAbsen == 'sakit')
-                                                ? "Sudah Tercatat Izin/Sakit"
-                                                : (_waktuKeluar == null
-                                                      ? "Presensi Pulang"
-                                                      : "Sudah Presensi Hari Ini"))),
+                                              ? "Absen Hari Ini Ditutup"
+                                              : ((_statusAbsen == 'izin' ||
+                                                        _statusAbsen == 'sakit')
+                                                    ? "Sudah Tercatat Izin/Sakit"
+                                                    : (_waktuKeluar == null
+                                                          ? "Presensi Pulang"
+                                                          : "Sudah Presensi Hari Ini"))),
                                     style: TextStyle(
                                       fontSize: displayWidth(context) * 0.035,
                                       fontWeight: FontWeight.bold,
