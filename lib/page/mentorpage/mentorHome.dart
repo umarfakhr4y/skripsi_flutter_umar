@@ -9,6 +9,7 @@ class MentorHome extends StatefulWidget {
 class _MentorHomeState extends State<MentorHome> {
   final iconList = <IconData>[Icons.brightness_5, Icons.brightness_4];
   String _namaLengkap = "";
+  String? _profilePictureUrl;
   bool _isFetchingData = true;
   int _totalPeserta = 0;
   int _sudahAbsen = 0;
@@ -169,6 +170,7 @@ class _MentorHomeState extends State<MentorHome> {
             setState(() {
               if (data['data'] != null) {
                 _namaLengkap = data['data']['nama_lengkap'] ?? "Mentor";
+                _profilePictureUrl = data['data']['profile_picture_url'];
               }
               _totalPeserta = tPeserta;
               _sudahAbsen = sAbsen;
@@ -330,9 +332,20 @@ class _MentorHomeState extends State<MentorHome> {
                     CircleAvatar(
                       radius: displayWidth(context) * 0.06,
                       backgroundColor: Colors.grey[400],
-                      backgroundImage: const NetworkImage(
-                        'https://i.pravatar.cc/150?img=11',
-                      ), // Placeholder image
+                      backgroundImage: _profilePictureUrl != null
+                          ? NetworkImage(_profilePictureUrl!)
+                          : null,
+                      child: _profilePictureUrl == null
+                          ? Text(
+                              _namaLengkap.isNotEmpty
+                                  ? _namaLengkap[0].toUpperCase()
+                                  : '?',
+                              style: TextStyle(
+                                fontSize: displayWidth(context) * 0.05,
+                                color: Colors.white,
+                              ),
+                            )
+                          : null,
                     ),
                     SizedBox(width: displayWidth(context) * 0.03),
                     Column(

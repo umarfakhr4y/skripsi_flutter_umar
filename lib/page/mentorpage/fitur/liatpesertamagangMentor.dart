@@ -144,19 +144,22 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
         ),
         child: Row(
           children: [
-            Container(
-              padding: EdgeInsets.all(displayWidth(context) * 0.02),
-              decoration: const BoxDecoration(
-                color: Color(
-                  0xFFEA6E7D, // Sedikit lebih soft dari merah utama untuk mengikuti desain UI
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.person,
-                color: Colors.white,
-                size: displayWidth(context) * 0.06,
-              ),
+            CircleAvatar(
+              radius: displayWidth(context) * 0.05,
+              backgroundColor: const Color(0xFFEA6E7D),
+              backgroundImage: peserta['profile_picture_url'] != null
+                  ? NetworkImage(peserta['profile_picture_url'])
+                  : null,
+              child: peserta['profile_picture_url'] == null
+                  ? Text(
+                      name.isNotEmpty ? name[0].toUpperCase() : '?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: displayWidth(context) * 0.045,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    )
+                  : null,
             ),
             SizedBox(width: displayWidth(context) * 0.04),
             Expanded(

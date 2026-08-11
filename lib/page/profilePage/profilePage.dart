@@ -11,6 +11,7 @@ class ProfilePageState extends State<ProfilePage> {
   bool _isLoading = true;
   String _namaLengkap = "";
   String _email = "";
+  String? _profilePictureUrl;
 
   @override
   void initState() {
@@ -40,6 +41,9 @@ class ProfilePageState extends State<ProfilePage> {
               _namaLengkap = data['data'] != null
                   ? (data['data']['nama_lengkap'] ?? "No Name")
                   : "No Name";
+              _profilePictureUrl = data['data'] != null
+                  ? data['data']['profile_picture_url']
+                  : null;
               _isLoading = false;
             });
           }
@@ -164,7 +168,7 @@ class ProfilePageState extends State<ProfilePage> {
                     onTap: () async {
                       const storage = FlutterSecureStorage();
                       await storage.delete(key: 'access_token');
-                      
+
                       if (context.mounted) {
                         Navigator.pushReplacement(
                           context,
@@ -206,9 +210,20 @@ class ProfilePageState extends State<ProfilePage> {
                             child: CircleAvatar(
                               radius: displayWidth(context) * 0.12,
                               backgroundColor: Colors.grey[400],
-                              backgroundImage: const NetworkImage(
-                                'https://i.pravatar.cc/150?img=11',
-                              ), // Placeholder gambar avatar
+                              backgroundImage: _profilePictureUrl != null
+                                  ? NetworkImage(_profilePictureUrl!)
+                                  : null,
+                              child: _profilePictureUrl == null
+                                  ? Text(
+                                      _namaLengkap.isNotEmpty
+                                          ? _namaLengkap[0].toUpperCase()
+                                          : '?',
+                                      style: TextStyle(
+                                        fontSize: displayWidth(context) * 0.1,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : null,
                             ),
                           ),
                         ],
