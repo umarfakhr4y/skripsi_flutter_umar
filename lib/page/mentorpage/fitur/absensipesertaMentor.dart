@@ -179,6 +179,66 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
     }
   }
 
+  Widget _buildShimmerAbsensiCard() {
+    return Container(
+      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.015),
+      padding: EdgeInsets.symmetric(
+        horizontal: displayWidth(context) * 0.04,
+        vertical: displayHeight(context) * 0.015,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+      ),
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(displayWidth(context) * 0.02),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              width: displayWidth(context) * 0.1,
+              height: displayWidth(context) * 0.1,
+            ),
+            SizedBox(width: displayWidth(context) * 0.04),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    height: displayWidth(context) * 0.035,
+                    width: displayWidth(context) * 0.4,
+                    color: Colors.white,
+                  ),
+                  SizedBox(height: displayHeight(context) * 0.005),
+                  Container(
+                    height: displayWidth(context) * 0.03,
+                    width: displayWidth(context) * 0.6,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(width: displayWidth(context) * 0.02),
+            Container(
+              width: displayWidth(context) * 0.06,
+              height: displayWidth(context) * 0.06,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAbsensiCard(dynamic data) {
     if (data is! Map) return const SizedBox.shrink();
 
@@ -247,17 +307,22 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
       ),
       child: Row(
         children: [
-          Container(
-            padding: EdgeInsets.all(displayWidth(context) * 0.02),
-            decoration: const BoxDecoration(
-              color: Color(0xFFEA6E7D),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.person,
-              color: Colors.white,
-              size: displayWidth(context) * 0.06,
-            ),
+          CircleAvatar(
+            radius: displayWidth(context) * 0.05,
+            backgroundColor: const Color(0xFFEA6E7D),
+            backgroundImage: data['profile_picture_url'] != null
+                ? NetworkImage(data['profile_picture_url'])
+                : null,
+            child: data['profile_picture_url'] == null
+                ? Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : '?',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: displayWidth(context) * 0.045,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
           ),
           SizedBox(width: displayWidth(context) * 0.04),
           Expanded(
@@ -635,7 +700,12 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
               // List of Peserta Absensi
               Expanded(
                 child: _isLoading
-                    ? Center(child: CircularProgressIndicator())
+                    ? ListView.builder(
+                        itemCount: 5,
+                        itemBuilder: (context, index) {
+                          return _buildShimmerAbsensiCard();
+                        },
+                      )
                     : absensiList.isEmpty
                     ? Center(child: Text("Tidak ada peserta magang"))
                     : ListView.builder(
