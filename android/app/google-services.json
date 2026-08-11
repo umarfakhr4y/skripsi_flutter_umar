@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "146684990013",
+    "project_id": "skripsi-umar",
+    "storage_bucket": "skripsi-umar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:146684990013:android:178e51324085ebb916d054",
+        "android_client_info": {
+          "package_name": "com.example.vocasia_skripsi_app_umarfakhriy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCI3nC1cVE3bKAagsxh74IWQPncIopEUHM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -25,6 +25,38 @@ class _loginPageState extends State<loginPage> {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
+  Future<void> _initPushNotification(String tokenAuth) async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission();
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      String? fcmToken;
+      try {
+        fcmToken = await messaging.getToken();
+        print("FCM Token: $fcmToken");
+      } catch (e) {
+        print("FCM Get Token Error: $e");
+      }
+
+      if (fcmToken != null) {
+        try {
+          var response = await http.post(
+            Uri.parse('http://10.0.2.2:8000/api/update-fcm-token'),
+            headers: {
+              'Authorization': 'Bearer $tokenAuth',
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({'fcm_token': fcmToken}),
+          );
+          print("FCM Update Status: ${response.statusCode}");
+          print("FCM Update Body: ${response.body}");
+        } catch (e) {
+          print("Error updating FCM token: $e");
+        }
+      }
+    }
+  }
+
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -53,32 +85,37 @@ class _loginPageState extends State<loginPage> {
         const storage = FlutterSecureStorage();
         await storage.write(key: 'access_token', value: token);
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+        // Call initPushNotification
+        await _initPushNotification(token);
 
-        if (role == 'admin') {
-          // Jika ada halaman admin, panggil di sini
-          // ScaffoldMessenger.of(context).showSnackBar(
-          //   const SnackBar(content: Text('Halaman Admin belum tersedia')),
-          // );
-          print('admin');
-        } else if (role == 'mentor') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const MentorMain()),
-          );
-          print('mentor');
-        } else if (role == 'peserta') {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const PesertaMain()),
-          );
-          print('peserta');
-        } else {
+        if (mounted) {
           ScaffoldMessenger.of(
             context,
-          ).showSnackBar(SnackBar(content: Text('Role tidak dikenal: $role')));
+          ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+
+          if (role == 'admin') {
+            // Jika ada halaman admin, panggil di sini
+            // ScaffoldMessenger.of(context).showSnackBar(
+            //   const SnackBar(content: Text('Halaman Admin belum tersedia')),
+            // );
+            print('admin');
+          } else if (role == 'mentor') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const MentorMain()),
+            );
+            print('mentor');
+          } else if (role == 'peserta') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const PesertaMain()),
+            );
+            print('peserta');
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Role tidak dikenal: $role')),
+            );
+          }
         }
       } else {
         ScaffoldMessenger.of(
