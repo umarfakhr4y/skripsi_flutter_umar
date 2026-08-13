@@ -19,6 +19,17 @@ class _MentorMainState extends State<MentorMain> {
   int maxCount = 5;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (pendingFcmTipe != null) {
+        handleFcmRouting(pendingFcmTipe);
+        pendingFcmTipe = null;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _pageController.dispose();
 

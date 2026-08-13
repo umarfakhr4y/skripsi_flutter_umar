@@ -110,7 +110,7 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
               builder: (context) => const AbsensiPesertaMentor(),
             ),
           );
-        } else if (tipe == 'tugas_terlambat') {
+        } else if (tipe == 'tugas_terlambat' || tipe == 'tugas_dikumpulkan') {
           if (!mounted) return;
           Navigator.push(
             context,
@@ -118,12 +118,52 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
               builder: (context) => const ManajemenTugasMentordua(),
             ),
           );
-        } else if (tipe == 'tugas_baru') {
+        } else if (tipe == 'izin_baru' || tipe == 'persuratan_baru') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PersuratanPesertaMentordua(),
+            ),
+          );
+        } else if (tipe == 'bimbingan_baru') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const BimbinganPesertaMentor(),
+            ),
+          );
+        } else if (tipe == 'tugas_baru' || tipe == 'review_tugas') {
           if (!mounted) return;
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const TugasSayaPeserta(),
+            ),
+          );
+        } else if (tipe == 'update_izin' || tipe == 'update_surat') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PersuratanPeserta(),
+            ),
+          );
+        } else if (tipe == 'update_bimbingan') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const BimbinganPeserta(),
+            ),
+          );
+        } else if (tipe == 'evaluasi_baru') {
+          if (!mounted) return;
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const EvaluasiPeserta(),
             ),
           );
         }

@@ -11,9 +11,56 @@ const firebaseOptions = FirebaseOptions(
   storageBucket: "skripsi-umar.firebasestorage.app",
 );
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+String? pendingFcmTipe;
+
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: firebaseOptions);
   print("Handling a background message: ${message.messageId}");
+}
+
+void handleFcmRouting(String? tipe) {
+  if (tipe == null) return;
+
+  final context = navigatorKey.currentContext;
+  if (context == null) return;
+
+  if (tipe == 'tugas_baru' || tipe == 'review_tugas') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TugasSayaPeserta()),
+    );
+  } else if (tipe == 'update_izin' || tipe == 'update_surat') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PersuratanPeserta()),
+    );
+  } else if (tipe == 'update_bimbingan') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BimbinganPeserta()),
+    );
+  } else if (tipe == 'evaluasi_baru') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const EvaluasiPeserta()),
+    );
+  } else if (tipe == 'tugas_terlambat' || tipe == 'tugas_dikumpulkan') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ManajemenTugasMentordua()),
+    );
+  } else if (tipe == 'izin_baru' || tipe == 'persuratan_baru') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PersuratanPesertaMentordua()),
+    );
+  } else if (tipe == 'bimbingan_baru') {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BimbinganPesertaMentor()),
+    );
+  }
 }
 
 void main() async {
@@ -23,6 +70,20 @@ void main() async {
 
   // Daftarkan handler background
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  // Tangkap klik notifikasi saat aplikasi ditutup (Terminated)
+  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+  if (initialMessage != null && initialMessage.data.containsKey('tipe')) {
+    pendingFcmTipe = initialMessage.data['tipe'];
+  }
+
+  // Tangkap klik notifikasi saat aplikasi di background
+  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    if (message.data.containsKey('tipe')) {
+      handleFcmRouting(message.data['tipe']);
+    }
+  });
+
   runApp(const MyApp());
 }
 
@@ -33,6 +94,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
