@@ -94,10 +94,10 @@ class _loginPageState extends State<loginPage> {
           ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
 
           if (role == 'admin') {
-            // Jika ada halaman admin, panggil di sini
-            // ScaffoldMessenger.of(context).showSnackBar(
-            //   const SnackBar(content: Text('Halaman Admin belum tersedia')),
-            // );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AdminMain()),
+            );
             print('admin');
           } else if (role == 'mentor') {
             Navigator.pushReplacement(

@@ -43,7 +43,8 @@ class _GetRolePageState extends State<GetRolePage> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final role = data['role']; // Menyesuaikan dengan struktur JSON backend Anda
+        final role =
+            data['role']; // Menyesuaikan dengan struktur JSON backend Anda
 
         print("===============================");
         print("LOGIN BERHASIL!");
@@ -52,7 +53,7 @@ class _GetRolePageState extends State<GetRolePage> {
 
         // Navigasi berdasarkan role
         if (!mounted) return;
-        
+
         if (role == 'peserta') {
           Navigator.pushReplacement(
             context,
@@ -63,10 +64,16 @@ class _GetRolePageState extends State<GetRolePage> {
             context,
             MaterialPageRoute(builder: (context) => const MentorMain()),
           );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Role tidak dikenal: $role')),
+        } else if (role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminMain()),
           );
+          print("ANDA LOGIN SEBAGAI ADMIN");
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Role tidak dikenal: $role')));
           await _storage.delete(key: 'access_token');
           if (mounted) {
             Navigator.pushReplacement(
