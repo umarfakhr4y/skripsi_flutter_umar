@@ -22,6 +22,7 @@ import 'package:gal/gal.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../main.dart';
+import '../page/adminpage/adminconn.dart';
 
 part '../splashscreen.dart';
 part '../page/loginPage.dart';
@@ -63,3 +64,8 @@ part '../page/pesertapage/fitur/detailtugasPeserta.dart';
 part '../page/pesertapage/fitur/evaluasiPeserta.dart';
 part '../page/pesertapage/fitur/bimbinganPeserta.dart';
 part '../page/pesertapage/fitur/persuratanPeserta.dart';
+
+part '../page/adminpage/adminmain.dart';
+part '../page/adminpage/adminHome.dart';
+part '../page/adminpage/adminManajemen.dart';
+part '../page/adminpage/adminValidasi.dart';
