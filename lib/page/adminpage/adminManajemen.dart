@@ -458,6 +458,17 @@ class _AdminManajemenState extends State<AdminManajemen> {
               item['nama_lengkap'],
               const Color(0xFFE46B72),
             ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DetailPesertaMagangMentor(
+                    pesertaId: item['id'] ?? 0,
+                    isAdmin: true,
+                  ),
+                ),
+              );
+            },
           );
         },
       );
@@ -731,106 +742,105 @@ class _AdminManajemenState extends State<AdminManajemen> {
     required Widget avatarWidget,
     VoidCallback? onEdit,
     VoidCallback? onDelete,
+    VoidCallback? onTap,
   }) {
     bool isMentor = badgeText == 'MENTOR';
-    return Container(
-      margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
-      padding: EdgeInsets.all(displayWidth(context) * 0.04),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          avatarWidget,
-          SizedBox(width: displayWidth(context) * 0.04),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
+        padding: EdgeInsets.all(displayWidth(context) * 0.04),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            avatarWidget,
+            SizedBox(width: displayWidth(context) * 0.04),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.04,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: displayHeight(context) * 0.005),
+                  Text(
+                    roleDesc,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.03,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  name,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.04,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: displayWidth(context) * 0.02,
+                    vertical: displayHeight(context) * 0.005,
+                  ),
+                  decoration: BoxDecoration(
+                    color: badgeBgColor,
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.02,
+                    ),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.025,
+                      fontWeight: FontWeight.bold,
+                      color: badgeColor,
+                    ),
                   ),
                 ),
-                SizedBox(height: displayHeight(context) * 0.005),
-                Text(
-                  roleDesc,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.03,
-                    color: Colors.grey[600],
-                  ),
-                ),
+                if (onEdit != null || onDelete != null) ...[
+                  SizedBox(height: displayHeight(context) * 0.01),
+                  PopupMenuButton<String>(
+                    icon: Icon(
+                      Icons.more_vert,
+                      color: Colors.black87,
+                      size: displayWidth(context) * 0.05,
+                    ),
+                    onSelected: (value) {
+                      if (value == 'edit' && onEdit != null) onEdit();
+                      if (value == 'delete' && onDelete != null) onDelete();
+                    },
+                    itemBuilder: (context) => [
+                      if (onEdit != null)
+                        const PopupMenuItem(
+                          value: 'edit',
+                          child: Text('Edit'),
+                        ),
+                      if (onDelete != null)
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: Text('Hapus', style: TextStyle(color: Colors.red)),
+                        ),
+                    ],
+                  )
+                ]
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: displayWidth(context) * 0.02,
-                  vertical: displayHeight(context) * 0.005,
-                ),
-                decoration: BoxDecoration(
-                  color: badgeBgColor,
-                  borderRadius: BorderRadius.circular(
-                    displayWidth(context) * 0.02,
-                  ),
-                ),
-                child: Text(
-                  badgeText,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.025,
-                    fontWeight: FontWeight.bold,
-                    color: badgeColor,
-                  ),
-                ),
-              ),
-              SizedBox(height: displayHeight(context) * 0.01),
-              if (onEdit != null || onDelete != null)
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: Colors.black87,
-                    size: displayWidth(context) * 0.05,
-                  ),
-                  onSelected: (value) {
-                    if (value == 'edit' && onEdit != null) onEdit();
-                    if (value == 'delete' && onDelete != null) onDelete();
-                  },
-                  itemBuilder: (context) => [
-                    if (onEdit != null)
-                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    if (onDelete != null)
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Hapus',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                  ],
-                )
-              else
-                Icon(
-                  Icons.more_vert,
-                  color: Colors.black87,
-                  size: displayWidth(context) * 0.05,
-                ),
-            ],
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

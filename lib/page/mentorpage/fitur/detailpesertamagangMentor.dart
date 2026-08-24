@@ -2,7 +2,12 @@ part of '../../../conn/auth.dart';
 
 class DetailPesertaMagangMentor extends StatefulWidget {
   final int pesertaId;
-  const DetailPesertaMagangMentor({super.key, required this.pesertaId});
+  final bool isAdmin;
+  const DetailPesertaMagangMentor({
+    super.key,
+    required this.pesertaId,
+    this.isAdmin = false,
+  });
 
   @override
   State<DetailPesertaMagangMentor> createState() =>
@@ -24,10 +29,12 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
       const storage = FlutterSecureStorage();
       String? token = await storage.read(key: 'access_token');
 
+      String baseUrl = widget.isAdmin
+          ? 'http://10.0.2.2:8000/api/admin/peserta/${widget.pesertaId}'
+          : 'http://10.0.2.2:8000/api/mentor/peserta/${widget.pesertaId}';
+
       final response = await http.get(
-        Uri.parse(
-          'http://10.0.2.2:8000/api/mentor/peserta/${widget.pesertaId}',
-        ),
+        Uri.parse(baseUrl),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -121,8 +128,9 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
                 : null,
             child: _pesertaData?['profile_picture_url'] == null
                 ? Text(
-                    (_pesertaData?['nama_lengkap'] != null && _pesertaData!['nama_lengkap'].isNotEmpty) 
-                        ? _pesertaData!['nama_lengkap'][0].toUpperCase() 
+                    (_pesertaData?['nama_lengkap'] != null &&
+                            _pesertaData!['nama_lengkap'].isNotEmpty)
+                        ? _pesertaData!['nama_lengkap'][0].toUpperCase()
                         : '?',
                     style: TextStyle(
                       fontSize: displayWidth(context) * 0.08,
