@@ -84,6 +84,7 @@ class AdminService {
       return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
     }
   }
+
   /// Mengambil data kehadiran hari ini
   static Future<Map<String, dynamic>> getKehadiranHariIni() async {
     try {
@@ -121,7 +122,35 @@ class AdminService {
       } else {
         return {
           'success': false,
-          'message': 'Gagal mengambil data tugas. Status: ${response.statusCode}',
+          'message':
+              'Gagal mengambil data tugas. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
+
+  /// Menambah Divisi baru
+  static Future<Map<String, dynamic>> tambahDivisi(String namaDivisi) async {
+    try {
+      final headers = await _getHeaders();
+      headers['Content-Type'] = 'application/json';
+
+      final body = jsonEncode({'nama_divisi': namaDivisi});
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/admin/divisi'),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal menambah divisi. Status: ${response.statusCode}',
         };
       }
     } catch (e) {
