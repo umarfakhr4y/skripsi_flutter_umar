@@ -8,7 +8,277 @@ class AdminManajemen extends StatefulWidget {
 }
 
 class _AdminManajemenState extends State<AdminManajemen> {
-  String _selectedTab = 'Pengguna';
+  String _selectedTab = 'Peserta Magang';
+  bool _isLoading = true;
+  List<dynamic> _pesertaList = [];
+  List<dynamic> _mentorList = [];
+  List<dynamic> _divisiList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    final pRes = await AdminService.getPeserta();
+    final mRes = await AdminService.getMentor();
+    final dRes = await AdminService.getDivisi();
+
+    if (mounted) {
+      setState(() {
+        if (pRes['success']) _pesertaList = pRes['data'] ?? [];
+        if (mRes['success']) _mentorList = mRes['data'] ?? [];
+        if (dRes['success']) _divisiList = dRes['data'] ?? [];
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showAddDivisiDialog() {
+    final TextEditingController namaController = TextEditingController();
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.05,
+                ),
+              ),
+              title: const Text(
+                'Tambah Divisi Baru',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: namaController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama Divisi',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.02,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (namaController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Nama divisi tidak boleh kosong'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setStateDialog(() => isSubmitting = true);
+
+                          final res = await AdminService.tambahDivisi(
+                            namaController.text,
+                          );
+
+                          setStateDialog(() => isSubmitting = false);
+
+                          if (res['success']) {
+                            Navigator.pop(context);
+                            setState(() => _isLoading = true);
+                            _fetchData();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  res['message'] ?? 'Berhasil menambah divisi',
+                                ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  res['message'] ?? 'Gagal menambah divisi',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        displayWidth(context) * 0.02,
+                      ),
+                    ),
+                  ),
+                  child: isSubmitting
+                      ? SizedBox(
+                          width: displayWidth(context) * 0.04,
+                          height: displayWidth(context) * 0.04,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Simpan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAvatarWidget(String? name, Color bgColor) {
+    String initial = 'U';
+    if (name != null && name.isNotEmpty) {
+      initial = name[0].toUpperCase();
+    }
+    return CircleAvatar(
+      radius: displayWidth(context) * 0.06,
+      backgroundColor: bgColor,
+      child: Text(
+        initial,
+        style: TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.bold,
+          fontSize: displayWidth(context) * 0.04,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    if (_selectedTab == 'Peserta Magang') {
+      if (_pesertaList.isEmpty) return const Text('Tidak ada data peserta');
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _pesertaList.length,
+        itemBuilder: (context, index) {
+          final item = _pesertaList[index];
+          return _buildUserCard(
+            name: item['nama_lengkap'] ?? 'Tanpa Nama',
+            roleDesc: '${item['universitas'] ?? '-'} • ${item['prodi'] ?? '-'}',
+            badgeText: 'PESERTA',
+            badgeColor: const Color(0xFFB04A50),
+            badgeBgColor: const Color(0xFFE46B72),
+            avatarWidget: _buildAvatarWidget(
+              item['nama_lengkap'],
+              const Color(0xFFE46B72),
+            ),
+          );
+        },
+      );
+    } else if (_selectedTab == 'Mentor') {
+      if (_mentorList.isEmpty) return const Text('Tidak ada data mentor');
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _mentorList.length,
+        itemBuilder: (context, index) {
+          final item = _mentorList[index];
+          final divisiName = item['divisi'] != null
+              ? item['divisi']['nama_divisi']
+              : '-';
+          return _buildUserCard(
+            name: item['nama_lengkap'] ?? 'Tanpa Nama',
+            roleDesc: 'Mentor • $divisiName',
+            badgeText: 'MENTOR',
+            badgeColor: const Color(0xFFC78D32),
+            badgeBgColor: const Color(0xFFFDE68A),
+            avatarWidget: _buildAvatarWidget(
+              item['nama_lengkap'],
+              const Color(0xFFFDE68A),
+            ),
+          );
+        },
+      );
+    } else if (_selectedTab == 'Divisi') {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ElevatedButton.icon(
+            onPressed: _showAddDivisiDialog,
+            icon: Icon(
+              Icons.add,
+              color: Colors.white,
+              size: displayWidth(context) * 0.05,
+            ),
+            label: Text(
+              'Tambah Divisi',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: displayWidth(context) * 0.035,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE84C63),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.03,
+                ),
+              ),
+              padding: EdgeInsets.symmetric(
+                vertical: displayHeight(context) * 0.015,
+              ),
+              elevation: 0,
+            ),
+          ),
+          SizedBox(height: displayHeight(context) * 0.02),
+          if (_divisiList.isEmpty)
+            const Center(child: Text('Tidak ada data divisi'))
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _divisiList.length,
+              itemBuilder: (context, index) {
+                final item = _divisiList[index];
+                return _buildUserCard(
+                  name: item['nama_divisi'] ?? 'Tanpa Nama',
+                  roleDesc: item['deskripsi'] ?? '-',
+                  badgeText: 'DIVISI',
+                  badgeColor: Colors.white,
+                  badgeBgColor: Colors.black87,
+                  avatarWidget: CircleAvatar(
+                    radius: displayWidth(context) * 0.06,
+                    backgroundColor: Colors.grey[200],
+                    child: Icon(Icons.business, color: Colors.grey[600]),
+                  ),
+                );
+              },
+            ),
+        ],
+      );
+    }
+    return const SizedBox.shrink();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +342,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
               ),
               SizedBox(height: displayHeight(context) * 0.01),
               Text(
-                'Kelola pengguna, departemen, dan konfigurasi\nsistem.',
+                'Kelola Peserta Magang, Mentor dan Divisi.',
                 style: TextStyle(
                   fontSize: displayWidth(context) * 0.035,
                   color: Colors.grey[600],
@@ -84,7 +354,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
               // Tabs
               Row(
                 children: [
-                  _buildTab('Pengguna'),
+                  _buildTab('Peserta Magang'),
                   SizedBox(width: displayWidth(context) * 0.02),
                   _buildTab('Mentor'),
                   SizedBox(width: displayWidth(context) * 0.02),
@@ -106,7 +376,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
                       ),
                       child: TextField(
                         decoration: InputDecoration(
-                          hintText: 'Cari mentor & peserta...',
+                          hintText: 'Cari ...',
                           hintStyle: TextStyle(
                             color: Colors.grey[500],
                             fontSize: displayWidth(context) * 0.035,
@@ -144,57 +414,13 @@ class _AdminManajemenState extends State<AdminManajemen> {
               SizedBox(height: displayHeight(context) * 0.03),
 
               // User List
-              _buildUserCard(
-                name: 'Sarah Jenkins',
-                roleDesc: 'Lead Designer • Product',
-                badgeText: 'MENTOR',
-                badgeColor: const Color(0xFFC78D32),
-                badgeBgColor: const Color(
-                  0xFFC78D32,
-                ), // In screenshot it's solid yellow with dark text or white text. Looks like solid yellow background, dark text. Let's use Color(0xFFD69E2E) with white text. Wait, screenshot has dark text. Let's make it solid.
-                avatarWidget: CircleAvatar(
-                  radius: displayWidth(context) * 0.06,
-                  backgroundColor: Colors.grey[200],
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.grey[400],
-                  ), // Placeholder for image
-                ),
-              ),
-              _buildUserCard(
-                name: 'Marcus Johnson',
-                roleDesc: 'UX Intern • UI/UX',
-                badgeText: 'PESERTA',
-                badgeColor: const Color(0xFFB04A50),
-                badgeBgColor: const Color(0xFFE46B72),
-                avatarWidget: CircleAvatar(
-                  radius: displayWidth(context) * 0.06,
-                  backgroundColor: const Color(0xFFE46B72),
-                  child: Text(
-                    'MJ',
-                    style: TextStyle(
-                      color: const Color(0xFF5E1B22), // Dark red
-                      fontWeight: FontWeight.bold,
-                      fontSize: displayWidth(context) * 0.04,
-                    ),
-                  ),
-                ),
-              ),
-              _buildUserCard(
-                name: 'David Chen',
-                roleDesc: 'Dev Intern • Engineering',
-                badgeText: 'PESERTA',
-                badgeColor: const Color(0xFFB04A50),
-                badgeBgColor: const Color(0xFFE46B72),
-                avatarWidget: CircleAvatar(
-                  radius: displayWidth(context) * 0.06,
-                  backgroundColor: Colors.grey[200],
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.grey[400],
-                  ), // Placeholder for image
-                ),
-              ),
+              _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFE84C63),
+                      ),
+                    )
+                  : _buildList(),
             ],
           ),
         ),
