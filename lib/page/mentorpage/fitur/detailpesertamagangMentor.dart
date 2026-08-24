@@ -59,6 +59,84 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
     }
   }
 
+  Future<void> _toggleStatus() async {
+    bool currentStatus = _pesertaData?['is_active'] ?? true;
+    bool confirm =
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(
+              currentStatus ? 'Nonaktifkan Peserta' : 'Aktifkan Peserta',
+            ),
+            content: Text(
+              currentStatus
+                  ? 'Apakah Anda yakin ingin menonaktifkan peserta ini?'
+                  : 'Apakah Anda yakin ingin mengaktifkan peserta ini?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Batal'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: currentStatus ? Colors.red : Colors.green,
+                ),
+                child: const Text('Ya', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (confirm) {
+      setState(() => _isLoading = true);
+      try {
+        const storage = FlutterSecureStorage();
+        String? token = await storage.read(key: 'access_token');
+
+        final response = await http.put(
+          Uri.parse(
+            'http://10.0.2.2:8000/api/admin/peserta/${widget.pesertaId}/toggle-status',
+          ),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Accept': 'application/json',
+          },
+        );
+
+        final jsonResponse = jsonDecode(response.body);
+        if (response.statusCode == 200 && jsonResponse['success'] == true) {
+          if (mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(jsonResponse['message'])));
+            _fetchDetailPeserta();
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  jsonResponse['message'] ?? 'Gagal mengubah status',
+                ),
+              ),
+            );
+            setState(() => _isLoading = false);
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+          setState(() => _isLoading = false);
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,12 +171,27 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
                     setState(() => _isLoading = true);
                     _fetchDetailPeserta();
                   }
+                } else if (value == 'toggle_status') {
+                  _toggleStatus();
                 }
               },
               itemBuilder: (context) => [
                 const PopupMenuItem(
                   value: 'edit_profil',
                   child: Text('Ubah Profil'),
+                ),
+                PopupMenuItem(
+                  value: 'toggle_status',
+                  child: Text(
+                    _pesertaData?['is_active'] == true
+                        ? 'Nonaktifkan Peserta'
+                        : 'Aktifkan Peserta',
+                    style: TextStyle(
+                      color: _pesertaData?['is_active'] == true
+                          ? Colors.red
+                          : Colors.green,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -191,14 +284,22 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
               vertical: displayHeight(context) * 0.005,
             ),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.1),
+              color: (_pesertaData?['is_active'] == true)
+                  ? Colors.green.withOpacity(0.1)
+                  : Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
-              border: Border.all(color: Colors.green.withOpacity(0.5)),
+              border: Border.all(
+                color: (_pesertaData?['is_active'] == true)
+                    ? Colors.green.withOpacity(0.5)
+                    : Colors.red.withOpacity(0.5),
+              ),
             ),
             child: Text(
               _pesertaData?['status'] ?? 'Aktif',
               style: TextStyle(
-                color: Colors.green[700],
+                color: (_pesertaData?['is_active'] == true)
+                    ? Colors.green[700]
+                    : Colors.red[700],
                 fontWeight: FontWeight.bold,
                 fontSize: displayWidth(context) * 0.03,
               ),
