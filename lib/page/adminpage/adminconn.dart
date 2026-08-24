@@ -157,4 +157,49 @@ class AdminService {
       return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
     }
   }
+
+  /// Mengubah Divisi
+  static Future<Map<String, dynamic>> editDivisi(int id, String namaDivisi) async {
+    try {
+      final headers = await _getHeaders();
+      headers['Content-Type'] = 'application/json';
+      final body = jsonEncode({'nama_divisi': namaDivisi});
+      final response = await http.put(
+        Uri.parse('$baseUrl/admin/divisi/$id'),
+        headers: headers,
+        body: body,
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal mengubah divisi. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
+
+  /// Menghapus Divisi
+  static Future<Map<String, dynamic>> hapusDivisi(int id) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/admin/divisi/$id'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal menghapus divisi. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
 }

@@ -153,6 +153,179 @@ class _AdminManajemenState extends State<AdminManajemen> {
     );
   }
 
+  void _showEditDivisiDialog(dynamic item) {
+    final TextEditingController namaController = TextEditingController(
+      text: item['nama_divisi'] ?? '',
+    );
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.05,
+                ),
+              ),
+              title: const Text(
+                'Edit Divisi',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: namaController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama Divisi',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.02,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (namaController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Nama divisi tidak boleh kosong'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setStateDialog(() => isSubmitting = true);
+
+                          final res = await AdminService.editDivisi(
+                            item['id'],
+                            namaController.text,
+                          );
+
+                          setStateDialog(() => isSubmitting = false);
+
+                          if (!mounted) return;
+
+                          if (res['success']) {
+                            Navigator.pop(dialogContext);
+                            setState(() => _isLoading = true);
+                            _fetchData();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  res['message'] ?? 'Berhasil mengubah divisi',
+                                ),
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  res['message'] ?? 'Gagal mengubah divisi',
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(
+                        displayWidth(context) * 0.02,
+                      ),
+                    ),
+                  ),
+                  child: isSubmitting
+                      ? SizedBox(
+                          width: displayWidth(context) * 0.04,
+                          height: displayWidth(context) * 0.04,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Simpan',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _hapusDivisi(dynamic item) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
+        ),
+        title: const Text('Konfirmasi Hapus'),
+        content: Text('Yakin ingin menghapus divisi ${item['nama_divisi']}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext); // Tutup dialog konfirmasi
+              setState(() => _isLoading = true);
+              final res = await AdminService.hapusDivisi(item['id']);
+
+              if (!mounted) return;
+
+              if (res['success']) {
+                _fetchData();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      res['message'] ?? 'Berhasil menghapus divisi',
+                    ),
+                  ),
+                );
+              } else {
+                setState(() => _isLoading = false);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(res['message'] ?? 'Gagal menghapus divisi'),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAvatarWidget(String? name, Color bgColor) {
     String initial = 'U';
     if (name != null && name.isNotEmpty) {
@@ -262,7 +435,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
                 final item = _divisiList[index];
                 return _buildUserCard(
                   name: item['nama_divisi'] ?? 'Tanpa Nama',
-                  roleDesc: item['deskripsi'] ?? '-',
+                  roleDesc: item['deskripsi'] ?? '',
                   badgeText: 'DIVISI',
                   badgeColor: Colors.white,
                   badgeBgColor: Colors.black87,
@@ -271,6 +444,8 @@ class _AdminManajemenState extends State<AdminManajemen> {
                     backgroundColor: Colors.grey[200],
                     child: Icon(Icons.business, color: Colors.grey[600]),
                   ),
+                  onEdit: () => _showEditDivisiDialog(item),
+                  onDelete: () => _hapusDivisi(item),
                 );
               },
             ),
@@ -464,6 +639,8 @@ class _AdminManajemenState extends State<AdminManajemen> {
     required Color badgeColor,
     required Color badgeBgColor,
     required Widget avatarWidget,
+    VoidCallback? onEdit,
+    VoidCallback? onDelete,
   }) {
     bool isMentor = badgeText == 'MENTOR';
     return Container(
@@ -516,9 +693,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
                   vertical: displayHeight(context) * 0.005,
                 ),
                 decoration: BoxDecoration(
-                  color: isMentor
-                      ? const Color(0xFFC78D32)
-                      : const Color(0xFFE46B72),
+                  color: badgeBgColor,
                   borderRadius: BorderRadius.circular(
                     displayWidth(context) * 0.02,
                   ),
@@ -528,18 +703,41 @@ class _AdminManajemenState extends State<AdminManajemen> {
                   style: TextStyle(
                     fontSize: displayWidth(context) * 0.025,
                     fontWeight: FontWeight.bold,
-                    color: isMentor
-                        ? const Color(0xFF5C3C00)
-                        : const Color(0xFF5E1B22),
+                    color: badgeColor,
                   ),
                 ),
               ),
               SizedBox(height: displayHeight(context) * 0.01),
-              Icon(
-                Icons.more_vert,
-                color: Colors.black87,
-                size: displayWidth(context) * 0.05,
-              ),
+              if (onEdit != null || onDelete != null)
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: Colors.black87,
+                    size: displayWidth(context) * 0.05,
+                  ),
+                  onSelected: (value) {
+                    if (value == 'edit' && onEdit != null) onEdit();
+                    if (value == 'delete' && onDelete != null) onDelete();
+                  },
+                  itemBuilder: (context) => [
+                    if (onEdit != null)
+                      const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                    if (onDelete != null)
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Hapus',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                  ],
+                )
+              else
+                Icon(
+                  Icons.more_vert,
+                  color: Colors.black87,
+                  size: displayWidth(context) * 0.05,
+                ),
             ],
           ),
         ],
