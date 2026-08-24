@@ -70,3 +70,5 @@ part '../page/adminpage/adminHome.dart';
 part '../page/adminpage/adminManajemen.dart';
 part '../page/adminpage/adminValidasi.dart';
 part '../page/adminpage/editProfileAdmin.dart';
+part '../page/adminpage/detailMentorAdmin.dart';
+part '../page/adminpage/editMentorAdmin.dart';
