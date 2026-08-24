@@ -118,9 +118,67 @@ class _loginPageState extends State<loginPage> {
           }
         }
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(result['message'].toString())));
+        String errMsg = result['message'].toString();
+        if (errMsg.toLowerCase().contains('dinonaktifkan')) {
+          const storage = FlutterSecureStorage();
+          await storage.delete(key: 'access_token');
+          
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+                ),
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: const Color(0xFFE84C63),
+                      size: displayWidth(context) * 0.07,
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    Text(
+                      'Akses Ditolak',
+                      style: TextStyle(
+                        color: const Color(0xFFE84C63),
+                        fontWeight: FontWeight.bold,
+                        fontSize: displayWidth(context) * 0.05,
+                      ),
+                    ),
+                  ],
+                ),
+                content: Text(
+                  errMsg,
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontSize: displayWidth(context) * 0.04,
+                    height: 1.4,
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      'Mengerti',
+                      style: TextStyle(
+                        color: const Color(0xFFE84C63),
+                        fontWeight: FontWeight.bold,
+                        fontSize: displayWidth(context) * 0.04,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(errMsg)),
+            );
+          }
+        }
       }
     }
   }

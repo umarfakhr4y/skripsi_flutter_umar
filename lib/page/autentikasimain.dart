@@ -17,9 +17,17 @@ class AuthService {
         print(data);
         return {'success': true, 'message': 'Login berhasil!', 'data': data};
       } else {
+        String errorMessage = 'Login gagal: ${response.statusCode}';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) {
+            errorMessage = errorData['message'];
+          }
+        } catch (_) {}
+
         return {
           'success': false,
-          'message': 'Login gagal: ${response.statusCode}',
+          'message': errorMessage,
         };
       }
     } catch (e) {
