@@ -98,7 +98,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
               itemBuilder: (context) => [
                 const PopupMenuItem(
                   value: 'edit_profil',
-                  child: Text('Edit Profil'),
+                  child: Text('Ubah Profil'),
                 ),
               ],
             ),
