@@ -159,7 +159,10 @@ class AdminService {
   }
 
   /// Mengubah Divisi
-  static Future<Map<String, dynamic>> editDivisi(int id, String namaDivisi) async {
+  static Future<Map<String, dynamic>> editDivisi(
+    int id,
+    String namaDivisi,
+  ) async {
     try {
       final headers = await _getHeaders();
       headers['Content-Type'] = 'application/json';

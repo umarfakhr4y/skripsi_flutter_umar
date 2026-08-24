@@ -326,6 +326,100 @@ class _AdminManajemenState extends State<AdminManajemen> {
     );
   }
 
+  Widget _buildShimmerList() {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 5, // Show 5 dummy shimmer cards
+      itemBuilder: (context, index) {
+        return Container(
+          margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
+          padding: EdgeInsets.all(displayWidth(context) * 0.04),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // Avatar Shimmer
+              Shimmer.fromColors(
+                baseColor: Colors.grey[300]!,
+                highlightColor: Colors.grey[100]!,
+                child: CircleAvatar(
+                  radius: displayWidth(context) * 0.06,
+                  backgroundColor: Colors.white,
+                ),
+              ),
+              SizedBox(width: displayWidth(context) * 0.04),
+              // Text Content Shimmer
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Container(
+                        height: displayWidth(context) * 0.04,
+                        width: displayWidth(context) * 0.4,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: displayHeight(context) * 0.01),
+                    Shimmer.fromColors(
+                      baseColor: Colors.grey[300]!,
+                      highlightColor: Colors.grey[100]!,
+                      child: Container(
+                        height: displayWidth(context) * 0.03,
+                        width: displayWidth(context) * 0.25,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Badge & More Icon Shimmer
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: displayHeight(context) * 0.02,
+                      width: displayWidth(context) * 0.15,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(displayWidth(context) * 0.02),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: displayHeight(context) * 0.015),
+                  Shimmer.fromColors(
+                    baseColor: Colors.grey[300]!,
+                    highlightColor: Colors.grey[100]!,
+                    child: Container(
+                      height: displayWidth(context) * 0.05,
+                      width: displayWidth(context) * 0.05,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildAvatarWidget(String? name, Color bgColor) {
     String initial = 'U';
     if (name != null && name.isNotEmpty) {
@@ -590,11 +684,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
 
               // User List
               _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFE84C63),
-                      ),
-                    )
+                  ? _buildShimmerList()
                   : _buildList(),
             ],
           ),
