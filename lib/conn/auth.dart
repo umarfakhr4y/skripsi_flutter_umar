@@ -69,3 +69,4 @@ part '../page/adminpage/adminmain.dart';
 part '../page/adminpage/adminHome.dart';
 part '../page/adminpage/adminManajemen.dart';
 part '../page/adminpage/adminValidasi.dart';
+part '../page/adminpage/editProfileAdmin.dart';

@@ -80,14 +80,19 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           if (widget.isAdmin)
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert, color: Colors.black),
-              onSelected: (value) {
+              onSelected: (value) async {
                 if (value == 'edit_profil') {
-                  Navigator.push(
+                  final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const EditProfile(),
+                      builder: (context) =>
+                          EditProfileAdmin(pesertaId: widget.pesertaId),
                     ),
                   );
+                  if (result == true) {
+                    setState(() => _isLoading = true);
+                    _fetchDetailPeserta();
+                  }
                 }
               },
               itemBuilder: (context) => [
