@@ -397,7 +397,9 @@ class _AdminManajemenState extends State<AdminManajemen> {
                       width: displayWidth(context) * 0.15,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(displayWidth(context) * 0.02),
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.02,
+                        ),
                       ),
                     ),
                   ),
@@ -493,6 +495,15 @@ class _AdminManajemenState extends State<AdminManajemen> {
               item['nama_lengkap'],
               const Color(0xFFFDE68A),
             ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      DetailMentorAdmin(mentorId: item['id'] ?? 0),
+                ),
+              );
+            },
           );
         },
       );
@@ -571,139 +582,137 @@ class _AdminManajemenState extends State<AdminManajemen> {
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.all(displayWidth(context) * 0.05),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Custom AppBar (Logo & Avatar)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "v",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.08,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -1.0,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Custom AppBar (Logo & Avatar)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "v",
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.08,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -1.0,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: "o",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.08,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFE84C63), // Red
-                            letterSpacing: -1.0,
+                          TextSpan(
+                            text: "o",
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.08,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFFE84C63), // Red
+                              letterSpacing: -1.0,
+                            ),
                           ),
-                        ),
-                        TextSpan(
-                          text: "casia",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.08,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -1.0,
+                          TextSpan(
+                            text: "casia",
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.08,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -1.0,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                SizedBox(height: displayHeight(context) * 0.03),
+
+                // Title and Subtitle
+                Text(
+                  'Manajemen',
+                  style: TextStyle(
+                    fontSize: displayWidth(context) * 0.065,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
                   ),
-                ],
-              ),
-              SizedBox(height: displayHeight(context) * 0.03),
-
-              // Title and Subtitle
-              Text(
-                'Manajemen',
-                style: TextStyle(
-                  fontSize: displayWidth(context) * 0.065,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
                 ),
-              ),
-              SizedBox(height: displayHeight(context) * 0.01),
-              Text(
-                'Kelola Peserta Magang, Mentor dan Divisi.',
-                style: TextStyle(
-                  fontSize: displayWidth(context) * 0.035,
-                  color: Colors.grey[600],
-                  height: 1.4,
+                SizedBox(height: displayHeight(context) * 0.01),
+                Text(
+                  'Kelola Peserta Magang, Mentor dan Divisi.',
+                  style: TextStyle(
+                    fontSize: displayWidth(context) * 0.035,
+                    color: Colors.grey[600],
+                    height: 1.4,
+                  ),
                 ),
-              ),
-              SizedBox(height: displayHeight(context) * 0.03),
+                SizedBox(height: displayHeight(context) * 0.03),
 
-              // Tabs
-              Row(
-                children: [
-                  _buildTab('Peserta Magang'),
-                  SizedBox(width: displayWidth(context) * 0.02),
-                  _buildTab('Mentor'),
-                  SizedBox(width: displayWidth(context) * 0.02),
-                  _buildTab('Divisi'),
-                ],
-              ),
-              SizedBox(height: displayHeight(context) * 0.03),
+                // Tabs
+                Row(
+                  children: [
+                    _buildTab('Peserta Magang'),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    _buildTab('Mentor'),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    _buildTab('Divisi'),
+                  ],
+                ),
+                SizedBox(height: displayHeight(context) * 0.03),
 
-              // Search and Filter
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
+                // Search and Filter
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.03,
+                          ),
+                        ),
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: 'Cari ...',
+                            hintStyle: TextStyle(
+                              color: Colors.grey[500],
+                              fontSize: displayWidth(context) * 0.035,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.grey[600],
+                              size: displayWidth(context) * 0.05,
+                            ),
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: displayHeight(context) * 0.015,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.03),
+                    Container(
+                      padding: EdgeInsets.all(displayWidth(context) * 0.03),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(
                           displayWidth(context) * 0.03,
                         ),
                       ),
-                      child: TextField(
-                        decoration: InputDecoration(
-                          hintText: 'Cari ...',
-                          hintStyle: TextStyle(
-                            color: Colors.grey[500],
-                            fontSize: displayWidth(context) * 0.035,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.search,
-                            color: Colors.grey[600],
-                            size: displayWidth(context) * 0.05,
-                          ),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(
-                            vertical: displayHeight(context) * 0.015,
-                          ),
-                        ),
+                      child: Icon(
+                        Icons.filter_list,
+                        color: Colors.black87,
+                        size: displayWidth(context) * 0.05,
                       ),
                     ),
-                  ),
-                  SizedBox(width: displayWidth(context) * 0.03),
-                  Container(
-                    padding: EdgeInsets.all(displayWidth(context) * 0.03),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(
-                        displayWidth(context) * 0.03,
-                      ),
-                    ),
-                    child: Icon(
-                      Icons.filter_list,
-                      color: Colors.black87,
-                      size: displayWidth(context) * 0.05,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: displayHeight(context) * 0.03),
+                  ],
+                ),
+                SizedBox(height: displayHeight(context) * 0.03),
 
-              // User List
-              _isLoading
-                  ? _buildShimmerList()
-                  : _buildList(),
-            ],
+                // User List
+                _isLoading ? _buildShimmerList() : _buildList(),
+              ],
+            ),
           ),
-        ),
         ),
       ),
     );
@@ -830,18 +839,18 @@ class _AdminManajemenState extends State<AdminManajemen> {
                     },
                     itemBuilder: (context) => [
                       if (onEdit != null)
-                        const PopupMenuItem(
-                          value: 'edit',
-                          child: Text('Edit'),
-                        ),
+                        const PopupMenuItem(value: 'edit', child: Text('Edit')),
                       if (onDelete != null)
                         const PopupMenuItem(
                           value: 'delete',
-                          child: Text('Hapus', style: TextStyle(color: Colors.red)),
+                          child: Text(
+                            'Hapus',
+                            style: TextStyle(color: Colors.red),
+                          ),
                         ),
                     ],
-                  )
-                ]
+                  ),
+                ],
               ],
             ),
           ],
