@@ -76,6 +76,28 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
         centerTitle: false,
+        actions: [
+          if (widget.isAdmin)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.black),
+              onSelected: (value) {
+                if (value == 'edit_profil') {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const EditProfile(),
+                    ),
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit_profil',
+                  child: Text('Edit Profil'),
+                ),
+              ],
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(
