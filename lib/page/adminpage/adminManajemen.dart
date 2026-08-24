@@ -565,8 +565,12 @@ class _AdminManajemenState extends State<AdminManajemen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(displayWidth(context) * 0.05),
+        child: RefreshIndicator(
+          onRefresh: _fetchData,
+          color: const Color(0xFFE84C63),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(displayWidth(context) * 0.05),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -699,6 +703,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
                   : _buildList(),
             ],
           ),
+        ),
         ),
       ),
     );
