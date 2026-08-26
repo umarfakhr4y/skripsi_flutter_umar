@@ -72,3 +72,4 @@ part '../page/adminpage/adminValidasi.dart';
 part '../page/adminpage/editProfileAdmin.dart';
 part '../page/adminpage/detailMentorAdmin.dart';
 part '../page/adminpage/editMentorAdmin.dart';
+part '../page/adminpage/bimbinganAdmin.dart';
