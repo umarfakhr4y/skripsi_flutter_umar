@@ -38,11 +38,11 @@ class _AdminHomeState extends State<AdminHome> {
       final rawData = pesertaResult['data'];
       final List<dynamic> pesertaList = (rawData is List) ? rawData : [];
       for (var peserta in pesertaList) {
-        if (peserta != null &&
-            peserta is Map &&
-            peserta['status'] != null &&
-            peserta['status'].toString().toLowerCase() == 'aktif') {
-          pCount++;
+        if (peserta != null && peserta is Map && peserta['status'] != null) {
+          final statusStr = peserta['status'].toString().toLowerCase();
+          if (statusStr == 'aktif' || statusStr == 'true' || statusStr == '1') {
+            pCount++;
+          }
         }
       }
     } else {
@@ -138,294 +138,314 @@ class _AdminHomeState extends State<AdminHome> {
     return Scaffold(
       backgroundColor: const Color(0xFFF9F9F9), // Light background
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(displayWidth(context) * 0.05),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Custom AppBar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Logo
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "v",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.08,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -1.0,
-                          ),
-                        ),
-                        TextSpan(
-                          text: "o",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.08,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFE84C63), // Red
-                            letterSpacing: -1.0,
-                          ),
-                        ),
-                        TextSpan(
-                          text: "casia",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.08,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -1.0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: displayHeight(context) * 0.03),
-
-              // Dasbor Ringkasan Card
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(displayWidth(context) * 0.05),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(
-                    displayWidth(context) * 0.04,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+        child: RefreshIndicator(
+          color: const Color(0xFFE84C63),
+          onRefresh: () async {
+            setState(() {
+              _isLoading = true;
+            });
+            await _fetchData();
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(displayWidth(context) * 0.05),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Custom AppBar
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.waving_hand,
-                          color: const Color(0xFFB04A50),
-                          size: displayWidth(context) * 0.04,
-                        ),
-                        SizedBox(width: displayWidth(context) * 0.02),
-                        Text(
-                          'SELAMAT PAGI, ADMIN',
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.03,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[600],
-                            letterSpacing: 1.2,
+                    // Logo
+                    RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "v",
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.08,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -1.0,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: displayHeight(context) * 0.01),
-                    Text(
-                      'Dasbor Ringkasan',
-                      style: TextStyle(
-                        fontSize: displayWidth(context) * 0.055,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+                          TextSpan(
+                            text: "o",
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.08,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFFE84C63), // Red
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                          TextSpan(
+                            text: "casia",
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.08,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black,
+                              letterSpacing: -1.0,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-              SizedBox(height: displayHeight(context) * 0.03),
+                SizedBox(height: displayHeight(context) * 0.03),
 
-              // Grid 2x2
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: displayWidth(context) * 0.04,
-                crossAxisSpacing: displayWidth(context) * 0.04,
-                childAspectRatio: 0.9,
-                children: [
-                  _buildStatCard(
-                    icon: Icons.people_outline,
-                    iconColor: const Color(0xFFE84C63),
-                    iconBg: const Color(0xFFFDE8EB),
-                    title: _pesertaAktifCount.toString(),
-                    subtitle: 'Peserta Aktif',
-                    glowColor: const Color(0xFFE84C63),
-                    isLoading: _isLoading,
-                  ),
-                  _buildStatCard(
-                    icon: Icons.school_outlined,
-                    iconColor: const Color(0xFFC78D32),
-                    iconBg: const Color(0xFFFEF08A).withOpacity(0.5),
-                    title: _totalMentorCount.toString(),
-                    subtitle: 'Total Mentor',
-                    glowColor: const Color(0xFFC78D32),
-                    isLoading: _isLoading,
-                  ),
-                  _buildStatCard(
-                    icon: Icons.assignment_turned_in_outlined,
-                    iconColor: Colors.grey[700]!,
-                    iconBg: Colors.grey[200]!,
-                    title: _tugasAktifCount.toString(),
-                    trailingTitle: ' / $_totalTugasCount',
-                    subtitle: 'Tugas Aktif',
-                    isLoading: _isLoading,
-                  ),
-                  // Kehadiran solid card
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFB04A50),
-                      borderRadius: BorderRadius.circular(
-                        displayWidth(context) * 0.04,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFB04A50).withOpacity(0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                // Dasbor Ringkasan Card
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.all(displayWidth(context) * 0.05),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.04,
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: displayWidth(context) * 0.18,
-                              height: displayWidth(context) * 0.18,
-                              child: CircularProgressIndicator(
-                                value: _isLoading
-                                    ? null
-                                    : (_persentaseKehadiran / 100.0),
-                                strokeWidth: 5,
-                                backgroundColor: Colors.white.withOpacity(0.3),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.waving_hand,
+                            color: const Color(0xFFB04A50),
+                            size: displayWidth(context) * 0.04,
+                          ),
+                          SizedBox(width: displayWidth(context) * 0.02),
+                          Text(
+                            'SELAMAT PAGI, ADMIN',
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.03,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[600],
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: displayHeight(context) * 0.01),
+                      Text(
+                        'Dasbor Ringkasan',
+                        style: TextStyle(
+                          fontSize: displayWidth(context) * 0.055,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: displayHeight(context) * 0.03),
+
+                // Grid 2x2
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: displayWidth(context) * 0.04,
+                  crossAxisSpacing: displayWidth(context) * 0.04,
+                  childAspectRatio: 0.9,
+                  children: [
+                    _buildStatCard(
+                      icon: Icons.people_outline,
+                      iconColor: const Color(0xFFE84C63),
+                      iconBg: const Color(0xFFFDE8EB),
+                      title: _pesertaAktifCount.toString(),
+                      subtitle: 'Peserta Aktif',
+                      glowColor: const Color(0xFFE84C63),
+                      isLoading: _isLoading,
+                    ),
+                    _buildStatCard(
+                      icon: Icons.school_outlined,
+                      iconColor: const Color(0xFFC78D32),
+                      iconBg: const Color(0xFFFEF08A).withOpacity(0.5),
+                      title: _totalMentorCount.toString(),
+                      subtitle: 'Total Mentor',
+                      glowColor: const Color(0xFFC78D32),
+                      isLoading: _isLoading,
+                    ),
+                    _buildStatCard(
+                      icon: Icons.assignment_turned_in_outlined,
+                      iconColor: Colors.grey[700]!,
+                      iconBg: Colors.grey[200]!,
+                      title: _tugasAktifCount.toString(),
+                      trailingTitle: ' / $_totalTugasCount',
+                      subtitle: 'Tugas Aktif',
+                      isLoading: _isLoading,
+                    ),
+                    // Kehadiran solid card
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB04A50),
+                        borderRadius: BorderRadius.circular(
+                          displayWidth(context) * 0.04,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFB04A50).withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: displayWidth(context) * 0.18,
+                                height: displayWidth(context) * 0.18,
+                                child: CircularProgressIndicator(
+                                  value: _isLoading
+                                      ? null
+                                      : (_persentaseKehadiran / 100.0),
+                                  strokeWidth: 5,
+                                  backgroundColor: Colors.white.withOpacity(
+                                    0.3,
+                                  ),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                 ),
                               ),
-                            ),
-                            if (_isLoading)
-                              Shimmer.fromColors(
-                                baseColor: Colors.white54,
-                                highlightColor: Colors.white,
-                                child: Container(
-                                  width: displayWidth(context) * 0.08,
-                                  height: displayWidth(context) * 0.04,
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(
-                                      displayWidth(context) * 0.01,
+                              if (_isLoading)
+                                Shimmer.fromColors(
+                                  baseColor: Colors.white54,
+                                  highlightColor: Colors.white,
+                                  child: Container(
+                                    width: displayWidth(context) * 0.08,
+                                    height: displayWidth(context) * 0.04,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(
+                                        displayWidth(context) * 0.01,
+                                      ),
                                     ),
                                   ),
+                                )
+                              else
+                                Text(
+                                  '${_persentaseKehadiran.toInt()}%',
+                                  style: TextStyle(
+                                    fontSize: displayWidth(context) * 0.045,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
                                 ),
-                              )
-                            else
-                              Text(
-                                '${_persentaseKehadiran.toInt()}%',
-                                style: TextStyle(
-                                  fontSize: displayWidth(context) * 0.045,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                          ],
-                        ),
-                        SizedBox(height: displayHeight(context) * 0.015),
-                        Text(
-                          'KEHADIRAN',
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.03,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                            color: Colors.white,
+                            ],
                           ),
-                        ),
-                        Text(
-                          'HARI INI',
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.03,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                            color: Colors.white,
+                          SizedBox(height: displayHeight(context) * 0.015),
+                          Text(
+                            'KEHADIRAN',
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.03,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: Colors.white,
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: displayHeight(context) * 0.04),
-
-              // Menu Administrasi
-              Text(
-                'Menu Administrasi',
-                style: TextStyle(
-                  fontSize: displayWidth(context) * 0.045,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: displayHeight(context) * 0.02),
-
-              // Menu List Container
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(
-                    displayWidth(context) * 0.04,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+                          Text(
+                            'HARI INI',
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.03,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                child: Column(
-                  children: [
-                    _buildMenuItem(
-                      icon: Icons.calendar_today_outlined,
-                      title: 'Lihat Laporan Harian',
-                      subtitle:
-                          'Tinjau laporan harian yang diisi oleh peserta magang',
-                      onTap: () {},
-                    ),
-                    Divider(
-                      height: 1,
-                      color: Colors.grey[200],
-                      indent: displayWidth(context) * 0.04,
-                      endIndent: displayWidth(context) * 0.04,
-                    ),
-                    _buildMenuItem(
-                      icon: Icons.people_outline,
-                      title: 'Lihat Data Bimbingan',
-                      subtitle: 'Tinjau semua data bimbingan',
-                      onTap: () {},
-                    ),
-                    Divider(
-                      height: 1,
-                      color: Colors.grey[200],
-                      indent: displayWidth(context) * 0.04,
-                      endIndent: displayWidth(context) * 0.04,
-                    ),
-                    _buildMenuItem(
-                      icon: Icons.assignment_ind_outlined,
-                      title: 'Lihat Data Perizinan',
-                      subtitle:
-                          'Tinjau semua data perizinan yang dibuat oleh peserta magang',
-                      onTap: () {},
-                    ),
-                  ],
+                SizedBox(height: displayHeight(context) * 0.04),
+
+                // Menu Administrasi
+                Text(
+                  'Menu Administrasi',
+                  style: TextStyle(
+                    fontSize: displayWidth(context) * 0.045,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
                 ),
-              ),
-              SizedBox(height: displayHeight(context) * 0.02),
-            ],
+                SizedBox(height: displayHeight(context) * 0.02),
+
+                // Menu List Container
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(
+                      displayWidth(context) * 0.04,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _buildMenuItem(
+                        icon: Icons.calendar_today_outlined,
+                        title: 'Lihat Laporan Harian',
+                        subtitle:
+                            'Tinjau laporan harian yang diisi oleh peserta magang',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LaporanPesertaMentor(),
+                            ),
+                          );
+                        },
+                      ),
+                      Divider(
+                        height: 1,
+                        color: Colors.grey[200],
+                        indent: displayWidth(context) * 0.04,
+                        endIndent: displayWidth(context) * 0.04,
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.people_outline,
+                        title: 'Lihat Data Bimbingan',
+                        subtitle: 'Tinjau semua data bimbingan',
+                        onTap: () {},
+                      ),
+                      Divider(
+                        height: 1,
+                        color: Colors.grey[200],
+                        indent: displayWidth(context) * 0.04,
+                        endIndent: displayWidth(context) * 0.04,
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.assignment_ind_outlined,
+                        title: 'Lihat Data Perizinan',
+                        subtitle:
+                            'Tinjau semua data perizinan yang dibuat oleh peserta magang',
+                        onTap: () {},
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: displayHeight(context) * 0.02),
+              ],
+            ),
           ),
         ),
       ),
