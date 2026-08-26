@@ -410,7 +410,8 @@ class _AdminHomeState extends State<AdminHome> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => LaporanPesertaMentor(),
+                              builder: (context) =>
+                                  LaporanPesertaMentor(isAdmin: true),
                             ),
                           );
                         },
@@ -425,7 +426,15 @@ class _AdminHomeState extends State<AdminHome> {
                         icon: Icons.people_outline,
                         title: 'Lihat Data Bimbingan',
                         subtitle: 'Tinjau semua data bimbingan',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  BimbinganAdmin(isAdmin: true),
+                            ),
+                          );
+                        },
                       ),
                       Divider(
                         height: 1,
@@ -438,7 +447,17 @@ class _AdminHomeState extends State<AdminHome> {
                         title: 'Lihat Data Perizinan',
                         subtitle:
                             'Tinjau semua data perizinan yang dibuat oleh peserta magang',
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const PersuratanPesertaMentordua(
+                                    isAdmin: true,
+                                  ),
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ),
