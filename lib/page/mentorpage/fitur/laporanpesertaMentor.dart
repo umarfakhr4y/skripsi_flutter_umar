@@ -1,7 +1,8 @@
 part of '../../../conn/auth.dart';
 
 class LaporanPesertaMentor extends StatefulWidget {
-  const LaporanPesertaMentor({super.key});
+  final bool isAdmin;
+  const LaporanPesertaMentor({super.key, this.isAdmin = false});
 
   @override
   State<LaporanPesertaMentor> createState() => _LaporanPesertaMentorState();
@@ -26,7 +27,9 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
 
   Future<void> _fetchPeserta() async {
     try {
-      final result = await MentorService.getPesertaAbsensi();
+      final result = widget.isAdmin 
+          ? await AdminService.getPeserta()
+          : await MentorService.getPesertaAbsensi();
       if (result['success']) {
         if (mounted) {
           setState(() {
@@ -178,14 +181,31 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            backgroundColor: Colors.grey[300],
-                            radius: displayWidth(context) * 0.055,
-                            child: Icon(
-                              Icons.person,
-                              color: Colors.grey[600],
-                              size: displayWidth(context) * 0.07,
-                            ),
+                          Builder(
+                            builder: (context) {
+                              String? picUrl = laporan['profile_picture_url'];
+                              if (picUrl == null && laporan['profile_picture'] != null) {
+                                picUrl = 'http://10.0.2.2:8000/storage/${laporan['profile_picture']}';
+                              }
+                              
+                              if (picUrl != null && picUrl.isNotEmpty) {
+                                return CircleAvatar(
+                                  radius: displayWidth(context) * 0.055,
+                                  backgroundImage: NetworkImage(picUrl),
+                                  backgroundColor: Colors.grey[300],
+                                );
+                              } else {
+                                return CircleAvatar(
+                                  backgroundColor: Colors.grey[300],
+                                  radius: displayWidth(context) * 0.055,
+                                  child: Icon(
+                                    Icons.person,
+                                    color: Colors.grey[600],
+                                    size: displayWidth(context) * 0.07,
+                                  ),
+                                );
+                              }
+                            },
                           ),
                           SizedBox(width: displayWidth(context) * 0.03),
                           Expanded(
@@ -314,8 +334,12 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
       const storage = FlutterSecureStorage();
       String? token = await storage.read(key: 'access_token');
 
+      String url = widget.isAdmin
+          ? 'http://10.0.2.2:8000/api/admin/laporan/$selectedPesertaId'
+          : 'http://10.0.2.2:8000/api/mentor/laporan/$selectedPesertaId';
+
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/laporan/$selectedPesertaId'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -465,10 +489,31 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                                     value: peserta['id'].toString(),
                                     child: Row(
                                       children: [
-                                        Icon(
-                                          Icons.person,
-                                          color: Colors.grey[600],
-                                          size: displayWidth(context) * 0.05,
+                                        Builder(
+                                          builder: (context) {
+                                            String? picUrl = peserta['profile_picture_url'];
+                                            if (picUrl == null && peserta['profile_picture'] != null) {
+                                              picUrl = 'http://10.0.2.2:8000/storage/${peserta['profile_picture']}';
+                                            }
+                                            
+                                            if (picUrl != null && picUrl.isNotEmpty) {
+                                              return CircleAvatar(
+                                                radius: displayWidth(context) * 0.03,
+                                                backgroundImage: NetworkImage(picUrl),
+                                                backgroundColor: Colors.grey[200],
+                                              );
+                                            } else {
+                                              return CircleAvatar(
+                                                radius: displayWidth(context) * 0.03,
+                                                backgroundColor: Colors.grey[200],
+                                                child: Icon(
+                                                  Icons.person,
+                                                  color: Colors.grey[600],
+                                                  size: displayWidth(context) * 0.04,
+                                                ),
+                                              );
+                                            }
+                                          },
                                         ),
                                         SizedBox(
                                           width: displayWidth(context) * 0.03,
