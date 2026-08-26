@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'conn/auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/services.dart';
 
 const firebaseOptions = FirebaseOptions(
   apiKey: "AIzaSyCI3nC1cVE3bKAagsxh74IWQPncIopEUHM",
@@ -65,6 +66,23 @@ void handleFcmRouting(String? tipe) {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Mencegah navigasi bar transparan / overlap (menonaktifkan edge-to-edge secara paksa)
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: SystemUiOverlay.values,
+  );
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor:
+          Colors.white, // Warna background tombol navigasi (kembali/recent app)
+      systemNavigationBarIconBrightness: Brightness.dark, // Warna ikon navigasi
+      statusBarColor:
+          Colors.transparent, // Status bar (jam/baterai) tetap transparan
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+
   // Inisialisasi Firebase secara eksplisit untuk mencegah kegagalan baca file config di Android
   await Firebase.initializeApp(options: firebaseOptions);
 
