@@ -30,8 +30,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
       String? token = await storage.read(key: 'access_token');
 
       String baseUrl = widget.isAdmin
-          ? 'http://192.168.18.81:8000/api/admin/peserta/${widget.pesertaId}'
-          : 'http://192.168.18.81:8000/api/mentor/peserta/${widget.pesertaId}';
+          ? '$baseApiUrl/api/admin/peserta/${widget.pesertaId}'
+          : '$baseApiUrl/api/mentor/peserta/${widget.pesertaId}';
 
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -98,7 +98,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
 
         final response = await http.put(
           Uri.parse(
-            'http://192.168.18.81:8000/api/admin/peserta/${widget.pesertaId}/toggle-status',
+            '$baseApiUrl/api/admin/peserta/${widget.pesertaId}/toggle-status',
           ),
           headers: {
             'Authorization': 'Bearer $token',
@@ -270,7 +270,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           ),
           SizedBox(height: displayHeight(context) * 0.005),
           Text(
-            '${_pesertaData?['universitas'] ?? '-'} â€¢ ${_pesertaData?['prodi'] ?? '-'}',
+            '${_pesertaData?['universitas'] ?? '-'} Ã¢â‚¬Â¢ ${_pesertaData?['prodi'] ?? '-'}',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.03,
               color: Colors.grey[600],

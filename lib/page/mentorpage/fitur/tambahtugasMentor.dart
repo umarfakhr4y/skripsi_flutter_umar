@@ -623,7 +623,7 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                 String path = entry.value;
                 String fullUrl = path.startsWith('http')
                     ? path
-                    : 'http://10.0.2.2:8000/storage/$path';
+                    : '$baseApiUrl/storage/$path';
                 return Stack(
                   children: [
                     Container(

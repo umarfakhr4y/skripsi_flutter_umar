@@ -43,7 +43,7 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        Uri.parse('$baseApiUrl/api/mentor/peserta'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

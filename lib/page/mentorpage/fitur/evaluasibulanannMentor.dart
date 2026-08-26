@@ -33,7 +33,7 @@ class _EvaluasiBulananPesertaMentorState
       const storage = FlutterSecureStorage();
       String? token = await storage.read(key: 'access_token');
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        Uri.parse('$baseApiUrl/api/mentor/peserta'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -123,7 +123,7 @@ class _EvaluasiBulananPesertaMentorState
           "${months[DateTime.now().month - 1]} ${DateTime.now().year}";
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/evaluasi'),
+        Uri.parse('$baseApiUrl/api/mentor/evaluasi'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

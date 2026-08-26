@@ -185,7 +185,7 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                             builder: (context) {
                               String? picUrl = laporan['profile_picture_url'];
                               if (picUrl == null && laporan['profile_picture'] != null) {
-                                picUrl = 'http://10.0.2.2:8000/storage/${laporan['profile_picture']}';
+                                picUrl = '$baseApiUrl/storage/${laporan['profile_picture']}';
                               }
                               
                               if (picUrl != null && picUrl.isNotEmpty) {
@@ -335,8 +335,8 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
       String? token = await storage.read(key: 'access_token');
 
       String url = widget.isAdmin
-          ? 'http://10.0.2.2:8000/api/admin/laporan/$selectedPesertaId'
-          : 'http://10.0.2.2:8000/api/mentor/laporan/$selectedPesertaId';
+          ? '$baseApiUrl/api/admin/laporan/$selectedPesertaId'
+          : '$baseApiUrl/api/mentor/laporan/$selectedPesertaId';
 
       final response = await http.get(
         Uri.parse(url),
@@ -493,7 +493,7 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                                           builder: (context) {
                                             String? picUrl = peserta['profile_picture_url'];
                                             if (picUrl == null && peserta['profile_picture'] != null) {
-                                              picUrl = 'http://10.0.2.2:8000/storage/${peserta['profile_picture']}';
+                                              picUrl = '$baseApiUrl/storage/${peserta['profile_picture']}';
                                             }
                                             
                                             if (picUrl != null && picUrl.isNotEmpty) {

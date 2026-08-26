@@ -23,7 +23,7 @@ class _EvaluasiPesertaState extends State<EvaluasiPeserta> {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/peserta/evaluasi'),
+        Uri.parse('$baseApiUrl/api/peserta/evaluasi'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

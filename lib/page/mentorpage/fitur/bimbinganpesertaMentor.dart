@@ -28,7 +28,7 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
       const storage = FlutterSecureStorage();
       String? token = await storage.read(key: 'access_token');
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/bimbingan'),
+        Uri.parse('$baseApiUrl/api/mentor/bimbingan'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -660,7 +660,7 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
       }
 
       final response = await http.put(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/bimbingan/$id'),
+        Uri.parse('$baseApiUrl/api/mentor/bimbingan/$id'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

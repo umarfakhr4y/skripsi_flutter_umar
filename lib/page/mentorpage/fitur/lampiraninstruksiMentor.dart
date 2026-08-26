@@ -123,7 +123,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
         String path = list[i];
         String fullUrl = path.startsWith('http')
             ? path
-            : 'http://10.0.2.2:8000/storage/$path';
+            : '$baseApiUrl/storage/$path';
 
         if (_isImageFile(fullUrl)) {
           final response = await http.get(Uri.parse(fullUrl));
@@ -202,7 +202,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                     String path = widget.images![index];
                     fullUrl = path.startsWith('http')
                         ? path
-                        : 'http://10.0.2.2:8000/storage/$path';
+                        : '$baseApiUrl/storage/$path';
                     fileName = path.split('/').last.split('?').first;
                     if (fileName.isEmpty) fileName = 'lampiran_${index + 1}';
                   } else {
@@ -441,7 +441,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                     ),
                     SizedBox(height: displayHeight(context) * 0.006),
                     Text(
-                      'Dokumen / File • Klik untuk unduh via browser',
+                      'Dokumen / File Ã¢â‚¬Â¢ Klik untuk unduh via browser',
                       style: TextStyle(
                         fontSize: displayWidth(context) * 0.031,
                         color: Colors.grey[600],

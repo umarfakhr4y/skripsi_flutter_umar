@@ -35,8 +35,8 @@ class _PersuratanPesertaMentorduaState
       if (token == null) return;
 
       final url = widget.isAdmin
-          ? 'http://10.0.2.2:8000/api/admin/persuratan'
-          : 'http://10.0.2.2:8000/api/mentor/persuratan';
+          ? '$baseApiUrl/api/admin/persuratan'
+          : '$baseApiUrl/api/mentor/persuratan';
 
       final response = await http.get(
         Uri.parse(url),
@@ -63,7 +63,7 @@ class _PersuratanPesertaMentorduaState
                 if (isImage) {
                   precacheTasks.add(
                     precacheImage(
-                      NetworkImage('http://10.0.2.2:8000/storage/$linkDokumen'),
+                      NetworkImage('$baseApiUrl/storage/$linkDokumen'),
                       context,
                     ),
                   );
@@ -79,7 +79,7 @@ class _PersuratanPesertaMentorduaState
                   precacheTasks.add(
                     precacheImage(
                       NetworkImage(
-                        'http://10.0.2.2:8000/storage/$filePendukung',
+                        '$baseApiUrl/storage/$filePendukung',
                       ),
                       context,
                     ),
@@ -111,8 +111,8 @@ class _PersuratanPesertaMentorduaState
       if (token == null) return;
 
       final url = widget.isAdmin
-          ? 'http://10.0.2.2:8000/api/admin/perizinan'
-          : 'http://10.0.2.2:8000/api/mentor/perizinan';
+          ? '$baseApiUrl/api/admin/perizinan'
+          : '$baseApiUrl/api/mentor/perizinan';
 
       final response = await http.get(
         Uri.parse(url),
@@ -140,7 +140,7 @@ class _PersuratanPesertaMentorduaState
                   precacheTasks.add(
                     precacheImage(
                       NetworkImage(
-                        'http://10.0.2.2:8000/storage/$filePendukung',
+                        '$baseApiUrl/storage/$filePendukung',
                       ),
                       context,
                     ),
@@ -436,7 +436,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
     final id = widget.data['id'];
 
     final uri = Uri.parse(
-      'http://10.0.2.2:8000/api/mentor/persuratan/$id/status',
+      '$baseApiUrl/api/mentor/persuratan/$id/status',
     );
     var request = http.MultipartRequest('POST', uri);
 
@@ -692,13 +692,13 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                     picUrl = widget.data['peserta']['user']['profile_picture_url'];
                                   } else if (widget.data['peserta']['user'] != null &&
                                       widget.data['peserta']['user']['profile_picture'] != null) {
-                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['user']['profile_picture']}';
+                                    picUrl = '$baseApiUrl/storage/${widget.data['peserta']['user']['profile_picture']}';
                                   }
                                   // Fallback ke level peserta jika ada
                                   else if (widget.data['peserta']['profile_picture_url'] != null) {
                                     picUrl = widget.data['peserta']['profile_picture_url'];
                                   } else if (widget.data['peserta']['profile_picture'] != null) {
-                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['profile_picture']}';
+                                    picUrl = '$baseApiUrl/storage/${widget.data['peserta']['profile_picture']}';
                                   }
                                 }
 
@@ -934,7 +934,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                                 minScale: 0.5,
                                                                 maxScale: 4.0,
                                                                 child: Image.network(
-                                                                  'http://10.0.2.2:8000/storage/$filePendukung',
+                                                                  '$baseApiUrl/storage/$filePendukung',
                                                                   fit: BoxFit
                                                                       .contain,
                                                                   loadingBuilder:
@@ -1022,7 +1022,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                                       onPressed: () async {
                                                                         final url =
                                                                             Uri.parse(
-                                                                              'http://10.0.2.2:8000/storage/$filePendukung',
+                                                                              '$baseApiUrl/storage/$filePendukung',
                                                                             );
                                                                         try {
                                                                           ScaffoldMessenger.of(
@@ -1111,7 +1111,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                           8,
                                                         ),
                                                     child: Image.network(
-                                                      'http://10.0.2.2:8000/storage/$filePendukung',
+                                                      '$baseApiUrl/storage/$filePendukung',
                                                       height:
                                                           displayHeight(
                                                             context,
@@ -1196,7 +1196,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                 return InkWell(
                                                   onTap: () async {
                                                     final url = Uri.parse(
-                                                      'http://10.0.2.2:8000/storage/$filePendukung',
+                                                      '$baseApiUrl/storage/$filePendukung',
                                                     );
                                                     try {
                                                       await launchUrl(
@@ -1378,7 +1378,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                                   minScale: 0.5,
                                                                   maxScale: 4.0,
                                                                   child: Image.network(
-                                                                    'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                                    '$baseApiUrl/storage/$linkDokumen',
                                                                     fit: BoxFit
                                                                         .contain,
                                                                     loadingBuilder:
@@ -1464,7 +1464,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                                         ),
                                                                         onPressed: () async {
                                                                           final url = Uri.parse(
-                                                                            'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                                            '$baseApiUrl/storage/$linkDokumen',
                                                                           );
                                                                           try {
                                                                             ScaffoldMessenger.of(
@@ -1554,7 +1554,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                             8,
                                                           ),
                                                       child: Image.network(
-                                                        'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                        '$baseApiUrl/storage/$linkDokumen',
                                                         height:
                                                             displayHeight(
                                                               context,
@@ -1639,7 +1639,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                                   return InkWell(
                                                     onTap: () async {
                                                       final url = Uri.parse(
-                                                        'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                        '$baseApiUrl/storage/$linkDokumen',
                                                       );
                                                       try {
                                                         await launchUrl(
@@ -2055,7 +2055,7 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
     final id = widget.data['id'];
 
     final uri = Uri.parse(
-      'http://10.0.2.2:8000/api/mentor/perizinan/$id/status',
+      '$baseApiUrl/api/mentor/perizinan/$id/status',
     );
     var request = http.MultipartRequest('POST', uri);
 
@@ -2227,13 +2227,13 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
                                     picUrl = widget.data['peserta']['user']['profile_picture_url'];
                                   } else if (widget.data['peserta']['user'] != null &&
                                       widget.data['peserta']['user']['profile_picture'] != null) {
-                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['user']['profile_picture']}';
+                                    picUrl = '$baseApiUrl/storage/${widget.data['peserta']['user']['profile_picture']}';
                                   }
                                   // Fallback ke level peserta jika ada
                                   else if (widget.data['peserta']['profile_picture_url'] != null) {
                                     picUrl = widget.data['peserta']['profile_picture_url'];
                                   } else if (widget.data['peserta']['profile_picture'] != null) {
-                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['profile_picture']}';
+                                    picUrl = '$baseApiUrl/storage/${widget.data['peserta']['profile_picture']}';
                                   }
                                 }
 
@@ -2462,7 +2462,7 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
                                                           8,
                                                         ),
                                                     child: Image.network(
-                                                      'http://10.0.2.2:8000/storage/$filePendukung',
+                                                      '$baseApiUrl/storage/$filePendukung',
                                                       height:
                                                           displayHeight(
                                                             context,
@@ -2481,7 +2481,7 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
                                                 return InkWell(
                                                   onTap: () async {
                                                     final url = Uri.parse(
-                                                      'http://10.0.2.2:8000/storage/$filePendukung',
+                                                      '$baseApiUrl/storage/$filePendukung',
                                                     );
                                                     try {
                                                       await launchUrl(

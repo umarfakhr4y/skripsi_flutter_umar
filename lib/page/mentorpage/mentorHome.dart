@@ -46,7 +46,7 @@ class _MentorHomeState extends State<MentorHome> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/notifikasi'),
+          Uri.parse('$baseApiUrl/api/notifikasi'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -135,7 +135,7 @@ class _MentorHomeState extends State<MentorHome> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/user'),
+          Uri.parse('$baseApiUrl/api/user'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',

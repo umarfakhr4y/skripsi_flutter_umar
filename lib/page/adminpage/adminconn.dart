@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../conn/auth.dart';
 
 class AdminService {
-  static const String baseUrl = 'http://10.0.2.2:8000/api';
+  static const String baseUrl = '$baseApiUrl/api';
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   // Helper untuk mendapatkan headers beserta Bearer token

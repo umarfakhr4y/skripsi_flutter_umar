@@ -209,7 +209,7 @@ class _BimbinganAdminState extends State<BimbinganAdmin> {
                                   bimbingan['peserta']['profile_picture'] !=
                                       null) {
                                 picUrl =
-                                    'http://10.0.2.2:8000/storage/${bimbingan['peserta']['profile_picture']}';
+                                    '$baseApiUrl/storage/${bimbingan['peserta']['profile_picture']}';
                               }
 
                               if (picUrl != null && picUrl.isNotEmpty) {
@@ -423,8 +423,8 @@ class _BimbinganAdminState extends State<BimbinganAdmin> {
       String? token = await storage.read(key: 'access_token');
 
       String url = widget.isAdmin
-          ? 'http://10.0.2.2:8000/api/admin/bimbingan/$selectedPesertaId'
-          : 'http://10.0.2.2:8000/api/mentor/bimbingan/$selectedPesertaId';
+          ? '$baseApiUrl/api/admin/bimbingan/$selectedPesertaId'
+          : '$baseApiUrl/api/mentor/bimbingan/$selectedPesertaId';
 
       final response = await http.get(
         Uri.parse(url),
@@ -585,7 +585,7 @@ class _BimbinganAdminState extends State<BimbinganAdmin> {
                                                 peserta['profile_picture'] !=
                                                     null) {
                                               picUrl =
-                                                  'http://10.0.2.2:8000/storage/${peserta['profile_picture']}';
+                                                  '$baseApiUrl/storage/${peserta['profile_picture']}';
                                             }
 
                                             if (picUrl != null &&

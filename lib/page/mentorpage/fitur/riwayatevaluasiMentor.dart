@@ -28,7 +28,7 @@ class _RiwayatEvaluasiMentorState extends State<RiwayatEvaluasiMentor> {
       const storage = FlutterSecureStorage();
       String? token = await storage.read(key: 'access_token');
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        Uri.parse('$baseApiUrl/api/mentor/peserta'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -72,7 +72,7 @@ class _RiwayatEvaluasiMentorState extends State<RiwayatEvaluasiMentor> {
       String? token = await storage.read(key: 'access_token');
       final response = await http.get(
         Uri.parse(
-          'http://10.0.2.2:8000/api/mentor/evaluasi/$_selectedPesertaId',
+          '$baseApiUrl/api/mentor/evaluasi/$_selectedPesertaId',
         ),
         headers: {
           'Authorization': 'Bearer $token',

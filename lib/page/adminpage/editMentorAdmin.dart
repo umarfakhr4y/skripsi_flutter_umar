@@ -30,7 +30,7 @@ class _EditMentorAdminState extends State<EditMentorAdmin> {
 
       // Fetch Mentor Data
       final mentorRes = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/admin/mentor/${widget.mentorId}'),
+        Uri.parse('$baseApiUrl/api/admin/mentor/${widget.mentorId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -39,7 +39,7 @@ class _EditMentorAdminState extends State<EditMentorAdmin> {
 
       // Fetch Divisi List
       final divisiRes = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/admin/divisi'),
+        Uri.parse('$baseApiUrl/api/admin/divisi'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -91,7 +91,7 @@ class _EditMentorAdminState extends State<EditMentorAdmin> {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.put(
-        Uri.parse('http://10.0.2.2:8000/api/admin/mentor/${widget.mentorId}'),
+        Uri.parse('$baseApiUrl/api/admin/mentor/${widget.mentorId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

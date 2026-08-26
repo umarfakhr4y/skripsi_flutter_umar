@@ -7,7 +7,7 @@ class MentorService {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/peserta'),
+        Uri.parse('$baseApiUrl/api/mentor/peserta'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -42,7 +42,7 @@ class MentorService {
 
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan'),
+        Uri.parse('$baseApiUrl/api/mentor/penugasan'),
       );
 
       request.headers['Authorization'] = 'Bearer $token';
@@ -97,7 +97,7 @@ class MentorService {
 
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan/$id'),
+        Uri.parse('$baseApiUrl/api/mentor/penugasan/$id'),
       );
 
       request.headers['Authorization'] = 'Bearer $token';
@@ -172,11 +172,11 @@ class MentorService {
       }
 
       print('=== REQUEST UPDATE STATUS PENUGASAN ===');
-      print('URL: http://10.0.2.2:8000/api/mentor/penugasan/$id/review');
+      print('URL: http://192.168.18.81:8000/api/mentor/penugasan/$id/review');
       print('BODY: ${jsonEncode(bodyData)}');
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan/$id/review'),
+        Uri.parse('$baseApiUrl/api/mentor/penugasan/$id/review'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -229,7 +229,7 @@ class MentorService {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan'),
+        Uri.parse('$baseApiUrl/api/mentor/penugasan'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -256,7 +256,7 @@ class MentorService {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.delete(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/penugasan/$id'),
+        Uri.parse('$baseApiUrl/api/mentor/penugasan/$id'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -285,7 +285,7 @@ class MentorService {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/pengaturan-absen'),
+        Uri.parse('$baseApiUrl/api/mentor/pengaturan-absen'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -305,7 +305,7 @@ class MentorService {
 
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/pengaturan-absen'),
+        Uri.parse('$baseApiUrl/api/mentor/pengaturan-absen'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

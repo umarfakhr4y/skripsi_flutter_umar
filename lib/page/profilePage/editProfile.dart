@@ -32,7 +32,7 @@ class _EditProfileState extends State<EditProfile> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/user'),
+          Uri.parse('$baseApiUrl/api/user'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -114,7 +114,7 @@ class _EditProfileState extends State<EditProfile> {
         if (token != null) {
           var request = http.MultipartRequest(
             'POST',
-            Uri.parse('http://10.0.2.2:8000/api/profile/update-picture'),
+            Uri.parse('$baseApiUrl/api/profile/update-picture'),
           );
           request.headers['Authorization'] = 'Bearer $token';
           request.files.add(

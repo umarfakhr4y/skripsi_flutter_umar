@@ -47,7 +47,7 @@ class PesertaHomeState extends State<PesertaHome> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/notifikasi'),
+          Uri.parse('$baseApiUrl/api/notifikasi'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -79,7 +79,7 @@ class PesertaHomeState extends State<PesertaHome> {
     if (token != null) {
       try {
         final responseTugas = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan'),
+          Uri.parse('$baseApiUrl/api/peserta/penugasan'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -125,7 +125,7 @@ class PesertaHomeState extends State<PesertaHome> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/user'),
+          Uri.parse('$baseApiUrl/api/user'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -133,7 +133,7 @@ class PesertaHomeState extends State<PesertaHome> {
         );
 
         final responseTugas = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan'),
+          Uri.parse('$baseApiUrl/api/peserta/penugasan'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -293,7 +293,7 @@ class PesertaHomeState extends State<PesertaHome> {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/laporan'),
+        Uri.parse('$baseApiUrl/api/laporan'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

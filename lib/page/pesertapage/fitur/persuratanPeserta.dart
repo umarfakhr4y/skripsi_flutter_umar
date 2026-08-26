@@ -71,7 +71,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/peserta/persuratan'),
+        Uri.parse('$baseApiUrl/api/peserta/persuratan'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -95,7 +95,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                 if (isImage) {
                   precacheTasks.add(
                     precacheImage(
-                      NetworkImage('http://10.0.2.2:8000/storage/$linkDokumen'),
+                      NetworkImage('$baseApiUrl/storage/$linkDokumen'),
                       context,
                     ),
                   );
@@ -111,7 +111,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                   precacheTasks.add(
                     precacheImage(
                       NetworkImage(
-                        'http://10.0.2.2:8000/storage/$filePendukung',
+                        '$baseApiUrl/storage/$filePendukung',
                       ),
                       context,
                     ),
@@ -145,7 +145,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
 
     try {
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/peserta/perizinan'),
+        Uri.parse('$baseApiUrl/api/peserta/perizinan'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -170,7 +170,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                   precacheTasks.add(
                     precacheImage(
                       NetworkImage(
-                        'http://10.0.2.2:8000/storage/$filePendukung',
+                        '$baseApiUrl/storage/$filePendukung',
                       ),
                       context,
                     ),
@@ -585,7 +585,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
         throw Exception('Token tidak ditemukan, silakan login ulang.');
       }
 
-      var uri = Uri.parse('http://10.0.2.2:8000/api/peserta/persuratan');
+      var uri = Uri.parse('$baseApiUrl/api/peserta/persuratan');
       var request = http.MultipartRequest('POST', uri);
 
       request.headers.addAll({
@@ -915,7 +915,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
         throw Exception('Token tidak ditemukan, silakan login ulang.');
       }
 
-      var uri = Uri.parse('http://10.0.2.2:8000/api/peserta/perizinan');
+      var uri = Uri.parse('$baseApiUrl/api/peserta/perizinan');
       var request = http.MultipartRequest('POST', uri);
 
       request.headers.addAll({
@@ -1483,7 +1483,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                         minScale: 0.5,
                                         maxScale: 4.0,
                                         child: Image.network(
-                                          'http://10.0.2.2:8000/storage/$filePendukung',
+                                          '$baseApiUrl/storage/$filePendukung',
                                           fit: BoxFit.contain,
                                           loadingBuilder:
                                               (
@@ -1555,7 +1555,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              'http://10.0.2.2:8000/storage/$filePendukung',
+                              '$baseApiUrl/storage/$filePendukung',
                               height: 80,
                               width: 80,
                               fit: BoxFit.cover,
@@ -1599,7 +1599,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                         InkWell(
                           onTap: () async {
                             final url = Uri.parse(
-                              'http://10.0.2.2:8000/storage/$filePendukung',
+                              '$baseApiUrl/storage/$filePendukung',
                             );
                             try {
                               await launchUrl(
@@ -1714,7 +1714,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                               minScale: 0.5,
                                               maxScale: 4.0,
                                               child: Image.network(
-                                                'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                '$baseApiUrl/storage/$linkDokumen',
                                                 fit: BoxFit.contain,
                                                 loadingBuilder:
                                                     (
@@ -1793,7 +1793,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                                     ),
                                                     onPressed: () async {
                                                       final url = Uri.parse(
-                                                        'http://10.0.2.2:8000/storage/$linkDokumen',
+                                                        '$baseApiUrl/storage/$linkDokumen',
                                                       );
                                                       try {
                                                         ScaffoldMessenger.of(
@@ -1873,7 +1873,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
-                                    'http://10.0.2.2:8000/storage/$linkDokumen',
+                                    '$baseApiUrl/storage/$linkDokumen',
                                     width: double.infinity,
                                     height: 150,
                                     fit: BoxFit.cover,
@@ -1921,7 +1921,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                             return InkWell(
                               onTap: () async {
                                 final url = Uri.parse(
-                                  'http://10.0.2.2:8000/storage/$linkDokumen',
+                                  '$baseApiUrl/storage/$linkDokumen',
                                 );
                                 try {
                                   await launchUrl(

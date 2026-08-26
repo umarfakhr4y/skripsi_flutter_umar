@@ -24,7 +24,7 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
     if (token != null) {
       try {
         final response = await http.get(
-          Uri.parse('http://10.0.2.2:8000/api/notifikasi'),
+          Uri.parse('$baseApiUrl/api/notifikasi'),
           headers: {
             'Authorization': 'Bearer $token',
             'Accept': 'application/json',
@@ -62,7 +62,7 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
       if (diff.inHours < 1) return '${diff.inMinutes} menit lalu';
       if (diff.inDays < 1) return '${diff.inHours} jam lalu';
       if (diff.inDays <= 3) return '${diff.inDays} hari lalu';
-      
+
       String day = date.day.toString().padLeft(2, '0');
       String month = date.month.toString().padLeft(2, '0');
       return '$day-$month-${date.year}';
@@ -87,7 +87,7 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
             String? token = await storage.read(key: 'access_token');
             if (token != null) {
               await http.put(
-                Uri.parse('http://10.0.2.2:8000/api/notifikasi/$notifId/read'),
+                Uri.parse('$baseApiUrl/api/notifikasi/$notifId/read'),
                 headers: {
                   'Authorization': 'Bearer $token',
                   'Accept': 'application/json',
@@ -138,33 +138,25 @@ class _AktifitasTerbaruState extends State<AktifitasTerbaru> {
           if (!mounted) return;
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const TugasSayaPeserta(),
-            ),
+            MaterialPageRoute(builder: (context) => const TugasSayaPeserta()),
           );
         } else if (tipe == 'update_izin' || tipe == 'update_surat') {
           if (!mounted) return;
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const PersuratanPeserta(),
-            ),
+            MaterialPageRoute(builder: (context) => const PersuratanPeserta()),
           );
         } else if (tipe == 'update_bimbingan') {
           if (!mounted) return;
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const BimbinganPeserta(),
-            ),
+            MaterialPageRoute(builder: (context) => const BimbinganPeserta()),
           );
         } else if (tipe == 'evaluasi_baru') {
           if (!mounted) return;
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const EvaluasiPeserta(),
-            ),
+            MaterialPageRoute(builder: (context) => const EvaluasiPeserta()),
           );
         }
       },

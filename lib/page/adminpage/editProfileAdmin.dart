@@ -36,7 +36,7 @@ class _EditProfileAdminState extends State<EditProfileAdmin> {
       try {
         final response = await http.get(
           Uri.parse(
-            'http://10.0.2.2:8000/api/admin/peserta/${widget.pesertaId}',
+            '$baseApiUrl/api/admin/peserta/${widget.pesertaId}',
           ),
           headers: {
             'Authorization': 'Bearer $token',
@@ -80,7 +80,7 @@ class _EditProfileAdminState extends State<EditProfileAdmin> {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.put(
-        Uri.parse('http://10.0.2.2:8000/api/admin/peserta/${widget.pesertaId}'),
+        Uri.parse('$baseApiUrl/api/admin/peserta/${widget.pesertaId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

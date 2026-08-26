@@ -545,7 +545,7 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
     String firstPath = fotoList[0];
     String fullUrl = firstPath.startsWith('http')
         ? firstPath
-        : 'http://10.0.2.2:8000/storage/$firstPath';
+        : '$baseApiUrl/storage/$firstPath';
     String fileName = 'petunjuk_1.jpg';
 
     return GestureDetector(

@@ -11,7 +11,7 @@ class PesertaService {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8000/api/absensi'),
+        Uri.parse('$baseApiUrl/api/absensi'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -43,7 +43,7 @@ class PesertaService {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/user'),
+        Uri.parse('$baseApiUrl/api/user'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -67,7 +67,7 @@ class PesertaService {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan'),
+        Uri.parse('$baseApiUrl/api/peserta/penugasan'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -99,7 +99,7 @@ class PesertaService {
 
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('http://10.0.2.2:8000/api/peserta/penugasan/$id/submit'),
+        Uri.parse('$baseApiUrl/api/peserta/penugasan/$id/submit'),
       );
 
       if (token != null) {

@@ -40,7 +40,7 @@ class _loginPageState extends State<loginPage> {
       if (fcmToken != null) {
         try {
           var response = await http.post(
-            Uri.parse('http://10.0.2.2:8000/api/update-fcm-token'),
+            Uri.parse('$baseApiUrl/api/update-fcm-token'),
             headers: {
               'Authorization': 'Bearer $tokenAuth',
               'Accept': 'application/json',

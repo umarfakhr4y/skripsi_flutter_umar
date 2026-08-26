@@ -24,7 +24,7 @@ class _DetailMentorAdminState extends State<DetailMentorAdmin> {
       String? token = await storage.read(key: 'access_token');
 
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/admin/mentor/${widget.mentorId}'),
+        Uri.parse('$baseApiUrl/api/admin/mentor/${widget.mentorId}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -171,7 +171,7 @@ class _DetailMentorAdminState extends State<DetailMentorAdmin> {
           ),
           SizedBox(height: displayHeight(context) * 0.005),
           Text(
-            '${_mentorData?['nip_karyawan'] ?? '-'} • ${_mentorData?['divisi'] ?? '-'}',
+            '${_mentorData?['nip_karyawan'] ?? '-'} Ã¢â‚¬Â¢ ${_mentorData?['divisi'] ?? '-'}',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.03,
               color: Colors.grey[600],
