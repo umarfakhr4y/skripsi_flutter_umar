@@ -1,7 +1,8 @@
 part of '../../../conn/auth.dart';
 
 class PersuratanPesertaMentordua extends StatefulWidget {
-  const PersuratanPesertaMentordua({super.key});
+  final bool isAdmin;
+  const PersuratanPesertaMentordua({super.key, this.isAdmin = false});
 
   @override
   State<PersuratanPesertaMentordua> createState() =>
@@ -33,8 +34,12 @@ class _PersuratanPesertaMentorduaState
       final token = await _storage.read(key: 'access_token');
       if (token == null) return;
 
+      final url = widget.isAdmin
+          ? 'http://10.0.2.2:8000/api/admin/persuratan'
+          : 'http://10.0.2.2:8000/api/mentor/persuratan';
+
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/persuratan'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -105,8 +110,12 @@ class _PersuratanPesertaMentorduaState
       final token = await _storage.read(key: 'access_token');
       if (token == null) return;
 
+      final url = widget.isAdmin
+          ? 'http://10.0.2.2:8000/api/admin/perizinan'
+          : 'http://10.0.2.2:8000/api/mentor/perizinan';
+
       final response = await http.get(
-        Uri.parse('http://10.0.2.2:8000/api/mentor/perizinan'),
+        Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -281,6 +290,7 @@ class _PersuratanPesertaMentorduaState
   Widget _buildSuratCard(Map<String, dynamic> data) {
     return _ExpandableSuratCard(
       data: data,
+      isAdmin: widget.isAdmin,
       onStatusUpdated: () {
         _fetchAllData();
       },
@@ -367,6 +377,7 @@ class _PersuratanPesertaMentorduaState
   Widget _buildIzinCard(Map<String, dynamic> data) {
     return _ExpandableIzinCard(
       data: data,
+      isAdmin: widget.isAdmin,
       onStatusUpdated: () {
         _fetchAllData();
       },
@@ -377,10 +388,12 @@ class _PersuratanPesertaMentorduaState
 class _ExpandableSuratCard extends StatefulWidget {
   final Map<String, dynamic> data;
   final VoidCallback onStatusUpdated;
+  final bool isAdmin;
 
   const _ExpandableSuratCard({
     required this.data,
     required this.onStatusUpdated,
+    this.isAdmin = false,
   });
 
   @override
@@ -669,14 +682,44 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.grey[200],
-                              radius: displayWidth(context) * 0.06,
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.grey[400],
-                                size: displayWidth(context) * 0.07,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                String? picUrl;
+                                if (widget.data['peserta'] != null) {
+                                  // Cek apakah ada di level user
+                                  if (widget.data['peserta']['user'] != null &&
+                                      widget.data['peserta']['user']['profile_picture_url'] != null) {
+                                    picUrl = widget.data['peserta']['user']['profile_picture_url'];
+                                  } else if (widget.data['peserta']['user'] != null &&
+                                      widget.data['peserta']['user']['profile_picture'] != null) {
+                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['user']['profile_picture']}';
+                                  }
+                                  // Fallback ke level peserta jika ada
+                                  else if (widget.data['peserta']['profile_picture_url'] != null) {
+                                    picUrl = widget.data['peserta']['profile_picture_url'];
+                                  } else if (widget.data['peserta']['profile_picture'] != null) {
+                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['profile_picture']}';
+                                  }
+                                }
+
+                                if (picUrl != null && picUrl.isNotEmpty) {
+                                  return CircleAvatar(
+                                    radius: displayWidth(context) * 0.06,
+                                    backgroundImage: NetworkImage(picUrl),
+                                    backgroundColor: Colors.grey[200],
+                                  );
+                                } else {
+                                  return CircleAvatar(
+                                    backgroundColor: Colors.grey[200],
+                                    radius: displayWidth(context) * 0.06,
+                                    child: Icon(
+                                      Icons.person,
+                                      color: Colors.grey[400],
+                                      size: displayWidth(context) * 0.07,
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                             SizedBox(width: displayWidth(context) * 0.04),
                             Expanded(
@@ -712,6 +755,19 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                                       ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                  if (widget.data['created_at'] != null) ...[
+                                    SizedBox(
+                                      height: displayHeight(context) * 0.005,
+                                    ),
+                                    Text(
+                                      'Diajukan pada: ${_formatDate(widget.data['created_at'])}',
+                                      style: TextStyle(
+                                        fontSize: displayWidth(context) * 0.025,
+                                        color: Colors.grey[500],
+                                        fontStyle: FontStyle.italic,
+                                      ),
                                     ),
                                   ],
                                 ],
@@ -1693,6 +1749,7 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
                               widget.data['status']?.toString().toUpperCase() ??
                               'PENDING';
 
+                          if (widget.isAdmin) return const SizedBox();
                           if (status == 'PENDING') {
                             return Row(
                               children: [
@@ -1954,10 +2011,12 @@ class _ExpandableSuratCardState extends State<_ExpandableSuratCard> {
 class _ExpandableIzinCard extends StatefulWidget {
   final Map<String, dynamic> data;
   final VoidCallback onStatusUpdated;
+  final bool isAdmin;
 
   const _ExpandableIzinCard({
     required this.data,
     required this.onStatusUpdated,
+    this.isAdmin = false,
   });
 
   @override
@@ -2158,14 +2217,44 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.grey[200],
-                              radius: displayWidth(context) * 0.06,
-                              child: Icon(
-                                Icons.person,
-                                color: Colors.grey[400],
-                                size: displayWidth(context) * 0.07,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                String? picUrl;
+                                if (widget.data['peserta'] != null) {
+                                  // Cek apakah ada di level user
+                                  if (widget.data['peserta']['user'] != null &&
+                                      widget.data['peserta']['user']['profile_picture_url'] != null) {
+                                    picUrl = widget.data['peserta']['user']['profile_picture_url'];
+                                  } else if (widget.data['peserta']['user'] != null &&
+                                      widget.data['peserta']['user']['profile_picture'] != null) {
+                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['user']['profile_picture']}';
+                                  }
+                                  // Fallback ke level peserta jika ada
+                                  else if (widget.data['peserta']['profile_picture_url'] != null) {
+                                    picUrl = widget.data['peserta']['profile_picture_url'];
+                                  } else if (widget.data['peserta']['profile_picture'] != null) {
+                                    picUrl = 'http://10.0.2.2:8000/storage/${widget.data['peserta']['profile_picture']}';
+                                  }
+                                }
+
+                                if (picUrl != null && picUrl.isNotEmpty) {
+                                  return CircleAvatar(
+                                    radius: displayWidth(context) * 0.06,
+                                    backgroundImage: NetworkImage(picUrl),
+                                    backgroundColor: Colors.grey[200],
+                                  );
+                                } else {
+                                  return CircleAvatar(
+                                    backgroundColor: Colors.grey[200],
+                                    radius: displayWidth(context) * 0.06,
+                                    child: Icon(
+                                      Icons.person,
+                                      color: Colors.grey[400],
+                                      size: displayWidth(context) * 0.07,
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                             SizedBox(width: displayWidth(context) * 0.04),
                             Expanded(
@@ -2200,6 +2289,19 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
                                       ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                  if (widget.data['created_at'] != null) ...[
+                                    SizedBox(
+                                      height: displayHeight(context) * 0.005,
+                                    ),
+                                    Text(
+                                      'Diajukan pada: ${_formatDate(widget.data['created_at'])}',
+                                      style: TextStyle(
+                                        fontSize: displayWidth(context) * 0.025,
+                                        color: Colors.grey[500],
+                                        fontStyle: FontStyle.italic,
+                                      ),
                                     ),
                                   ],
                                 ],
@@ -2505,6 +2607,7 @@ class _ExpandableIzinCardState extends State<_ExpandableIzinCard> {
                               widget.data['status']?.toString().toUpperCase() ??
                               'PENDING';
 
+                          if (widget.isAdmin) return const SizedBox();
                           if (status == 'PENDING') {
                             return Row(
                               children: [
