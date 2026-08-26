@@ -30,8 +30,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
       String? token = await storage.read(key: 'access_token');
 
       String baseUrl = widget.isAdmin
-          ? 'http://10.0.2.2:8000/api/admin/peserta/${widget.pesertaId}'
-          : 'http://10.0.2.2:8000/api/mentor/peserta/${widget.pesertaId}';
+          ? 'http://192.168.18.81:8000/api/admin/peserta/${widget.pesertaId}'
+          : 'http://192.168.18.81:8000/api/mentor/peserta/${widget.pesertaId}';
 
       final response = await http.get(
         Uri.parse(baseUrl),
@@ -60,7 +60,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
   }
 
   Future<void> _toggleStatus() async {
-    bool currentStatus = _pesertaData?['is_active'] ?? true;
+    bool currentStatus = _pesertaData?['status'] ?? true;
     bool confirm =
         await showDialog(
           context: context,
@@ -98,7 +98,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
 
         final response = await http.put(
           Uri.parse(
-            'http://10.0.2.2:8000/api/admin/peserta/${widget.pesertaId}/toggle-status',
+            'http://192.168.18.81:8000/api/admin/peserta/${widget.pesertaId}/toggle-status',
           ),
           headers: {
             'Authorization': 'Bearer $token',
@@ -183,11 +183,11 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
                 PopupMenuItem(
                   value: 'toggle_status',
                   child: Text(
-                    _pesertaData?['is_active'] == true
+                    _pesertaData?['status'] == true
                         ? 'Nonaktifkan Peserta'
                         : 'Aktifkan Peserta',
                     style: TextStyle(
-                      color: _pesertaData?['is_active'] == true
+                      color: _pesertaData?['status'] == true
                           ? Colors.red
                           : Colors.green,
                     ),
@@ -270,7 +270,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           ),
           SizedBox(height: displayHeight(context) * 0.005),
           Text(
-            '${_pesertaData?['universitas'] ?? '-'} • ${_pesertaData?['prodi'] ?? '-'}',
+            '${_pesertaData?['universitas'] ?? '-'} â€¢ ${_pesertaData?['prodi'] ?? '-'}',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.03,
               color: Colors.grey[600],
@@ -284,20 +284,20 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
               vertical: displayHeight(context) * 0.005,
             ),
             decoration: BoxDecoration(
-              color: (_pesertaData?['is_active'] == true)
+              color: (_pesertaData?['status'] == 1)
                   ? Colors.green.withOpacity(0.1)
                   : Colors.red.withOpacity(0.1),
               borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
               border: Border.all(
-                color: (_pesertaData?['is_active'] == true)
+                color: (_pesertaData?['status'] == 1)
                     ? Colors.green.withOpacity(0.5)
                     : Colors.red.withOpacity(0.5),
               ),
             ),
             child: Text(
-              _pesertaData?['status'] ?? 'Aktif',
+              (_pesertaData?['status'] == 1) ? 'Aktif' : 'Tidak Aktif',
               style: TextStyle(
-                color: (_pesertaData?['is_active'] == true)
+                color: (_pesertaData?['status'] == 1)
                     ? Colors.green[700]
                     : Colors.red[700],
                 fontWeight: FontWeight.bold,
