@@ -1,7 +1,80 @@
 part of '../../conn/auth.dart';
 
-class AdminValidasi extends StatelessWidget {
+class AdminValidasi extends StatefulWidget {
   const AdminValidasi({Key? key}) : super(key: key);
+
+  @override
+  State<AdminValidasi> createState() => _AdminValidasiState();
+}
+
+class _AdminValidasiState extends State<AdminValidasi> {
+  bool _isLoading = true;
+  List<dynamic> _pendingList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPendingRegistrations();
+  }
+
+  Future<void> _fetchPendingRegistrations() async {
+    try {
+      const storage = FlutterSecureStorage();
+      String? token = await storage.read(key: 'access_token');
+
+      final response = await http.get(
+        Uri.parse('$baseApiUrl/api/admin/pending-registrations'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          setState(() {
+            _pendingList = data['data'];
+            _isLoading = false;
+          });
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Gagal mengambil data pendaftaran pending'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
+      }
+    }
+  }
+
+  String _getInitials(String name) {
+    if (name.isEmpty) return "U";
+    List<String> names = name.split(" ");
+    String initials = "";
+    int numWords = names.length > 2 ? 2 : names.length;
+    for (int i = 0; i < numWords; i++) {
+      if (names[i].isNotEmpty) {
+        initials += names[i][0].toUpperCase();
+      }
+    }
+    return initials.isEmpty ? "U" : initials;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,42 +148,52 @@ class AdminValidasi extends StatelessWidget {
               SizedBox(height: displayHeight(context) * 0.03),
 
               // User List
-              _buildPendingCard(
-                context: context,
-                initials: 'JS',
-                avatarBgColor: const Color(0xFFE2E8F0), // light grey
-                avatarTextColor: Colors.black54,
-                name: 'Jane Smith',
-                roleBadge: 'Peserta',
-                badgeBgColor: const Color(0xFFFDE8EB),
-                badgeTextColor: const Color(0xFFB04A50),
-                timeText: 'Mendaftar 2 jam lalu',
-                descText: 'Computer\nScience\nstudent at...',
-              ),
-              _buildPendingCard(
-                context: context,
-                initials: 'MR',
-                avatarBgColor: const Color(0xFFC78D32), // yellow/brown
-                avatarTextColor: const Color(0xFF5C3C00), // dark text
-                name: 'Michael Roberts',
-                roleBadge: 'Mentor',
-                badgeBgColor: const Color(0xFFFEF08A).withOpacity(0.5),
-                badgeTextColor: const Color(0xFF5C3C00),
-                timeText: 'Mendaftar kemarin',
-                descText: 'Senior UX Designer\ninterested in...',
-              ),
-              _buildPendingCard(
-                context: context,
-                initials: 'AL',
-                avatarBgColor: const Color(0xFFE2E8F0),
-                avatarTextColor: Colors.black54,
-                name: 'Alex Lee',
-                roleBadge: 'Peserta',
-                badgeBgColor: const Color(0xFFFDE8EB),
-                badgeTextColor: const Color(0xFFB04A50),
-                timeText: 'Mendaftar 24 Okt 2023',
-                descText: 'Marketing\nmajor\nlooking for\nhands-on',
-              ),
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _pendingList.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Tidak ada pendaftaran pending.',
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: displayWidth(context) * 0.04,
+                        ),
+                      ),
+                    )
+                  : ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _pendingList.length,
+                      itemBuilder: (context, index) {
+                        final peserta = _pendingList[index];
+                        final nama = peserta['nama_lengkap'] ?? 'Tanpa Nama';
+                        final univ = peserta['universitas'] ?? '-';
+                        final prodi = peserta['prodi'] ?? '-';
+                        final desc = "$univ\n$prodi";
+                        final dateStr = peserta['created_at'] ?? '';
+                        String timeText = 'Baru saja';
+
+                        if (dateStr.isNotEmpty) {
+                          try {
+                            final date = DateTime.parse(dateStr);
+                            timeText = "${date.day}/${date.month}/${date.year}";
+                          } catch (_) {}
+                        }
+
+                        return _buildPendingCard(
+                          context: context,
+                          initials: _getInitials(nama),
+                          avatarBgColor: const Color(0xFFE2E8F0),
+                          avatarTextColor: Colors.black54,
+                          name: nama,
+                          roleBadge: 'Peserta',
+                          badgeBgColor: const Color(0xFFFDE8EB),
+                          badgeTextColor: const Color(0xFFB04A50),
+                          timeText: 'Mendaftar pada $timeText',
+                          descText: desc,
+                        );
+                      },
+                    ),
               SizedBox(height: displayHeight(context) * 0.05),
             ],
           ),
