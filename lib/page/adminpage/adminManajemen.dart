@@ -475,37 +475,79 @@ class _AdminManajemenState extends State<AdminManajemen> {
         },
       );
     } else if (_selectedTab == 'Mentor') {
-      if (_mentorList.isEmpty) return const Text('Tidak ada data mentor');
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: _mentorList.length,
-        itemBuilder: (context, index) {
-          final item = _mentorList[index];
-          final divisiName = item['divisi'] != null
-              ? item['divisi']['nama_divisi']
-              : '-';
-          return _buildUserCard(
-            name: item['nama_lengkap'] ?? 'Tanpa Nama',
-            roleDesc: 'Mentor • $divisiName',
-            badgeText: 'MENTOR',
-            badgeColor: const Color(0xFFC78D32),
-            badgeBgColor: const Color(0xFFFDE68A),
-            avatarWidget: _buildAvatarWidget(
-              item['nama_lengkap'],
-              const Color(0xFFFDE68A),
-            ),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      DetailMentorAdmin(mentorId: item['id'] ?? 0),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Fitur Tambah Mentor akan segera hadir!'),
                 ),
               );
             },
-          );
-        },
+            icon: Icon(
+              Icons.add,
+              color: Colors.white,
+              size: displayWidth(context) * 0.05,
+            ),
+            label: Text(
+              'Tambah Mentor',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: displayWidth(context) * 0.035,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE84C63),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.03,
+                ),
+              ),
+              padding: EdgeInsets.symmetric(
+                vertical: displayHeight(context) * 0.015,
+              ),
+              elevation: 0,
+            ),
+          ),
+          SizedBox(height: displayHeight(context) * 0.02),
+          if (_mentorList.isEmpty)
+            const Center(child: Text('Tidak ada data mentor'))
+          else
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _mentorList.length,
+              itemBuilder: (context, index) {
+                final item = _mentorList[index];
+                final divisiName = item['divisi'] != null
+                    ? item['divisi']['nama_divisi']
+                    : '-';
+                return _buildUserCard(
+                  name: item['nama_lengkap'] ?? 'Tanpa Nama',
+                  roleDesc: 'Mentor • $divisiName',
+                  badgeText: 'MENTOR',
+                  badgeColor: const Color(0xFFC78D32),
+                  badgeBgColor: const Color(0xFFFDE68A),
+                  avatarWidget: _buildAvatarWidget(
+                    item['nama_lengkap'],
+                    const Color(0xFFFDE68A),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            DetailMentorAdmin(mentorId: item['id'] ?? 0),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+        ],
       );
     } else if (_selectedTab == 'Divisi') {
       return Column(
