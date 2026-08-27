@@ -17,6 +17,70 @@ class AdminService {
     };
   }
 
+  /// Mengambil data pendaftaran pending
+  static Future<Map<String, dynamic>> getPendingRegistrations() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/admin/pending-registrations'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal mengambil data pendaftaran pending. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
+
+  /// Menyetujui pendaftaran dan assign mentor
+  static Future<Map<String, dynamic>> approveRegistration(int id, int mentorId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.put(
+        Uri.parse('$baseUrl/admin/pending-registrations/$id/approve'),
+        headers: headers,
+        body: jsonEncode({'mentor_magang_id': mentorId}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal menyetujui peserta. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
+
+  /// Menolak dan menghapus pendaftaran
+  static Future<Map<String, dynamic>> rejectRegistration(int id) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/admin/pending-registrations/$id/reject'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal menolak peserta. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
+
   /// Mengambil data seluruh peserta magang
   static Future<Map<String, dynamic>> getPeserta() async {
     try {

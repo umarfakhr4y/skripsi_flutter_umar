@@ -19,43 +19,29 @@ class _AdminValidasiState extends State<AdminValidasi> {
 
   Future<void> _fetchPendingRegistrations() async {
     try {
-      const storage = FlutterSecureStorage();
-      String? token = await storage.read(key: 'access_token');
-
-      final response = await http.get(
-        Uri.parse('$baseApiUrl/api/admin/pending-registrations'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
+      final data = await AdminService.getPendingRegistrations();
+      if (data['success'] == true) {
+        if (mounted) {
           setState(() {
             _pendingList = data['data'];
             _isLoading = false;
           });
         }
       } else {
-        setState(() {
-          _isLoading = false;
-        });
         if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Gagal mengambil data pendaftaran pending'),
-            ),
+            SnackBar(content: Text(data['message'] ?? 'Gagal mengambil data')),
           );
         }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
       if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('Terjadi kesalahan: $e')));
@@ -169,7 +155,11 @@ class _AdminValidasiState extends State<AdminValidasi> {
                         final nama = peserta['nama_lengkap'] ?? 'Tanpa Nama';
                         final univ = peserta['universitas'] ?? '-';
                         final prodi = peserta['prodi'] ?? '-';
-                        final desc = "$univ\n$prodi";
+
+                        String desc = "$univ\n$prodi";
+                        if (univ == '-' && prodi == '-') {
+                          desc = "Data diri belum diisi oleh peserta";
+                        }
                         final dateStr = peserta['created_at'] ?? '';
                         String timeText = 'Baru saja';
 
@@ -364,24 +354,12 @@ class _AdminValidasiState extends State<AdminValidasi> {
                                 isSubmitting = true;
                               });
                               try {
-                                const storage = FlutterSecureStorage();
-                                String? token = await storage.read(
-                                  key: 'access_token',
-                                );
-                                final response = await http.put(
-                                  Uri.parse(
-                                    '$baseApiUrl/api/admin/pending-registrations/$pesertaId/approve',
-                                  ),
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'Authorization': 'Bearer $token',
-                                  },
-                                  body: jsonEncode({
-                                    'mentor_magang_id': selectedMentorId,
-                                  }),
-                                );
-                                if (response.statusCode == 200) {
+                                final data =
+                                    await AdminService.approveRegistration(
+                                      pesertaId,
+                                      selectedMentorId!,
+                                    );
+                                if (data['success'] == true) {
                                   if (context.mounted) {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -397,9 +375,10 @@ class _AdminValidasiState extends State<AdminValidasi> {
                                 } else {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
+                                      SnackBar(
                                         content: Text(
-                                          'Gagal menyetujui peserta',
+                                          data['message'] ??
+                                              'Gagal menyetujui peserta',
                                         ),
                                         backgroundColor: Colors.red,
                                       ),
@@ -466,25 +445,11 @@ class _AdminValidasiState extends State<AdminValidasi> {
   }
 
   Future<List<dynamic>> _fetchMentors() async {
-    const storage = FlutterSecureStorage();
-    String? token = await storage.read(key: 'access_token');
-
-    final response = await http.get(
-      Uri.parse('$baseApiUrl/api/admin/mentor'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return data['data'];
-      }
+    final data = await AdminService.getMentor();
+    if (data['success'] == true) {
+      return data['data'];
     }
-    throw Exception('Gagal load mentor');
+    throw Exception(data['message'] ?? 'Gagal load mentor');
   }
 
   Future<void> _showRejectDialog(int pesertaId) async {
@@ -560,23 +525,12 @@ class _AdminValidasiState extends State<AdminValidasi> {
                               });
 
                               try {
-                                const storage = FlutterSecureStorage();
-                                String? token = await storage.read(
-                                  key: 'access_token',
-                                );
+                                final data =
+                                    await AdminService.rejectRegistration(
+                                      pesertaId,
+                                    );
 
-                                final response = await http.delete(
-                                  Uri.parse(
-                                    '$baseApiUrl/api/admin/pending-registrations/$pesertaId/reject',
-                                  ),
-                                  headers: {
-                                    'Content-Type': 'application/json',
-                                    'Accept': 'application/json',
-                                    'Authorization': 'Bearer $token',
-                                  },
-                                );
-
-                                if (response.statusCode == 200) {
+                                if (data['success'] == true) {
                                   if (context.mounted) {
                                     Navigator.pop(context);
                                     ScaffoldMessenger.of(context).showSnackBar(
@@ -592,8 +546,11 @@ class _AdminValidasiState extends State<AdminValidasi> {
                                 } else {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Gagal menolak peserta'),
+                                      SnackBar(
+                                        content: Text(
+                                          data['message'] ??
+                                              'Gagal menolak peserta',
+                                        ),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
