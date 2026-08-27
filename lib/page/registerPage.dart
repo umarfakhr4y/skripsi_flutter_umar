@@ -11,17 +11,111 @@ class _registerPageState extends State<registerPage> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
+  bool _isLoading = false;
+
+  final TextEditingController _namaController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _confirmEmailController = TextEditingController();
+  final TextEditingController _noTelpController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   String _emailText = "";
   String _confirmEmailText = "";
 
   @override
   void dispose() {
+    _namaController.dispose();
     _emailController.dispose();
     _confirmEmailController.dispose();
+    _noTelpController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _register() async {
+    if (_namaController.text.isEmpty ||
+        _emailController.text.isEmpty ||
+        _confirmEmailController.text.isEmpty ||
+        _noTelpController.text.isEmpty ||
+        _passwordController.text.isEmpty ||
+        _confirmPasswordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Semua kolom harus diisi')),
+      );
+      return;
+    }
+
+    if (_emailController.text != _confirmEmailController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Email dan Konfirmasi Email tidak cocok')),
+      );
+      return;
+    }
+
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password dan Konfirmasi Password tidak cocok')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseApiUrl/api/register'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'nama_lengkap': _namaController.text,
+          'email': _emailController.text,
+          'no_telpon': _noTelpController.text,
+          'password': _passwordController.text,
+          'role': 'peserta', // Default dari frontend untuk halaman ini
+        }),
+      );
+
+      final responseData = jsonDecode(response.body);
+
+      if (response.statusCode == 201 && responseData['success'] == true) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Registrasi berhasil'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context); // Kembali ke halaman login
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(responseData['message'] ?? 'Registrasi gagal'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Terjadi kesalahan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   bool _isEmailValid(String email) {
@@ -138,6 +232,7 @@ class _registerPageState extends State<registerPage> {
                 _buildTextField(
                   label: "Nama Lengkap",
                   hintText: "Masukan nama",
+                  controller: _namaController,
                 ),
 
                 _buildTextField(
@@ -167,11 +262,13 @@ class _registerPageState extends State<registerPage> {
                 _buildTextField(
                   label: "No Telepon",
                   hintText: "Masukan no telepon",
+                  controller: _noTelpController,
                 ),
 
                 _buildTextField(
                   label: "Your password",
                   hintText: "Masukan password",
+                  controller: _passwordController,
                   obscureText: !_isPasswordVisible,
                   suffixIcon: GestureDetector(
                     onTap: () {
@@ -192,6 +289,7 @@ class _registerPageState extends State<registerPage> {
                 _buildTextField(
                   label: "Konfirmasi Password",
                   hintText: "Masukan password",
+                  controller: _confirmPasswordController,
                   obscureText: !_isConfirmPasswordVisible,
                   suffixIcon: GestureDetector(
                     onTap: () {
@@ -211,9 +309,10 @@ class _registerPageState extends State<registerPage> {
 
                 SizedBox(height: displayHeight(context) * 0.01),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFE84C63),
+                    disabledBackgroundColor: Colors.grey,
                     minimumSize: Size(
                       double.infinity,
                       displayHeight(context) * 0.065,
@@ -225,14 +324,23 @@ class _registerPageState extends State<registerPage> {
                     ),
                     elevation: 0,
                   ),
-                  child: Text(
-                    "Register",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: displayWidth(context) * 0.045,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  child: _isLoading 
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          "Register",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: displayWidth(context) * 0.045,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
                 SizedBox(height: displayHeight(context) * 0.03),
                 Row(

@@ -74,4 +74,5 @@ part '../page/adminpage/detailMentorAdmin.dart';
 part '../page/adminpage/editMentorAdmin.dart';
 part '../page/adminpage/bimbinganAdmin.dart';
 
-const String baseApiUrl = 'http://192.168.18.81:8000';
+// const String baseApiUrl = 'http://192.168.18.81:8000';
+const String baseApiUrl = 'http://10.0.2.2:8000';
