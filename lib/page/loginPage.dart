@@ -57,6 +57,188 @@ class _loginPageState extends State<loginPage> {
     }
   }
 
+  void _showLengkapiDataDialog(String token) {
+    final TextEditingController nimCtrl = TextEditingController();
+    final TextEditingController univCtrl = TextEditingController();
+    final TextEditingController prodiCtrl = TextEditingController();
+    final TextEditingController alamatCtrl = TextEditingController();
+
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.04,
+                ),
+              ),
+              title: Text(
+                'Lengkapi Data Diri',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: displayWidth(context) * 0.045,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Harap lengkapi data berikut sebelum akun Anda ditinjau oleh Admin.',
+                      style: TextStyle(
+                        fontSize: displayWidth(context) * 0.035,
+                        color: Colors.grey[700],
+                      ),
+                    ),
+                    SizedBox(height: displayHeight(context) * 0.02),
+                    TextField(
+                      controller: nimCtrl,
+                      decoration: const InputDecoration(labelText: 'NIM'),
+                    ),
+                    TextField(
+                      controller: univCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Universitas',
+                      ),
+                    ),
+                    TextField(
+                      controller: prodiCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Program Studi',
+                      ),
+                    ),
+                    TextField(
+                      controller: alamatCtrl,
+                      decoration: const InputDecoration(labelText: 'Alamat'),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () {
+                          // Batalkan dan hapus token dari storage
+                          const FlutterSecureStorage().delete(
+                            key: 'access_token',
+                          );
+                          Navigator.pop(context);
+                        },
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (nimCtrl.text.isEmpty ||
+                              univCtrl.text.isEmpty ||
+                              prodiCtrl.text.isEmpty ||
+                              alamatCtrl.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Semua kolom harus diisi'),
+                              ),
+                            );
+                            return;
+                          }
+
+                          setStateDialog(() {
+                            isSubmitting = true;
+                          });
+
+                          try {
+                            final response = await http.post(
+                              Uri.parse('$baseApiUrl/api/profile/update-data'),
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'Authorization': 'Bearer $token',
+                              },
+                              body: jsonEncode({
+                                'nim': nimCtrl.text,
+                                'universitas': univCtrl.text,
+                                'prodi': prodiCtrl.text,
+                                'alamat': alamatCtrl.text,
+                              }),
+                            );
+
+                            if (response.statusCode == 200) {
+                              const FlutterSecureStorage().delete(
+                                key: 'access_token',
+                              );
+                              if (context.mounted) {
+                                Navigator.pop(context); // Tutup dialog
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Data berhasil disimpan! Akun Anda sedang menunggu persetujuan Admin.',
+                                    ),
+                                    backgroundColor: Colors.green,
+                                    duration: Duration(seconds: 4),
+                                  ),
+                                );
+                              }
+                            } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Gagal menyimpan data'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Terjadi kesalahan: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          } finally {
+                            if (context.mounted) {
+                              setStateDialog(() {
+                                isSubmitting = false;
+                              });
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 15,
+                          height: 15,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Simpan',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _login() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,11 +261,19 @@ class _loginPageState extends State<loginPage> {
         _isLoading = false;
       });
       if (result['success']) {
-        final role = result['data']['data']['role'];
-        final token = result['data']['access_token'];
+        final data = result['data'];
+        final role = data['data']['role'];
+        final token = data['access_token'];
 
         const storage = FlutterSecureStorage();
         await storage.write(key: 'access_token', value: token);
+
+        if (data['is_incomplete'] == true) {
+          if (mounted) {
+            _showLengkapiDataDialog(token);
+          }
+          return;
+        }
 
         // Call initPushNotification
         await _initPushNotification(token);
@@ -98,19 +288,16 @@ class _loginPageState extends State<loginPage> {
               context,
               MaterialPageRoute(builder: (context) => const AdminMain()),
             );
-            print('admin');
           } else if (role == 'mentor') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const MentorMain()),
             );
-            print('mentor');
           } else if (role == 'peserta') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const PesertaMain()),
             );
-            print('peserta');
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Role tidak dikenal: $role')),
@@ -122,13 +309,15 @@ class _loginPageState extends State<loginPage> {
         if (errMsg.toLowerCase().contains('dinonaktifkan')) {
           const storage = FlutterSecureStorage();
           await storage.delete(key: 'access_token');
-          
+
           if (mounted) {
             showDialog(
               context: context,
               builder: (context) => AlertDialog(
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+                  borderRadius: BorderRadius.circular(
+                    displayWidth(context) * 0.04,
+                  ),
                 ),
                 title: Row(
                   children: [
@@ -174,9 +363,9 @@ class _loginPageState extends State<loginPage> {
           }
         } else {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(errMsg)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(errMsg)));
           }
         }
       }
