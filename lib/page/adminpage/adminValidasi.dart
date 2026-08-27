@@ -191,6 +191,8 @@ class _AdminValidasiState extends State<AdminValidasi> {
                           badgeTextColor: const Color(0xFFB04A50),
                           timeText: 'Mendaftar pada $timeText',
                           descText: desc,
+                          onApprove: () => _showApproveDialog(peserta['id']),
+                          onReject: () => _showRejectDialog(peserta['id']),
                         );
                       },
                     ),
@@ -199,6 +201,460 @@ class _AdminValidasiState extends State<AdminValidasi> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _showApproveDialog(int pesertaId) async {
+    bool isFetchingMentors = true;
+    List<dynamic> mentors = [];
+    int? selectedMentorId;
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            // Fetch mentors only once
+            if (isFetchingMentors && mentors.isEmpty) {
+              _fetchMentors()
+                  .then((fetchedMentors) {
+                    if (mounted) {
+                      setStateDialog(() {
+                        mentors = fetchedMentors;
+                        isFetchingMentors = false;
+                      });
+                    }
+                  })
+                  .catchError((e) {
+                    if (mounted) {
+                      setStateDialog(() {
+                        isFetchingMentors = false;
+                      });
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Gagal memuat data mentor: $e')),
+                      );
+                    }
+                  });
+            }
+
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.04,
+                ),
+              ),
+              title: Text(
+                'Pilih Mentor',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: displayWidth(context) * 0.05,
+                  color: Colors.black87,
+                ),
+              ),
+              content: isFetchingMentors
+                  ? const SizedBox(
+                      height: 100,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          color: Color(0xFFB04A50),
+                        ),
+                      ),
+                    )
+                  : mentors.isEmpty
+                  ? Text(
+                      'Tidak ada mentor tersedia.',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: displayWidth(context) * 0.035,
+                      ),
+                    )
+                  : DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: 'Pilih Mentor',
+                        labelStyle: TextStyle(color: Colors.grey[600]),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: displayWidth(context) * 0.04,
+                          vertical: displayHeight(context) * 0.02,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.03,
+                          ),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.03,
+                          ),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.03,
+                          ),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFB04A50),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      value: selectedMentorId,
+                      icon: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: Colors.grey[600],
+                      ),
+                      items: mentors.map<DropdownMenuItem<int>>((m) {
+                        return DropdownMenuItem<int>(
+                          value: m['id'],
+                          child: Text(
+                            m['nama_lengkap'] ?? 'Tanpa Nama',
+                            style: const TextStyle(color: Colors.black87),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setStateDialog(() {
+                          selectedMentorId = val;
+                        });
+                      },
+                    ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: isSubmitting
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                            },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: displayWidth(context) * 0.05,
+                          vertical: displayHeight(context) * 0.012,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.05,
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontSize: displayWidth(context) * 0.035,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    GestureDetector(
+                      onTap: isSubmitting || selectedMentorId == null
+                          ? null
+                          : () async {
+                              setStateDialog(() {
+                                isSubmitting = true;
+                              });
+                              try {
+                                const storage = FlutterSecureStorage();
+                                String? token = await storage.read(
+                                  key: 'access_token',
+                                );
+                                final response = await http.put(
+                                  Uri.parse(
+                                    '$baseApiUrl/api/admin/pending-registrations/$pesertaId/approve',
+                                  ),
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'Authorization': 'Bearer $token',
+                                  },
+                                  body: jsonEncode({
+                                    'mentor_magang_id': selectedMentorId,
+                                  }),
+                                );
+                                if (response.statusCode == 200) {
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Peserta berhasil disetujui!',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    _fetchPendingRegistrations();
+                                  }
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Gagal menyetujui peserta',
+                                        ),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Terjadi kesalahan: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setStateDialog(() {
+                                    isSubmitting = false;
+                                  });
+                                }
+                              }
+                            },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: displayWidth(context) * 0.05,
+                          vertical: displayHeight(context) * 0.012,
+                        ),
+                        decoration: BoxDecoration(
+                          color: (isSubmitting || selectedMentorId == null)
+                              ? Colors.grey[400]
+                              : const Color(0xFFB04A50),
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.05,
+                          ),
+                        ),
+                        child: isSubmitting
+                            ? SizedBox(
+                                width: displayWidth(context) * 0.04,
+                                height: displayWidth(context) * 0.04,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'Simpan',
+                                style: TextStyle(
+                                  fontSize: displayWidth(context) * 0.035,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<List<dynamic>> _fetchMentors() async {
+    const storage = FlutterSecureStorage();
+    String? token = await storage.read(key: 'access_token');
+
+    final response = await http.get(
+      Uri.parse('$baseApiUrl/api/admin/mentor'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        return data['data'];
+      }
+    }
+    throw Exception('Gagal load mentor');
+  }
+
+  Future<void> _showRejectDialog(int pesertaId) async {
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.04,
+                ),
+              ),
+              title: Text(
+                'Tolak Pendaftaran',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: displayWidth(context) * 0.05,
+                  color: Colors.black87,
+                ),
+              ),
+              content: Text(
+                'Apakah Anda yakin ingin menolak dan menghapus data pendaftaran peserta ini secara permanen?',
+                style: TextStyle(
+                  fontSize: displayWidth(context) * 0.035,
+                  color: Colors.grey[700],
+                  height: 1.4,
+                ),
+              ),
+              actions: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    GestureDetector(
+                      onTap: isSubmitting
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                            },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: displayWidth(context) * 0.05,
+                          vertical: displayHeight(context) * 0.012,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.05,
+                          ),
+                        ),
+                        child: Text(
+                          'Batal',
+                          style: TextStyle(
+                            fontSize: displayWidth(context) * 0.035,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    GestureDetector(
+                      onTap: isSubmitting
+                          ? null
+                          : () async {
+                              setStateDialog(() {
+                                isSubmitting = true;
+                              });
+
+                              try {
+                                const storage = FlutterSecureStorage();
+                                String? token = await storage.read(
+                                  key: 'access_token',
+                                );
+
+                                final response = await http.delete(
+                                  Uri.parse(
+                                    '$baseApiUrl/api/admin/pending-registrations/$pesertaId/reject',
+                                  ),
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json',
+                                    'Authorization': 'Bearer $token',
+                                  },
+                                );
+
+                                if (response.statusCode == 200) {
+                                  if (context.mounted) {
+                                    Navigator.pop(context);
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Pendaftaran berhasil ditolak dan dihapus!',
+                                        ),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                    _fetchPendingRegistrations();
+                                  }
+                                } else {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Gagal menolak peserta'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Terjadi kesalahan: $e'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              } finally {
+                                if (mounted) {
+                                  setStateDialog(() {
+                                    isSubmitting = false;
+                                  });
+                                }
+                              }
+                            },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: displayWidth(context) * 0.05,
+                          vertical: displayHeight(context) * 0.012,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSubmitting
+                              ? Colors.grey[400]
+                              : Colors.red[700],
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.05,
+                          ),
+                        ),
+                        child: isSubmitting
+                            ? SizedBox(
+                                width: displayWidth(context) * 0.04,
+                                height: displayWidth(context) * 0.04,
+                                child: const CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                'Hapus',
+                                style: TextStyle(
+                                  fontSize: displayWidth(context) * 0.035,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -213,6 +669,8 @@ class _AdminValidasiState extends State<AdminValidasi> {
     required Color badgeTextColor,
     required String timeText,
     required String descText,
+    required VoidCallback onApprove,
+    required VoidCallback onReject,
   }) {
     return Container(
       margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
@@ -314,7 +772,7 @@ class _AdminValidasiState extends State<AdminValidasi> {
             children: [
               // Tolak button
               GestureDetector(
-                onTap: () {},
+                onTap: onReject,
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: displayWidth(context) * 0.04,
@@ -349,7 +807,7 @@ class _AdminValidasiState extends State<AdminValidasi> {
               SizedBox(width: displayWidth(context) * 0.02),
               // Setujui button
               GestureDetector(
-                onTap: () {},
+                onTap: onApprove,
                 child: Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: displayWidth(context) * 0.04,
