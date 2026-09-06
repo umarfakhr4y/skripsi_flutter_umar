@@ -60,7 +60,8 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
   }
 
   Future<void> _toggleStatus() async {
-    bool currentStatus = _pesertaData?['status'] ?? true;
+    bool currentStatus =
+        (_pesertaData?['status'] == 1 || _pesertaData?['status'] == true);
     bool confirm =
         await showDialog(
           context: context,
@@ -183,11 +184,14 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
                 PopupMenuItem(
                   value: 'toggle_status',
                   child: Text(
-                    _pesertaData?['status'] == true
+                    (_pesertaData?['status'] == 1 ||
+                            _pesertaData?['status'] == true)
                         ? 'Nonaktifkan Peserta'
                         : 'Aktifkan Peserta',
                     style: TextStyle(
-                      color: _pesertaData?['status'] == true
+                      color:
+                          (_pesertaData?['status'] == 1 ||
+                              _pesertaData?['status'] == true)
                           ? Colors.red
                           : Colors.green,
                     ),
