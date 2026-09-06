@@ -270,4 +270,28 @@ class AdminService {
       return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
     }
   }
+  /// Menambah Mentor baru
+  static Future<Map<String, dynamic>> tambahMentor(Map<String, dynamic> data) async {
+    try {
+      final headers = await _getHeaders();
+      headers['Content-Type'] = 'application/json';
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/admin/mentor'),
+        headers: headers,
+        body: jsonEncode(data),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return jsonDecode(response.body);
+      } else {
+        return {
+          'success': false,
+          'message': 'Gagal menambah mentor. Status: ${response.statusCode}',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Terjadi kesalahan sistem: $e'};
+    }
+  }
 }

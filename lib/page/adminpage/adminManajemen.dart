@@ -441,6 +441,126 @@ class _AdminManajemenState extends State<AdminManajemen> {
     );
   }
 
+  void _showAddMentorDialog() {
+    final TextEditingController namaController = TextEditingController();
+    final TextEditingController emailController = TextEditingController();
+    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController nipController = TextEditingController();
+    int? selectedDivisiId;
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
+              ),
+              title: const Text('Tambah Mentor Baru', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: namaController,
+                      decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: emailController,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: passwordController,
+                      decoration: const InputDecoration(labelText: 'Password (min. 6)'),
+                      obscureText: true,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: nipController,
+                      decoration: const InputDecoration(labelText: 'NIP Karyawan (Opsional)'),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(labelText: 'Pilih Divisi'),
+                      value: selectedDivisiId,
+                      items: _divisiList.map<DropdownMenuItem<int>>((item) {
+                        return DropdownMenuItem<int>(
+                          value: item['id'] is int ? item['id'] : int.tryParse(item['id'].toString()),
+                          child: Text(item['nama_divisi'] ?? 'Tanpa Nama'),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setStateDialog(() {
+                          selectedDivisiId = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (namaController.text.trim().isEmpty ||
+                              emailController.text.trim().isEmpty ||
+                              passwordController.text.trim().isEmpty ||
+                              selectedDivisiId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Nama, Email, Password, dan Divisi wajib diisi')),
+                            );
+                            return;
+                          }
+                          setStateDialog(() => isSubmitting = true);
+                          final res = await AdminService.tambahMentor({
+                            'nama_lengkap': namaController.text.trim(),
+                            'email': emailController.text.trim(),
+                            'password': passwordController.text.trim(),
+                            'nip_karyawan': nipController.text.trim(),
+                            'divisi_id': selectedDivisiId,
+                          });
+                          setStateDialog(() => isSubmitting = false);
+                          if (res['success']) {
+                            Navigator.pop(context);
+                            setState(() => _isLoading = true);
+                            _fetchData();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(res['message'] ?? 'Berhasil menambah mentor')),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(res['message'] ?? 'Gagal menambah mentor')),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16, height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Simpan', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildList() {
     if (_selectedTab == 'Peserta Magang') {
       if (_pesertaList.isEmpty) return const Text('Tidak ada data peserta');
@@ -479,13 +599,7 @@ class _AdminManajemenState extends State<AdminManajemen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ElevatedButton.icon(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Fitur Tambah Mentor akan segera hadir!'),
-                ),
-              );
-            },
+            onPressed: _showAddMentorDialog,
             icon: Icon(
               Icons.add,
               color: Colors.white,
