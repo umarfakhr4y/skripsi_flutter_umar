@@ -456,16 +456,23 @@ class _AdminManajemenState extends State<AdminManajemen> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.05,
+                ),
               ),
-              title: const Text('Tambah Mentor Baru', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Tambah Mentor Baru',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: namaController,
-                      decoration: const InputDecoration(labelText: 'Nama Lengkap'),
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Lengkap',
+                      ),
                     ),
                     const SizedBox(height: 10),
                     TextField(
@@ -476,21 +483,29 @@ class _AdminManajemenState extends State<AdminManajemen> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: passwordController,
-                      decoration: const InputDecoration(labelText: 'Password (min. 6)'),
+                      decoration: const InputDecoration(
+                        labelText: 'Password (min. 6)',
+                      ),
                       obscureText: true,
                     ),
                     const SizedBox(height: 10),
                     TextField(
                       controller: nipController,
-                      decoration: const InputDecoration(labelText: 'NIP Karyawan (Opsional)'),
+                      decoration: const InputDecoration(
+                        labelText: 'NIP Karyawan (Opsional)',
+                      ),
                     ),
                     const SizedBox(height: 10),
                     DropdownButtonFormField<int>(
-                      decoration: const InputDecoration(labelText: 'Pilih Divisi'),
+                      decoration: const InputDecoration(
+                        labelText: 'Pilih Divisi',
+                      ),
                       value: selectedDivisiId,
                       items: _divisiList.map<DropdownMenuItem<int>>((item) {
                         return DropdownMenuItem<int>(
-                          value: item['id'] is int ? item['id'] : int.tryParse(item['id'].toString()),
+                          value: item['id'] is int
+                              ? item['id']
+                              : int.tryParse(item['id'].toString()),
                           child: Text(item['nama_divisi'] ?? 'Tanpa Nama'),
                         );
                       }).toList(),
@@ -506,7 +521,10 @@ class _AdminManajemenState extends State<AdminManajemen> {
               actions: [
                 TextButton(
                   onPressed: isSubmitting ? null : () => Navigator.pop(context),
-                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -517,7 +535,11 @@ class _AdminManajemenState extends State<AdminManajemen> {
                               passwordController.text.trim().isEmpty ||
                               selectedDivisiId == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Nama, Email, Password, dan Divisi wajib diisi')),
+                              const SnackBar(
+                                content: Text(
+                                  'Nama, Email, Password, dan Divisi wajib diisi',
+                                ),
+                              ),
                             );
                             return;
                           }
@@ -535,11 +557,19 @@ class _AdminManajemenState extends State<AdminManajemen> {
                             setState(() => _isLoading = true);
                             _fetchData();
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(res['message'] ?? 'Berhasil menambah mentor')),
+                              SnackBar(
+                                content: Text(
+                                  res['message'] ?? 'Berhasil menambah mentor',
+                                ),
+                              ),
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(res['message'] ?? 'Gagal menambah mentor')),
+                              SnackBar(
+                                content: Text(
+                                  res['message'] ?? 'Gagal menambah mentor',
+                                ),
+                              ),
                             );
                           }
                         },
@@ -548,10 +578,17 @@ class _AdminManajemenState extends State<AdminManajemen> {
                   ),
                   child: isSubmitting
                       ? const SizedBox(
-                          width: 16, height: 16,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Text('Simpan', style: TextStyle(color: Colors.white)),
+                      : const Text(
+                          'Simpan',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ],
             );
