@@ -82,10 +82,24 @@ class ProfilePageState extends State<ProfilePage> {
     required String title,
     required Widget route,
   }) {
-    return GestureDetector(
+    return _buildMenuOptionAction(
+      context,
+      icon: icon,
+      title: title,
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) => route));
       },
+    );
+  }
+
+  Widget _buildMenuOptionAction(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
         margin: EdgeInsets.only(bottom: displayHeight(context) * 0.02),
         padding: EdgeInsets.all(displayWidth(context) * 0.04),
@@ -292,6 +306,12 @@ class ProfilePageState extends State<ProfilePage> {
                   title: "Edit Profil",
                   route: EditProfile(),
                 ),
+                _buildMenuOptionAction(
+                  context,
+                  icon: Icons.lock_outline,
+                  title: "Ubah Password",
+                  onTap: () => _showEditPasswordDialog(context),
+                ),
                 _buildMenuOption(
                   context,
                   icon: Icons.notifications_none,
@@ -321,6 +341,187 @@ class ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
+    );
+  }
+  void _showEditPasswordDialog(BuildContext context) {
+    final TextEditingController oldPasswordController = TextEditingController();
+    final TextEditingController newPasswordController = TextEditingController();
+    final TextEditingController confirmPasswordController = TextEditingController();
+    bool isSubmitting = false;
+    bool obscureOld = true;
+    bool obscureNew = true;
+    bool obscureConfirm = true;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
+              ),
+              title: const Text('Ubah Password', style: TextStyle(fontWeight: FontWeight.bold)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: oldPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password Lama',
+                        suffixIcon: IconButton(
+                          icon: Icon(obscureOld ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setStateDialog(() => obscureOld = !obscureOld),
+                        ),
+                      ),
+                      obscureText: obscureOld,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: newPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Password Baru (min. 6)',
+                        suffixIcon: IconButton(
+                          icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setStateDialog(() => obscureNew = !obscureNew),
+                        ),
+                      ),
+                      obscureText: obscureNew,
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: 'Konfirmasi Password Baru',
+                        suffixIcon: IconButton(
+                          icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setStateDialog(() => obscureConfirm = !obscureConfirm),
+                        ),
+                      ),
+                      obscureText: obscureConfirm,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(context),
+                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          final oldPass = oldPasswordController.text;
+                          final newPass = newPasswordController.text;
+                          final confirmPass = confirmPasswordController.text;
+
+                          if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Semua field harus diisi')),
+                            );
+                            return;
+                          }
+
+                          if (newPass.length < 6) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Password baru minimal 6 karakter')),
+                            );
+                            return;
+                          }
+
+                          if (newPass != confirmPass) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Password baru dan konfirmasi tidak cocok')),
+                            );
+                            return;
+                          }
+
+                          setStateDialog(() => isSubmitting = true);
+
+                          const storage = FlutterSecureStorage();
+                          String? token = await storage.read(key: 'access_token');
+                          
+                          if (token == null) {
+                            setStateDialog(() => isSubmitting = false);
+                            return;
+                          }
+
+                          try {
+                            final response = await http.post(
+                              Uri.parse('$baseApiUrl/api/profile/update-password'),
+                              headers: {
+                                'Authorization': 'Bearer $token',
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                              },
+                              body: jsonEncode({
+                                'old_password': oldPass,
+                                'new_password': newPass,
+                                'new_password_confirmation': confirmPass,
+                              }),
+                            );
+
+                            final data = jsonDecode(response.body);
+                            setStateDialog(() => isSubmitting = false);
+
+                            if (response.statusCode == 200 && data['success'] == true) {
+                              Navigator.pop(context); // close password dialog
+                              
+                              // Clear token & Logout
+                              await storage.delete(key: 'access_token');
+                              if (context.mounted) {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Berhasil'),
+                                    content: const Text('Password berhasil diubah. Silakan login kembali dengan password yang baru.'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.pop(context); // close popup
+                                          Navigator.pushAndRemoveUntil(
+                                            context,
+                                            MaterialPageRoute(builder: (context) => const loginPage()),
+                                            (route) => false,
+                                          );
+                                        },
+                                        child: const Text('OK'),
+                                      )
+                                    ],
+                                  ),
+                                );
+                              }
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(data['message'] ?? 'Gagal mengubah password')),
+                              );
+                            }
+                          } catch (e) {
+                            setStateDialog(() => isSubmitting = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Terjadi kesalahan: $e')),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16, height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Simpan', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
