@@ -26,6 +26,7 @@ import '../page/adminpage/adminconn.dart';
 
 part '../splashscreen.dart';
 part '../page/loginPage.dart';
+part '../page/presetLogin.dart';
 part '../page/registerPage.dart';
 part '../page/profilePage/profilePage.dart';
 part '../page/profilePage/editProfile.dart';
@@ -76,3 +77,4 @@ part '../page/adminpage/bimbinganAdmin.dart';
 
 // const String baseApiUrl = 'http://192.168.18.81:8000';
 const String baseApiUrl = 'http://10.0.2.2:8000';
+// const String baseApiUrl = 'https://snowman-mongoose-hatchery.ngrok-free.dev';

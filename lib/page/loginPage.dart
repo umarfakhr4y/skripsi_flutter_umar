@@ -594,6 +594,26 @@ class _loginPageState extends State<loginPage> {
                     ),
                   ],
                 ),
+                SizedBox(height: displayHeight(context) * 0.03),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const PresetLogin(),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    "Gunakan Preset Login (Dev)",
+                    style: TextStyle(
+                      fontSize: displayWidth(context) * 0.035,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey[600],
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
                 SizedBox(height: displayHeight(context) * 0.05),
               ],
             ),
