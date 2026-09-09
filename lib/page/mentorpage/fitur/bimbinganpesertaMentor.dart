@@ -274,9 +274,9 @@ class _BimbinganPesertaMentorState extends State<BimbinganPesertaMentor> {
                     ],
                   ),
                 ),
-                if (bimbingan['status'].toString().toLowerCase() ==
-                        'requested' ||
-                    bimbingan['status'].toString().toLowerCase() == 'menunggu')
+                if ((bimbingan['status'].toString().toLowerCase() == 'requested' ||
+                     bimbingan['status'].toString().toLowerCase() == 'menunggu') &&
+                    !(bimbingan['is_past'] ?? false))
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFE84C63),
