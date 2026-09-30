@@ -291,38 +291,10 @@ class _MentorHomeState extends State<MentorHome> {
                 SizedBox(height: displayHeight(context) * 0.02),
                 // Logo
                 Center(
-                  child: RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "v",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.07,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -1.5,
-                          ),
-                        ),
-                        TextSpan(
-                          text: "o",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.07,
-                            fontWeight: FontWeight.w900,
-                            color: const Color(0xFFE84C63), // Red 'o'
-                            letterSpacing: -1.5,
-                          ),
-                        ),
-                        TextSpan(
-                          text: "casia",
-                          style: TextStyle(
-                            fontSize: displayWidth(context) * 0.07,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.black,
-                            letterSpacing: -1.5,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: Image.asset(
+                    'assets/images/vocasia_transparent.png',
+                    width: displayWidth(context) * 0.35,
+                    fit: BoxFit.contain,
                   ),
                 ),
                 SizedBox(height: displayHeight(context) * 0.03),

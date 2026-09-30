@@ -157,38 +157,10 @@ class _AdminHomeState extends State<AdminHome> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     // Logo
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "v",
-                            style: TextStyle(
-                              fontSize: displayWidth(context) * 0.08,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: -1.0,
-                            ),
-                          ),
-                          TextSpan(
-                            text: "o",
-                            style: TextStyle(
-                              fontSize: displayWidth(context) * 0.08,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFFE84C63), // Red
-                              letterSpacing: -1.0,
-                            ),
-                          ),
-                          TextSpan(
-                            text: "casia",
-                            style: TextStyle(
-                              fontSize: displayWidth(context) * 0.08,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.black,
-                              letterSpacing: -1.0,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Image.asset(
+                      'assets/images/vocasia_transparent.png',
+                      width: displayWidth(context) * 0.35,
+                      fit: BoxFit.contain,
                     ),
                   ],
                 ),
