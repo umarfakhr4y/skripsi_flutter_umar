@@ -25,11 +25,22 @@ class PesertaService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        return {'success': true, 'message': 'Absen berhasil!', 'data': data};
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Absen berhasil!',
+          'data': data,
+        };
       } else {
+        String msg = 'Gagal absen: ${response.statusCode}';
+        try {
+          final errData = jsonDecode(response.body);
+          if (errData['message'] != null) {
+            msg = errData['message'];
+          }
+        } catch (_) {}
         return {
           'success': false,
-          'message': 'Gagal absen: ${response.statusCode}',
+          'message': msg,
         };
       }
     } catch (e) {
