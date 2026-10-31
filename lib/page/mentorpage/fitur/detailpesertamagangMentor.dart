@@ -274,7 +274,7 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
           ),
           SizedBox(height: displayHeight(context) * 0.005),
           Text(
-            '${_pesertaData?['universitas'] ?? '-'} Ã¢â‚¬Â¢ ${_pesertaData?['prodi'] ?? '-'}',
+            '${_pesertaData?['universitas'] ?? '-'} • ${_pesertaData?['prodi'] ?? '-'}',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.03,
               color: Colors.grey[600],

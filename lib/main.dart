@@ -86,6 +86,13 @@ void main() async {
   // Inisialisasi Firebase secara eksplisit untuk mencegah kegagalan baca file config di Android
   await Firebase.initializeApp(options: firebaseOptions);
 
+  // Konfigurasi agar notifikasi tetap tampil saat aplikasi di foreground
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
   // Daftarkan handler background
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
@@ -94,6 +101,29 @@ void main() async {
   if (initialMessage != null && initialMessage.data.containsKey('tipe')) {
     pendingFcmTipe = initialMessage.data['tipe'];
   }
+
+  // Tangkap pesan saat aplikasi sedang terbuka di layar (Foreground)
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    print("Pesan FCM diterima saat foreground: ${message.notification?.title}");
+    final context = navigatorKey.currentContext;
+    if (context != null && message.notification != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("${message.notification?.title}: ${message.notification?.body}"),
+          duration: const Duration(seconds: 4),
+          action: SnackBarAction(
+            label: "Buka",
+            textColor: Colors.white,
+            onPressed: () {
+              if (message.data.containsKey('tipe')) {
+                handleFcmRouting(message.data['tipe']);
+              }
+            },
+          ),
+        ),
+      );
+    }
+  });
 
   // Tangkap klik notifikasi saat aplikasi di background
   FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {

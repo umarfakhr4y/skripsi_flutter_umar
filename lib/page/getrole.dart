@@ -51,6 +51,9 @@ class _GetRolePageState extends State<GetRolePage> {
         print("Role Pengguna Saat Ini: $role");
         print("===============================");
 
+        // Sync FCM token di latar belakang
+        syncPushNotificationToken(token);
+
         // Navigasi berdasarkan role
         if (!mounted) return;
 

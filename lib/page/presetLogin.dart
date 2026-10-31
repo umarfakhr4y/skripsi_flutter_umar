@@ -38,6 +38,11 @@ class _PresetLoginState extends State<PresetLogin> {
             return;
           }
 
+          // Sync FCM push notification token ke backend
+          await syncPushNotificationToken(token);
+
+          if (!mounted) return;
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(result['message'].toString())),
           );

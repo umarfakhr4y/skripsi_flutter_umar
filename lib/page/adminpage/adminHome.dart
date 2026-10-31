@@ -13,6 +13,8 @@ class _AdminHomeState extends State<AdminHome> {
   int _tugasAktifCount = 0;
   int _totalTugasCount = 0;
   double _persentaseKehadiran = 0.0;
+  int _hadirHariIniCount = 0;
+  int _totalPesertaKehadiranCount = 0;
   bool _isLoading = true;
 
   @override
@@ -33,6 +35,8 @@ class _AdminHomeState extends State<AdminHome> {
     int tCount = 0;
     int tTotalCount = 0;
     double kPersen = 0.0;
+    int kHadir = 0;
+    int kTotal = 0;
 
     if (pesertaResult['success']) {
       final rawData = pesertaResult['data'];
@@ -59,8 +63,16 @@ class _AdminHomeState extends State<AdminHome> {
 
     if (kehadiranResult['success']) {
       final rawData = kehadiranResult['data'];
-      if (rawData != null && rawData['persentase'] != null) {
-        kPersen = double.tryParse(rawData['persentase'].toString()) ?? 0.0;
+      if (rawData != null) {
+        if (rawData['persentase'] != null) {
+          kPersen = double.tryParse(rawData['persentase'].toString()) ?? 0.0;
+        }
+        if (rawData['hadir_hari_ini'] != null) {
+          kHadir = int.tryParse(rawData['hadir_hari_ini'].toString()) ?? 0;
+        }
+        if (rawData['total_peserta'] != null) {
+          kTotal = int.tryParse(rawData['total_peserta'].toString()) ?? 0;
+        }
       }
     } else {
       allSuccess = false;
@@ -86,6 +98,8 @@ class _AdminHomeState extends State<AdminHome> {
           _pesertaAktifCount = pCount;
           _totalMentorCount = mCount;
           _persentaseKehadiran = kPersen;
+          _hadirHariIniCount = kHadir;
+          _totalPesertaKehadiranCount = kTotal;
           _tugasAktifCount = tCount;
           _totalTugasCount = tTotalCount;
           _isLoading = false;
@@ -105,9 +119,19 @@ class _AdminHomeState extends State<AdminHome> {
             if (mentorResult['success']) _totalMentorCount = mCount;
             if (kehadiranResult['success']) {
               final rData = kehadiranResult['data'];
-              if (rData != null && rData['persentase'] != null) {
-                _persentaseKehadiran =
-                    double.tryParse(rData['persentase'].toString()) ?? 0.0;
+              if (rData != null) {
+                if (rData['persentase'] != null) {
+                  _persentaseKehadiran =
+                      double.tryParse(rData['persentase'].toString()) ?? 0.0;
+                }
+                if (rData['hadir_hari_ini'] != null) {
+                  _hadirHariIniCount =
+                      int.tryParse(rData['hadir_hari_ini'].toString()) ?? 0;
+                }
+                if (rData['total_peserta'] != null) {
+                  _totalPesertaKehadiranCount =
+                      int.tryParse(rData['total_peserta'].toString()) ?? 0;
+                }
               }
             }
             if (tugasResult['success']) {
@@ -319,7 +343,7 @@ class _AdminHomeState extends State<AdminHome> {
                                 ),
                             ],
                           ),
-                          SizedBox(height: displayHeight(context) * 0.015),
+                          SizedBox(height: displayHeight(context) * 0.012),
                           Text(
                             'KEHADIRAN',
                             style: TextStyle(
@@ -338,6 +362,18 @@ class _AdminHomeState extends State<AdminHome> {
                               color: Colors.white,
                             ),
                           ),
+                          if (!_isLoading && _totalPesertaKehadiranCount > 0)
+                            Padding(
+                              padding: EdgeInsets.only(top: displayHeight(context) * 0.004),
+                              child: Text(
+                                '($_hadirHariIniCount/$_totalPesertaKehadiranCount Peserta)',
+                                style: TextStyle(
+                                  fontSize: displayWidth(context) * 0.024,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

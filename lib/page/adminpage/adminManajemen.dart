@@ -14,10 +14,20 @@ class _AdminManajemenState extends State<AdminManajemen> {
   List<dynamic> _mentorList = [];
   List<dynamic> _divisiList = [];
 
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _sortAscending = true;
+
   @override
   void initState() {
     super.initState();
     _fetchData();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchData() async {
@@ -598,15 +608,53 @@ class _AdminManajemenState extends State<AdminManajemen> {
     );
   }
 
+  Widget _buildEmptySearch(String label) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: displayHeight(context) * 0.04),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.search_off, size: displayWidth(context) * 0.12, color: Colors.grey[400]),
+            SizedBox(height: displayHeight(context) * 0.015),
+            Text(
+              _searchQuery.isNotEmpty
+                  ? 'Tidak ditemukan hasil untuk "$_searchQuery"'
+                  : 'Tidak ada data $label',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: displayWidth(context) * 0.035,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildList() {
     if (_selectedTab == 'Peserta Magang') {
-      if (_pesertaList.isEmpty) return const Text('Tidak ada data peserta');
+      List<dynamic> list = _pesertaList.where((item) {
+        if (_searchQuery.isEmpty) return true;
+        final name = (item['nama_lengkap'] ?? '').toString().toLowerCase();
+        final univ = (item['universitas'] ?? '').toString().toLowerCase();
+        final prodi = (item['prodi'] ?? '').toString().toLowerCase();
+        return name.contains(_searchQuery) || univ.contains(_searchQuery) || prodi.contains(_searchQuery);
+      }).toList();
+
+      list.sort((a, b) {
+        final nameA = (a['nama_lengkap'] ?? '').toString();
+        final nameB = (b['nama_lengkap'] ?? '').toString();
+        return _sortAscending ? nameA.compareTo(nameB) : nameB.compareTo(nameA);
+      });
+
+      if (list.isEmpty) return _buildEmptySearch('peserta magang');
       return ListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
-        itemCount: _pesertaList.length,
+        itemCount: list.length,
         itemBuilder: (context, index) {
-          final item = _pesertaList[index];
+          final item = list[index];
           return _buildUserCard(
             name: item['nama_lengkap'] ?? 'Tanpa Nama',
             roleDesc: '${item['universitas'] ?? '-'} • ${item['prodi'] ?? '-'}',
@@ -632,6 +680,20 @@ class _AdminManajemenState extends State<AdminManajemen> {
         },
       );
     } else if (_selectedTab == 'Mentor') {
+      List<dynamic> list = _mentorList.where((item) {
+        if (_searchQuery.isEmpty) return true;
+        final name = (item['nama_lengkap'] ?? '').toString().toLowerCase();
+        final nip = (item['nip_karyawan'] ?? '').toString().toLowerCase();
+        final divisi = (item['divisi'] != null ? item['divisi']['nama_divisi'] : '').toString().toLowerCase();
+        return name.contains(_searchQuery) || nip.contains(_searchQuery) || divisi.contains(_searchQuery);
+      }).toList();
+
+      list.sort((a, b) {
+        final nameA = (a['nama_lengkap'] ?? '').toString();
+        final nameB = (b['nama_lengkap'] ?? '').toString();
+        return _sortAscending ? nameA.compareTo(nameB) : nameB.compareTo(nameA);
+      });
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -664,15 +726,15 @@ class _AdminManajemenState extends State<AdminManajemen> {
             ),
           ),
           SizedBox(height: displayHeight(context) * 0.02),
-          if (_mentorList.isEmpty)
-            const Center(child: Text('Tidak ada data mentor'))
+          if (list.isEmpty)
+            _buildEmptySearch('mentor')
           else
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _mentorList.length,
+              itemCount: list.length,
               itemBuilder: (context, index) {
-                final item = _mentorList[index];
+                final item = list[index];
                 final divisiName = item['divisi'] != null
                     ? item['divisi']['nama_divisi']
                     : '-';
@@ -701,6 +763,19 @@ class _AdminManajemenState extends State<AdminManajemen> {
         ],
       );
     } else if (_selectedTab == 'Divisi') {
+      List<dynamic> list = _divisiList.where((item) {
+        if (_searchQuery.isEmpty) return true;
+        final name = (item['nama_divisi'] ?? '').toString().toLowerCase();
+        final desc = (item['deskripsi'] ?? '').toString().toLowerCase();
+        return name.contains(_searchQuery) || desc.contains(_searchQuery);
+      }).toList();
+
+      list.sort((a, b) {
+        final nameA = (a['nama_divisi'] ?? '').toString();
+        final nameB = (b['nama_divisi'] ?? '').toString();
+        return _sortAscending ? nameA.compareTo(nameB) : nameB.compareTo(nameA);
+      });
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -733,15 +808,15 @@ class _AdminManajemenState extends State<AdminManajemen> {
             ),
           ),
           SizedBox(height: displayHeight(context) * 0.02),
-          if (_divisiList.isEmpty)
-            const Center(child: Text('Tidak ada data divisi'))
+          if (list.isEmpty)
+            _buildEmptySearch('divisi')
           else
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: _divisiList.length,
+              itemCount: list.length,
               itemBuilder: (context, index) {
-                final item = _divisiList[index];
+                final item = list[index];
                 return _buildUserCard(
                   name: item['nama_divisi'] ?? 'Tanpa Nama',
                   roleDesc: item['deskripsi'] ?? '',
@@ -835,8 +910,14 @@ class _AdminManajemenState extends State<AdminManajemen> {
                           ),
                         ),
                         child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) {
+                            setState(() {
+                              _searchQuery = val.trim().toLowerCase();
+                            });
+                          },
                           decoration: InputDecoration(
-                            hintText: 'Cari ...',
+                            hintText: 'Cari ${_selectedTab.toLowerCase()}...',
                             hintStyle: TextStyle(
                               color: Colors.grey[500],
                               fontSize: displayWidth(context) * 0.035,
@@ -846,6 +927,17 @@ class _AdminManajemenState extends State<AdminManajemen> {
                               color: Colors.grey[600],
                               size: displayWidth(context) * 0.05,
                             ),
+                            suffixIcon: _searchQuery.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 18),
+                                    onPressed: () {
+                                      setState(() {
+                                        _searchController.clear();
+                                        _searchQuery = '';
+                                      });
+                                    },
+                                  )
+                                : null,
                             border: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(
                               vertical: displayHeight(context) * 0.015,
@@ -855,18 +947,33 @@ class _AdminManajemenState extends State<AdminManajemen> {
                       ),
                     ),
                     SizedBox(width: displayWidth(context) * 0.03),
-                    Container(
-                      padding: EdgeInsets.all(displayWidth(context) * 0.03),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(
-                          displayWidth(context) * 0.03,
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _sortAscending = !_sortAscending;
+                        });
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Urutan data: ${_sortAscending ? "A - Z (Menaik)" : "Z - A (Menurun)"}',
+                            ),
+                            duration: const Duration(seconds: 1),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(displayWidth(context) * 0.03),
+                        decoration: BoxDecoration(
+                          color: _sortAscending ? Colors.grey[100] : const Color(0xFFFDE8EB),
+                          borderRadius: BorderRadius.circular(
+                            displayWidth(context) * 0.03,
+                          ),
                         ),
-                      ),
-                      child: Icon(
-                        Icons.filter_list,
-                        color: Colors.black87,
-                        size: displayWidth(context) * 0.05,
+                        child: Icon(
+                          Icons.swap_vert,
+                          color: _sortAscending ? Colors.black87 : const Color(0xFFB04A50),
+                          size: displayWidth(context) * 0.05,
+                        ),
                       ),
                     ),
                   ],

@@ -278,7 +278,9 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                             ),
                           ),
                           child: Text(
-                            'Komentar Anda: ${laporan['komentar_mentor']}',
+                            widget.isAdmin
+                                ? 'Komentar Mentor: ${laporan['komentar_mentor']}'
+                                : 'Komentar Anda: ${laporan['komentar_mentor']}',
                             style: TextStyle(
                               fontSize: displayWidth(context) * 0.03,
                               color: Colors.black87,
@@ -290,26 +292,50 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                       Divider(color: Colors.grey.shade300),
                       Align(
                         alignment: Alignment.centerRight,
-                        child: GestureDetector(
-                          onTap: () {
-                            print(
-                              "Tap Beri Komentar on Laporan ID: ${laporan['id']}",
-                            );
-                          },
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: displayHeight(context) * 0.005,
-                            ),
-                            child: Text(
-                              "Beri Komentar >",
-                              style: TextStyle(
-                                color: const Color(0xFFE84C63),
-                                fontWeight: FontWeight.bold,
-                                fontSize: displayWidth(context) * 0.035,
+                        child: widget.isAdmin
+                            ? Padding(
+                                padding: EdgeInsets.only(
+                                  top: displayHeight(context) * 0.005,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.lock_outline,
+                                      size: displayWidth(context) * 0.035,
+                                      color: Colors.grey[400],
+                                    ),
+                                    SizedBox(width: displayWidth(context) * 0.015),
+                                    Text(
+                                      "Beri Komentar (Khusus Mentor)",
+                                      style: TextStyle(
+                                        color: Colors.grey[400],
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: displayWidth(context) * 0.032,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            : GestureDetector(
+                                onTap: () => _showKomentarDialog(laporan),
+                                child: Padding(
+                                  padding: EdgeInsets.only(
+                                    top: displayHeight(context) * 0.005,
+                                  ),
+                                  child: Text(
+                                    (laporan['komentar_mentor'] != null &&
+                                            laporan['komentar_mentor'].toString().isNotEmpty)
+                                        ? "Ubah Komentar >"
+                                        : "Beri Komentar >",
+                                    style: TextStyle(
+                                      color: const Color(0xFFE84C63),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: displayWidth(context) * 0.035,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -319,6 +345,130 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
           ),
         ),
       ),
+    );
+  }
+
+  void _showKomentarDialog(Map<String, dynamic> laporan) {
+    if (widget.isAdmin) return;
+    final TextEditingController komentarController = TextEditingController(
+      text: laporan['komentar_mentor'] ?? '',
+    );
+    bool isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+              ),
+              title: Text(
+                (laporan['komentar_mentor'] != null &&
+                        laporan['komentar_mentor'].toString().isNotEmpty)
+                    ? 'Edit Komentar Laporan'
+                    : 'Beri Komentar Laporan',
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: komentarController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      hintText: 'Tuliskan komentar atau masukan untuk laporan ini...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(displayWidth(context) * 0.02),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isSubmitting ? null : () => Navigator.pop(dialogContext),
+                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                ),
+                ElevatedButton(
+                  onPressed: isSubmitting
+                      ? null
+                      : () async {
+                          if (komentarController.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Komentar tidak boleh kosong')),
+                            );
+                            return;
+                          }
+
+                          setStateDialog(() => isSubmitting = true);
+                          try {
+                            const storage = FlutterSecureStorage();
+                            String? token = await storage.read(key: 'access_token');
+                            String url = '$baseApiUrl/api/mentor/laporan/${laporan['id']}/komentar';
+
+                            final res = await http.put(
+                              Uri.parse(url),
+                              headers: {
+                                'Authorization': 'Bearer $token',
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                              },
+                              body: jsonEncode({'komentar': komentarController.text.trim()}),
+                            );
+
+                            final jsonRes = jsonDecode(res.body);
+                            if (res.statusCode == 200 && jsonRes['success'] == true) {
+                              if (mounted) {
+                                Navigator.pop(dialogContext);
+                                setState(() {
+                                  laporan['komentar_mentor'] = komentarController.text.trim();
+                                });
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Komentar berhasil disimpan!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            } else {
+                              setStateDialog(() => isSubmitting = false);
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      jsonRes['message'] ?? 'Gagal menyimpan komentar',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          } catch (e) {
+                            setStateDialog(() => isSubmitting = false);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Terjadi kesalahan: $e')),
+                              );
+                            }
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE84C63),
+                  ),
+                  child: isSubmitting
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        )
+                      : const Text('Simpan', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 

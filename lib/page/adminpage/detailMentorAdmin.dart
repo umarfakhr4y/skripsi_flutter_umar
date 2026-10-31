@@ -171,7 +171,7 @@ class _DetailMentorAdminState extends State<DetailMentorAdmin> {
           ),
           SizedBox(height: displayHeight(context) * 0.005),
           Text(
-            '${_mentorData?['nip_karyawan'] ?? '-'} Ã¢â‚¬Â¢ ${_mentorData?['divisi'] ?? '-'}',
+            '${_mentorData?['nip_karyawan'] ?? '-'} • ${_mentorData?['divisi'] ?? '-'}',
             style: TextStyle(
               fontSize: displayWidth(context) * 0.03,
               color: Colors.grey[600],

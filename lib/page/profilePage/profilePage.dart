@@ -38,9 +38,9 @@ class ProfilePageState extends State<ProfilePage> {
           if (mounted) {
             setState(() {
               _email = data['email'] ?? "No Email";
-              _namaLengkap = data['data'] != null
-                  ? (data['data']['nama_lengkap'] ?? "No Name")
-                  : "No Name";
+              _namaLengkap = data['data'] != null && data['data']['nama_lengkap'] != null
+                  ? data['data']['nama_lengkap']
+                  : (data['role'] == 'admin' ? "Administrator" : "No Name");
               _profilePictureUrl = data['data'] != null
                   ? data['data']['profile_picture_url']
                   : null;

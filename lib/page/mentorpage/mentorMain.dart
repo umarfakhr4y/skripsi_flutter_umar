@@ -21,11 +21,18 @@ class _MentorMainState extends State<MentorMain> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (pendingFcmTipe != null) {
         handleFcmRouting(pendingFcmTipe);
         pendingFcmTipe = null;
       }
+      try {
+        const storage = FlutterSecureStorage();
+        String? token = await storage.read(key: 'access_token');
+        if (token != null) {
+          syncPushNotificationToken(token);
+        }
+      } catch (_) {}
     });
   }
 

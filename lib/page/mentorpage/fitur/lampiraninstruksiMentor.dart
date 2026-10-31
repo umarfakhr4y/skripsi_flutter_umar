@@ -441,7 +441,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                     ),
                     SizedBox(height: displayHeight(context) * 0.006),
                     Text(
-                      'Dokumen / File Ã¢â‚¬Â¢ Klik untuk unduh via browser',
+                      'Dokumen / File • Klik untuk unduh via browser',
                       style: TextStyle(
                         fontSize: displayWidth(context) * 0.031,
                         color: Colors.grey[600],

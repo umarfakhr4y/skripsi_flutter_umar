@@ -366,6 +366,13 @@ class _EditProfileState extends State<EditProfile> {
                           initialValue: _divisi,
                           enabled: false,
                         ),
+                      ] else if (_role == 'admin') ...[
+                        _buildTextField(
+                          context,
+                          label: "ROLE / AKSES",
+                          initialValue: "Administrator Sistem",
+                          enabled: false,
+                        ),
                       ],
                       _buildTextField(
                         context,
@@ -399,7 +406,9 @@ class _EditProfileState extends State<EditProfile> {
                             SizedBox(width: displayWidth(context) * 0.03),
                             Expanded(
                               child: Text(
-                                "Untuk mengubah data diri (kecuali foto profil), silakan hubungi Administrator sistem.",
+                                _role == 'admin'
+                                    ? "Sebagai Administrator sistem, Anda memiliki hak akses penuh untuk mengelola pendaftaran peserta, mentor, dan divisi."
+                                    : "Untuk mengubah data diri (kecuali foto profil), silakan hubungi Administrator sistem.",
                                 style: TextStyle(
                                   fontSize: displayWidth(context) * 0.03,
                                   color: Colors.blue[800],

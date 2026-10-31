@@ -76,5 +76,56 @@ part '../page/adminpage/editMentorAdmin.dart';
 part '../page/adminpage/bimbinganAdmin.dart';
 
 // const String baseApiUrl = 'http://192.168.18.81:8000';
-const String baseApiUrl = 'http://10.0.2.2:8000';
-// const String baseApiUrl = 'https://snowman-mongoose-hatchery.ngrok-free.dev';
+// const String baseApiUrl = 'http://10.0.2.2:8000';
+const String baseApiUrl = 'https://snowman-mongoose-hatchery.ngrok-free.dev';
+
+Future<void> syncPushNotificationToken(String tokenAuth) async {
+  try {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    print("FCM Permission Status: ${settings.authorizationStatus}");
+
+    String? fcmToken = await messaging.getToken();
+    print("FCM Token: $fcmToken");
+
+    if (fcmToken != null) {
+      var response = await http.post(
+        Uri.parse('$baseApiUrl/api/update-fcm-token'),
+        headers: {
+          'Authorization': 'Bearer $tokenAuth',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: jsonEncode({'fcm_token': fcmToken}),
+      );
+      print("FCM Update Status: ${response.statusCode}");
+      print("FCM Update Body: ${response.body}");
+    }
+
+    // Dengarkan jika ada rotasi token baru dari Firebase secara otomatis
+    messaging.onTokenRefresh.listen((newFcmToken) async {
+      try {
+        await http.post(
+          Uri.parse('$baseApiUrl/api/update-fcm-token'),
+          headers: {
+            'Authorization': 'Bearer $tokenAuth',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
+          },
+          body: jsonEncode({'fcm_token': newFcmToken}),
+        );
+        print("FCM Token Refreshed & Synced: $newFcmToken");
+      } catch (e) {
+        print("Error updating refreshed FCM token: $e");
+      }
+    });
+  } catch (e) {
+    print("Error syncPushNotificationToken: $e");
+  }
+}

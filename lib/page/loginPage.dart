@@ -26,35 +26,7 @@ class _loginPageState extends State<loginPage> {
   }
 
   Future<void> _initPushNotification(String tokenAuth) async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    NotificationSettings settings = await messaging.requestPermission();
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      String? fcmToken;
-      try {
-        fcmToken = await messaging.getToken();
-        print("FCM Token: $fcmToken");
-      } catch (e) {
-        print("FCM Get Token Error: $e");
-      }
-
-      if (fcmToken != null) {
-        try {
-          var response = await http.post(
-            Uri.parse('$baseApiUrl/api/update-fcm-token'),
-            headers: {
-              'Authorization': 'Bearer $tokenAuth',
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            },
-            body: jsonEncode({'fcm_token': fcmToken}),
-          );
-          print("FCM Update Status: ${response.statusCode}");
-          print("FCM Update Body: ${response.body}");
-        } catch (e) {
-          print("Error updating FCM token: $e");
-        }
-      }
-    }
+    await syncPushNotificationToken(tokenAuth);
   }
 
   void _showLengkapiDataDialog(String token) {

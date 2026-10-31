@@ -9,11 +9,66 @@ class PengaturanNotifikasiPage extends StatefulWidget {
 }
 
 class _PengaturanNotifikasiPageState extends State<PengaturanNotifikasiPage> {
+  final _storage = const FlutterSecureStorage();
+  bool _isSaving = false;
+
   // State for toggles
   bool _notifikasiTugas = true;
   bool _pesanBimbingan = true;
   bool _pengingatPresensi = true;
   bool _beritaUpdate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    try {
+      final tVal = await _storage.read(key: 'notif_tugas');
+      final bVal = await _storage.read(key: 'notif_bimbingan');
+      final pVal = await _storage.read(key: 'notif_presensi');
+      final uVal = await _storage.read(key: 'notif_berita');
+
+      if (mounted) {
+        setState(() {
+          if (tVal != null) _notifikasiTugas = tVal == 'true';
+          if (bVal != null) _pesanBimbingan = bVal == 'true';
+          if (pVal != null) _pengingatPresensi = pVal == 'true';
+          if (uVal != null) _beritaUpdate = uVal == 'true';
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveSettings() async {
+    setState(() => _isSaving = true);
+    try {
+      await _storage.write(key: 'notif_tugas', value: _notifikasiTugas.toString());
+      await _storage.write(key: 'notif_bimbingan', value: _pesanBimbingan.toString());
+      await _storage.write(key: 'notif_presensi', value: _pengingatPresensi.toString());
+      await _storage.write(key: 'notif_berita', value: _beritaUpdate.toString());
+
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Preferensi notifikasi berhasil disimpan!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isSaving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan: $e')),
+        );
+      }
+    }
+  }
 
   Widget _buildNotificationItem(
     BuildContext context, {
@@ -220,9 +275,7 @@ class _PengaturanNotifikasiPageState extends State<PengaturanNotifikasiPage> {
 
                 // Save Button
                 ElevatedButton(
-                  onPressed: () {
-                    // Logic simpan
-                  },
+                  onPressed: _isSaving ? null : _saveSettings,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(
                       0xFFE46B72,
@@ -238,14 +291,23 @@ class _PengaturanNotifikasiPageState extends State<PengaturanNotifikasiPage> {
                     elevation: 0,
                     minimumSize: const Size(double.infinity, 0),
                   ),
-                  child: Text(
-                    "Simpan Pengaturan",
-                    style: TextStyle(
-                      fontSize: displayWidth(context) * 0.04,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isSaving
+                      ? SizedBox(
+                          width: displayWidth(context) * 0.05,
+                          height: displayWidth(context) * 0.05,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          "Simpan Pengaturan",
+                          style: TextStyle(
+                            fontSize: displayWidth(context) * 0.04,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                 ),
                 SizedBox(height: displayHeight(context) * 0.05),
               ],
