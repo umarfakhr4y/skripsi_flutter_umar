@@ -86,6 +86,13 @@ void main() async {
   // Inisialisasi Firebase secara eksplisit untuk mencegah kegagalan baca file config di Android
   await Firebase.initializeApp(options: firebaseOptions);
 
+  // Minta izin notifikasi secara eksplisit (terutama untuk Android 13+)
+  await FirebaseMessaging.instance.requestPermission(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
+
   // Konfigurasi agar notifikasi tetap tampil saat aplikasi di foreground
   await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
     alert: true,
