@@ -123,7 +123,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
         String path = list[i];
         String fullUrl = path.startsWith('http')
             ? path
-            : '$baseApiUrl/storage/$path';
+            : '$baseStorageUrl/$path';
 
         if (_isImageFile(fullUrl)) {
           final response = await http.get(Uri.parse(fullUrl));
@@ -202,7 +202,7 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                     String path = widget.images![index];
                     fullUrl = path.startsWith('http')
                         ? path
-                        : '$baseApiUrl/storage/$path';
+                        : '$baseStorageUrl/$path';
                     fileName = path.split('/').last.split('?').first;
                     if (fileName.isEmpty) fileName = 'lampiran_${index + 1}';
                   } else {

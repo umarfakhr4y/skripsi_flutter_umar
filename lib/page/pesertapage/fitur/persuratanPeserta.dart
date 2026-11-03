@@ -95,7 +95,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                 if (isImage) {
                   precacheTasks.add(
                     precacheImage(
-                      NetworkImage('$baseApiUrl/storage/$linkDokumen'),
+                      NetworkImage('$baseStorageUrl/$linkDokumen'),
                       context,
                     ),
                   );
@@ -111,7 +111,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                   precacheTasks.add(
                     precacheImage(
                       NetworkImage(
-                        '$baseApiUrl/storage/$filePendukung',
+                        '$baseStorageUrl/$filePendukung',
                       ),
                       context,
                     ),
@@ -170,7 +170,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                   precacheTasks.add(
                     precacheImage(
                       NetworkImage(
-                        '$baseApiUrl/storage/$filePendukung',
+                        '$baseStorageUrl/$filePendukung',
                       ),
                       context,
                     ),
@@ -1483,7 +1483,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                         minScale: 0.5,
                                         maxScale: 4.0,
                                         child: Image.network(
-                                          '$baseApiUrl/storage/$filePendukung',
+                                          '$baseStorageUrl/$filePendukung',
                                           fit: BoxFit.contain,
                                           loadingBuilder:
                                               (
@@ -1555,7 +1555,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              '$baseApiUrl/storage/$filePendukung',
+                              '$baseStorageUrl/$filePendukung',
                               height: 80,
                               width: 80,
                               fit: BoxFit.cover,
@@ -1599,7 +1599,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                         InkWell(
                           onTap: () async {
                             final url = Uri.parse(
-                              '$baseApiUrl/storage/$filePendukung',
+                              '$baseStorageUrl/$filePendukung',
                             );
                             try {
                               await launchUrl(
@@ -1714,7 +1714,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                               minScale: 0.5,
                                               maxScale: 4.0,
                                               child: Image.network(
-                                                '$baseApiUrl/storage/$linkDokumen',
+                                                '$baseStorageUrl/$linkDokumen',
                                                 fit: BoxFit.contain,
                                                 loadingBuilder:
                                                     (
@@ -1793,7 +1793,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                                     ),
                                                     onPressed: () async {
                                                       final url = Uri.parse(
-                                                        '$baseApiUrl/storage/$linkDokumen',
+                                                        '$baseStorageUrl/$linkDokumen',
                                                       );
                                                       try {
                                                         ScaffoldMessenger.of(
@@ -1873,7 +1873,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
                                   child: Image.network(
-                                    '$baseApiUrl/storage/$linkDokumen',
+                                    '$baseStorageUrl/$linkDokumen',
                                     width: double.infinity,
                                     height: 150,
                                     fit: BoxFit.cover,
@@ -1921,7 +1921,7 @@ class _PersuratanPesertaState extends State<PersuratanPeserta> {
                             return InkWell(
                               onTap: () async {
                                 final url = Uri.parse(
-                                  '$baseApiUrl/storage/$linkDokumen',
+                                  '$baseStorageUrl/$linkDokumen',
                                 );
                                 try {
                                   await launchUrl(

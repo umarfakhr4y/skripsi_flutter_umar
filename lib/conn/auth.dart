@@ -80,6 +80,32 @@ part '../page/adminpage/bimbinganAdmin.dart';
 // const String baseApiUrl = 'https://snowman-mongoose-hatchery.ngrok-free.dev';
 const String baseApiUrl = 'https://api.umarfakhriy.my.id';
 
+String get baseStorageUrl {
+  if (baseApiUrl.contains('api.umarfakhriy.my.id')) {
+    return '$baseApiUrl/storage/app/public';
+  }
+  return '$baseApiUrl/storage';
+}
+
+String resolveStorageUrl(String? path) {
+  if (path == null || path.isEmpty) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    if (baseApiUrl.contains('api.umarfakhriy.my.id') && !path.contains('/storage/app/public/')) {
+      return path.replaceFirst('/storage/', '/storage/app/public/');
+    }
+    return path;
+  }
+  final clean = path.startsWith('/') ? path.substring(1) : path;
+  if (baseApiUrl.contains('api.umarfakhriy.my.id')) {
+    if (clean.startsWith('storage/app/public/')) return '$baseApiUrl/$clean';
+    if (clean.startsWith('storage/')) return '$baseApiUrl/storage/app/public/${clean.substring(8)}';
+    return '$baseApiUrl/storage/app/public/$clean';
+  } else {
+    if (clean.startsWith('storage/')) return '$baseApiUrl/$clean';
+    return '$baseApiUrl/storage/$clean';
+  }
+}
+
 Future<void> syncPushNotificationToken(String tokenAuth) async {
   try {
     FirebaseMessaging messaging = FirebaseMessaging.instance;

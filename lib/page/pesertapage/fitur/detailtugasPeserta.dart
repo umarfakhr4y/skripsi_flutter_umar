@@ -904,7 +904,7 @@ class _DetailTugasPesertaState extends State<DetailTugasPeserta> {
     }
 
     final firstImage = fotoList[0].toString();
-    final imageUrl = '$baseApiUrl/storage/$firstImage';
+    final imageUrl = '$baseStorageUrl/$firstImage';
     final fileName = firstImage.split('/').last;
 
     return GestureDetector(

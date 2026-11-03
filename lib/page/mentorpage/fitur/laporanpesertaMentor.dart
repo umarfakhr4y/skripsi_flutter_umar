@@ -183,10 +183,7 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                         children: [
                           Builder(
                             builder: (context) {
-                              String? picUrl = laporan['profile_picture_url'];
-                              if (picUrl == null && laporan['profile_picture'] != null) {
-                                picUrl = '$baseApiUrl/storage/${laporan['profile_picture']}';
-                              }
+                              String? picUrl = resolveStorageUrl(laporan['profile_picture_url'] ?? laporan['profile_picture']);
                               
                               if (picUrl != null && picUrl.isNotEmpty) {
                                 return CircleAvatar(
@@ -641,10 +638,7 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                                       children: [
                                         Builder(
                                           builder: (context) {
-                                            String? picUrl = peserta['profile_picture_url'];
-                                            if (picUrl == null && peserta['profile_picture'] != null) {
-                                              picUrl = '$baseApiUrl/storage/${peserta['profile_picture']}';
-                                            }
+                                            String? picUrl = resolveStorageUrl(peserta['profile_picture_url'] ?? peserta['profile_picture']);
                                             
                                             if (picUrl != null && picUrl.isNotEmpty) {
                                               return CircleAvatar(

@@ -209,7 +209,7 @@ class _BimbinganAdminState extends State<BimbinganAdmin> {
                                   bimbingan['peserta']['profile_picture'] !=
                                       null) {
                                 picUrl =
-                                    '$baseApiUrl/storage/${bimbingan['peserta']['profile_picture']}';
+                                    '$baseStorageUrl/${bimbingan['peserta']['profile_picture']}';
                               }
 
                               if (picUrl != null && picUrl.isNotEmpty) {
@@ -585,7 +585,7 @@ class _BimbinganAdminState extends State<BimbinganAdmin> {
                                                 peserta['profile_picture'] !=
                                                     null) {
                                               picUrl =
-                                                  '$baseApiUrl/storage/${peserta['profile_picture']}';
+                                                  '$baseStorageUrl/${peserta['profile_picture']}';
                                             }
 
                                             if (picUrl != null &&
