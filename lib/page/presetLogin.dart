@@ -38,8 +38,11 @@ class _PresetLoginState extends State<PresetLogin> {
             return;
           }
 
-          // Sync FCM push notification token ke backend
-          await syncPushNotificationToken(token);
+          // Sync FCM push notification token ke backend asynchronously
+          syncPushNotificationToken(token).timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {},
+          );
 
           if (!mounted) return;
 

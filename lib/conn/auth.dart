@@ -77,7 +77,8 @@ part '../page/adminpage/bimbinganAdmin.dart';
 
 // const String baseApiUrl = 'http://192.168.18.81:8000';
 // const String baseApiUrl = 'http://10.0.2.2:8000';
-const String baseApiUrl = 'https://snowman-mongoose-hatchery.ngrok-free.dev';
+// const String baseApiUrl = 'https://snowman-mongoose-hatchery.ngrok-free.dev';
+const String baseApiUrl = 'https://api.umarfakhriy.my.id';
 
 Future<void> syncPushNotificationToken(String tokenAuth) async {
   try {

@@ -38,7 +38,8 @@ class ProfilePageState extends State<ProfilePage> {
           if (mounted) {
             setState(() {
               _email = data['email'] ?? "No Email";
-              _namaLengkap = data['data'] != null && data['data']['nama_lengkap'] != null
+              _namaLengkap =
+                  data['data'] != null && data['data']['nama_lengkap'] != null
                   ? data['data']['nama_lengkap']
                   : (data['role'] == 'admin' ? "Administrator" : "No Name");
               _profilePictureUrl = data['data'] != null
@@ -329,7 +330,7 @@ class ProfilePageState extends State<ProfilePage> {
                 // Footer Version
                 Center(
                   child: Text(
-                    "Version 2.4.1 Build 2024",
+                    "Version 1.0.0 Build 2026",
                     style: TextStyle(
                       fontSize: displayWidth(context) * 0.025,
                       color: Colors.grey[500],
@@ -343,10 +344,12 @@ class ProfilePageState extends State<ProfilePage> {
       ),
     );
   }
+
   void _showEditPasswordDialog(BuildContext context) {
     final TextEditingController oldPasswordController = TextEditingController();
     final TextEditingController newPasswordController = TextEditingController();
-    final TextEditingController confirmPasswordController = TextEditingController();
+    final TextEditingController confirmPasswordController =
+        TextEditingController();
     bool isSubmitting = false;
     bool obscureOld = true;
     bool obscureNew = true;
@@ -360,9 +363,14 @@ class ProfilePageState extends State<ProfilePage> {
           builder: (context, setStateDialog) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(displayWidth(context) * 0.05),
+                borderRadius: BorderRadius.circular(
+                  displayWidth(context) * 0.05,
+                ),
               ),
-              title: const Text('Ubah Password', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: const Text(
+                'Ubah Password',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -372,8 +380,13 @@ class ProfilePageState extends State<ProfilePage> {
                       decoration: InputDecoration(
                         labelText: 'Password Lama',
                         suffixIcon: IconButton(
-                          icon: Icon(obscureOld ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setStateDialog(() => obscureOld = !obscureOld),
+                          icon: Icon(
+                            obscureOld
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () =>
+                              setStateDialog(() => obscureOld = !obscureOld),
                         ),
                       ),
                       obscureText: obscureOld,
@@ -384,8 +397,13 @@ class ProfilePageState extends State<ProfilePage> {
                       decoration: InputDecoration(
                         labelText: 'Password Baru (min. 6)',
                         suffixIcon: IconButton(
-                          icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setStateDialog(() => obscureNew = !obscureNew),
+                          icon: Icon(
+                            obscureNew
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () =>
+                              setStateDialog(() => obscureNew = !obscureNew),
                         ),
                       ),
                       obscureText: obscureNew,
@@ -396,8 +414,14 @@ class ProfilePageState extends State<ProfilePage> {
                       decoration: InputDecoration(
                         labelText: 'Konfirmasi Password Baru',
                         suffixIcon: IconButton(
-                          icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setStateDialog(() => obscureConfirm = !obscureConfirm),
+                          icon: Icon(
+                            obscureConfirm
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setStateDialog(
+                            () => obscureConfirm = !obscureConfirm,
+                          ),
                         ),
                       ),
                       obscureText: obscureConfirm,
@@ -408,7 +432,10 @@ class ProfilePageState extends State<ProfilePage> {
               actions: [
                 TextButton(
                   onPressed: isSubmitting ? null : () => Navigator.pop(context),
-                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: isSubmitting
@@ -418,23 +445,35 @@ class ProfilePageState extends State<ProfilePage> {
                           final newPass = newPasswordController.text;
                           final confirmPass = confirmPasswordController.text;
 
-                          if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
+                          if (oldPass.isEmpty ||
+                              newPass.isEmpty ||
+                              confirmPass.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Semua field harus diisi')),
+                              const SnackBar(
+                                content: Text('Semua field harus diisi'),
+                              ),
                             );
                             return;
                           }
 
                           if (newPass.length < 6) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Password baru minimal 6 karakter')),
+                              const SnackBar(
+                                content: Text(
+                                  'Password baru minimal 6 karakter',
+                                ),
+                              ),
                             );
                             return;
                           }
 
                           if (newPass != confirmPass) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Password baru dan konfirmasi tidak cocok')),
+                              const SnackBar(
+                                content: Text(
+                                  'Password baru dan konfirmasi tidak cocok',
+                                ),
+                              ),
                             );
                             return;
                           }
@@ -442,8 +481,10 @@ class ProfilePageState extends State<ProfilePage> {
                           setStateDialog(() => isSubmitting = true);
 
                           const storage = FlutterSecureStorage();
-                          String? token = await storage.read(key: 'access_token');
-                          
+                          String? token = await storage.read(
+                            key: 'access_token',
+                          );
+
                           if (token == null) {
                             setStateDialog(() => isSubmitting = false);
                             return;
@@ -451,7 +492,9 @@ class ProfilePageState extends State<ProfilePage> {
 
                           try {
                             final response = await http.post(
-                              Uri.parse('$baseApiUrl/api/profile/update-password'),
+                              Uri.parse(
+                                '$baseApiUrl/api/profile/update-password',
+                              ),
                               headers: {
                                 'Authorization': 'Bearer $token',
                                 'Content-Type': 'application/json',
@@ -467,9 +510,10 @@ class ProfilePageState extends State<ProfilePage> {
                             final data = jsonDecode(response.body);
                             setStateDialog(() => isSubmitting = false);
 
-                            if (response.statusCode == 200 && data['success'] == true) {
+                            if (response.statusCode == 200 &&
+                                data['success'] == true) {
                               Navigator.pop(context); // close password dialog
-                              
+
                               // Clear token & Logout
                               await storage.delete(key: 'access_token');
                               if (context.mounted) {
@@ -478,26 +522,36 @@ class ProfilePageState extends State<ProfilePage> {
                                   barrierDismissible: false,
                                   builder: (context) => AlertDialog(
                                     title: const Text('Berhasil'),
-                                    content: const Text('Password berhasil diubah. Silakan login kembali dengan password yang baru.'),
+                                    content: const Text(
+                                      'Password berhasil diubah. Silakan login kembali dengan password yang baru.',
+                                    ),
                                     actions: [
                                       TextButton(
                                         onPressed: () {
                                           Navigator.pop(context); // close popup
                                           Navigator.pushAndRemoveUntil(
                                             context,
-                                            MaterialPageRoute(builder: (context) => const loginPage()),
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const loginPage(),
+                                            ),
                                             (route) => false,
                                           );
                                         },
                                         child: const Text('OK'),
-                                      )
+                                      ),
                                     ],
                                   ),
                                 );
                               }
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(data['message'] ?? 'Gagal mengubah password')),
+                                SnackBar(
+                                  content: Text(
+                                    data['message'] ??
+                                        'Gagal mengubah password',
+                                  ),
+                                ),
                               );
                             }
                           } catch (e) {
@@ -512,10 +566,17 @@ class ProfilePageState extends State<ProfilePage> {
                   ),
                   child: isSubmitting
                       ? const SizedBox(
-                          width: 16, height: 16,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
-                      : const Text('Simpan', style: TextStyle(color: Colors.white)),
+                      : const Text(
+                          'Simpan',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ],
             );
