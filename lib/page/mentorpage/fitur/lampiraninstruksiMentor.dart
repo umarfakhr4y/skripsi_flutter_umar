@@ -288,13 +288,12 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                         panEnabled: true,
                         minScale: 0.5,
                         maxScale: 4.0,
-                        child: Image.network(
-                          imageUrl,
+                        child: ShimmerImage(
+                          imageUrl: imageUrl,
                           width: double.infinity,
                           height: double.infinity,
                           fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Center(
+                          errorWidget: const Center(
                             child: Icon(
                               Icons.broken_image,
                               color: Colors.white54,
@@ -308,23 +307,14 @@ class _LampiranInstruksiMentorState extends State<LampiranInstruksiMentor> {
                 ),
               );
             },
-            child: ClipRRect(
+            child: ShimmerImage(
+              imageUrl: imageUrl,
+              height: displayHeight(context) * 0.22,
+              width: double.infinity,
+              fit: BoxFit.cover,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(displayWidth(context) * 0.03),
                 topRight: Radius.circular(displayWidth(context) * 0.03),
-              ),
-              child: Image.network(
-                imageUrl,
-                height: displayHeight(context) * 0.22,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: displayHeight(context) * 0.22,
-                  color: Colors.grey[300],
-                  child: const Center(
-                    child: Icon(Icons.broken_image, color: Colors.grey),
-                  ),
-                ),
               ),
             ),
           ),

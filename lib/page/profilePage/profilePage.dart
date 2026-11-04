@@ -222,23 +222,11 @@ class ProfilePageState extends State<ProfilePage> {
                                 width: 3,
                               ),
                             ),
-                            child: CircleAvatar(
+                            child: ShimmerAvatar(
+                              imageUrl: _profilePictureUrl,
                               radius: displayWidth(context) * 0.12,
+                              fallbackText: _namaLengkap,
                               backgroundColor: Colors.grey[400],
-                              backgroundImage: _profilePictureUrl != null
-                                  ? NetworkImage(_profilePictureUrl!)
-                                  : null,
-                              child: _profilePictureUrl == null
-                                  ? Text(
-                                      _namaLengkap.isNotEmpty
-                                          ? _namaLengkap[0].toUpperCase()
-                                          : '?',
-                                      style: TextStyle(
-                                        fontSize: displayWidth(context) * 0.1,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : null,
                             ),
                           ),
                         ],

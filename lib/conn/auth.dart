@@ -106,6 +106,174 @@ String resolveStorageUrl(String? path) {
   }
 }
 
+class ShimmerImage extends StatelessWidget {
+  final String imageUrl;
+  final double? width;
+  final double? height;
+  final BoxFit fit;
+  final BorderRadius? borderRadius;
+  final BoxShape shape;
+  final Widget? errorWidget;
+
+  const ShimmerImage({
+    Key? key,
+    required this.imageUrl,
+    this.width,
+    this.height,
+    this.fit = BoxFit.cover,
+    this.borderRadius,
+    this.shape = BoxShape.rectangle,
+    this.errorWidget,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final resolvedUrl = resolveStorageUrl(imageUrl);
+    if (resolvedUrl.isEmpty) {
+      return _buildFallback();
+    }
+
+    Widget img = Image.network(
+      resolvedUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) {
+          return child;
+        }
+        return Shimmer.fromColors(
+          baseColor: Colors.grey.shade300,
+          highlightColor: Colors.grey.shade100,
+          child: Container(
+            width: width ?? double.infinity,
+            height: height ?? double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: shape == BoxShape.circle ? null : borderRadius,
+              shape: shape,
+            ),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return _buildFallback();
+      },
+    );
+
+    if (shape == BoxShape.circle) {
+      return ClipOval(child: img);
+    } else if (borderRadius != null) {
+      return ClipRRect(borderRadius: borderRadius!, child: img);
+    }
+    return img;
+  }
+
+  Widget _buildFallback() {
+    return errorWidget ??
+        Container(
+          width: width,
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: shape == BoxShape.circle ? null : borderRadius,
+            shape: shape,
+          ),
+          child: Icon(
+            shape == BoxShape.circle ? Icons.person : Icons.broken_image_outlined,
+            color: Colors.grey.shade400,
+            size: (width != null && height != null)
+                ? (width! < height! ? width! * 0.45 : height! * 0.45)
+                : 28,
+          ),
+        );
+  }
+}
+
+class ShimmerAvatar extends StatelessWidget {
+  final String? imageUrl;
+  final double radius;
+  final String? fallbackText;
+  final Color? backgroundColor;
+  final Color? textColor;
+
+  const ShimmerAvatar({
+    Key? key,
+    this.imageUrl,
+    required this.radius,
+    this.fallbackText,
+    this.backgroundColor,
+    this.textColor,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final double diameter = radius * 2;
+    final resolvedUrl = resolveStorageUrl(imageUrl);
+
+    if (resolvedUrl.isEmpty) {
+      return _buildFallback(diameter);
+    }
+
+    return SizedBox(
+      width: diameter,
+      height: diameter,
+      child: Image.network(
+        resolvedUrl,
+        width: diameter,
+        height: diameter,
+        fit: BoxFit.cover,
+        frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+          if (wasSynchronouslyLoaded || frame != null) {
+            return ClipOval(child: child);
+          }
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.shade300,
+            highlightColor: Colors.grey.shade100,
+            child: Container(
+              width: diameter,
+              height: diameter,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return _buildFallback(diameter);
+        },
+      ),
+    );
+  }
+
+  Widget _buildFallback(double diameter) {
+    return Container(
+      width: diameter,
+      height: diameter,
+      decoration: BoxDecoration(
+        color: backgroundColor ?? const Color(0xFFEA6E7D),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: (fallbackText != null && fallbackText!.trim().isNotEmpty)
+          ? Text(
+              fallbackText!.trim()[0].toUpperCase(),
+              style: TextStyle(
+                color: textColor ?? Colors.white,
+                fontSize: radius * 0.9,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+          : Icon(
+              Icons.person,
+              color: textColor ?? Colors.white,
+              size: radius * 1.1,
+            ),
+    );
+  }
+}
+
 Future<void> syncPushNotificationToken(String tokenAuth) async {
   try {
     FirebaseMessaging messaging = FirebaseMessaging.instance;

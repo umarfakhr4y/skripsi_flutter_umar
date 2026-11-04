@@ -570,6 +570,10 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
     final String namaPeserta = task['peserta'] is Map
         ? (task['peserta']['nama_lengkap'] ?? '-')
         : '-';
+    final String? modalProfilePic = task['peserta'] is Map
+        ? (task['peserta']['profile_picture_url'] ??
+            task['peserta']['profile_picture'])
+        : null;
     final String judul = task['judul_tugas'] ?? '-';
     final String catatanPeserta =
         (task['catatan_peserta'] != null &&
@@ -638,22 +642,41 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
                 SizedBox(height: displayHeight(context) * 0.015),
 
                 // Info Peserta & Tugas
-                Text(
-                  namaPeserta,
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.04,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFFAD3B3E),
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Tugas: $judul',
-                  style: TextStyle(
-                    fontSize: displayWidth(context) * 0.035,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ShimmerAvatar(
+                      imageUrl: modalProfilePic,
+                      radius: displayWidth(context) * 0.05,
+                      fallbackText: namaPeserta,
+                      backgroundColor: const Color(0xFFAD3B3E),
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.03),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            namaPeserta,
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.04,
+                              fontWeight: FontWeight.bold,
+                              color: const Color(0xFFAD3B3E),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Tugas: $judul',
+                            style: TextStyle(
+                              fontSize: displayWidth(context) * 0.035,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: displayHeight(context) * 0.025),
 
@@ -841,8 +864,11 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
       }
     }
     String namaPeserta = '-';
+    String? profilePic;
     if (task['peserta'] is Map) {
       namaPeserta = task['peserta']['nama_lengkap'] ?? '-';
+      profilePic = task['peserta']['profile_picture_url'] ??
+          task['peserta']['profile_picture'];
     }
 
     final String timeRemaining = _calculateTimeRemaining(
@@ -973,10 +999,11 @@ class _ManajemenTugasMentorduaState extends State<ManajemenTugasMentordua> {
             ),
             child: Row(
               children: [
-                CircleAvatar(
+                ShimmerAvatar(
+                  imageUrl: profilePic,
                   radius: displayWidth(context) * 0.05,
+                  fallbackText: namaPeserta,
                   backgroundColor: const Color(0xFFAD3B3E),
-                  child: const Icon(Icons.person, color: Colors.white),
                 ),
                 SizedBox(width: displayWidth(context) * 0.03),
                 Column(

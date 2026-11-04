@@ -185,23 +185,11 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                             builder: (context) {
                               String? picUrl = resolveStorageUrl(laporan['profile_picture_url'] ?? laporan['profile_picture']);
                               
-                              if (picUrl != null && picUrl.isNotEmpty) {
-                                return CircleAvatar(
-                                  radius: displayWidth(context) * 0.055,
-                                  backgroundImage: NetworkImage(picUrl),
-                                  backgroundColor: Colors.grey[300],
-                                );
-                              } else {
-                                return CircleAvatar(
-                                  backgroundColor: Colors.grey[300],
-                                  radius: displayWidth(context) * 0.055,
-                                  child: Icon(
-                                    Icons.person,
-                                    color: Colors.grey[600],
-                                    size: displayWidth(context) * 0.07,
-                                  ),
-                                );
-                              }
+                              return ShimmerAvatar(
+                                imageUrl: picUrl,
+                                radius: displayWidth(context) * 0.055,
+                                backgroundColor: Colors.grey[300],
+                              );
                             },
                           ),
                           SizedBox(width: displayWidth(context) * 0.03),
@@ -640,23 +628,11 @@ class _LaporanPesertaMentorState extends State<LaporanPesertaMentor> {
                                           builder: (context) {
                                             String? picUrl = resolveStorageUrl(peserta['profile_picture_url'] ?? peserta['profile_picture']);
                                             
-                                            if (picUrl != null && picUrl.isNotEmpty) {
-                                              return CircleAvatar(
-                                                radius: displayWidth(context) * 0.03,
-                                                backgroundImage: NetworkImage(picUrl),
-                                                backgroundColor: Colors.grey[200],
-                                              );
-                                            } else {
-                                              return CircleAvatar(
-                                                radius: displayWidth(context) * 0.03,
-                                                backgroundColor: Colors.grey[200],
-                                                child: Icon(
-                                                  Icons.person,
-                                                  color: Colors.grey[600],
-                                                  size: displayWidth(context) * 0.04,
-                                                ),
-                                              );
-                                            }
+                                            return ShimmerAvatar(
+  imageUrl: picUrl,
+  radius: displayWidth(context) * 0.03,
+  backgroundColor: Colors.grey[200],
+);
                                           },
                                         ),
                                         SizedBox(

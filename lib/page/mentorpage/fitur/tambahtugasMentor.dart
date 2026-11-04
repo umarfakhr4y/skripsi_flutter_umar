@@ -639,18 +639,11 @@ class _TambahTugasMentorState extends State<TambahTugasMentor> {
                         ),
                         border: Border.all(color: Colors.grey.shade300),
                       ),
-                      child: ClipRRect(
+                      child: ShimmerImage(
+                        imageUrl: fullUrl,
+                        fit: BoxFit.cover,
                         borderRadius: BorderRadius.circular(
                           displayWidth(context) * 0.03,
-                        ),
-                        child: Image.network(
-                          fullUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.broken_image,
-                                color: Colors.grey,
-                              ),
                         ),
                       ),
                     ),

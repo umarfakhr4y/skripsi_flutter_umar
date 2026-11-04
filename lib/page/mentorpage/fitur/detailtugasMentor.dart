@@ -131,9 +131,12 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
     String deskripsi = taskData?['deskripsi'] ?? '-';
     String namaPeserta = '-';
     String nimPeserta = '-';
+    String? profilePicPeserta;
     if (taskData?['peserta'] is Map) {
       namaPeserta = taskData!['peserta']['nama_lengkap'] ?? '-';
       nimPeserta = 'NIM: ${taskData!['peserta']['nim'] ?? '-'}';
+      profilePicPeserta = taskData!['peserta']['profile_picture_url'] ??
+          taskData!['peserta']['profile_picture'];
     }
 
     String deadlineStr = taskData?['deadline'] ?? '';
@@ -257,13 +260,11 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
                             label: 'DITUGASKAN KE',
                             child: Row(
                               children: [
-                                CircleAvatar(
+                                ShimmerAvatar(
+                                  imageUrl: profilePicPeserta,
                                   radius: displayWidth(context) * 0.045,
+                                  fallbackText: namaPeserta,
                                   backgroundColor: const Color(0xFFAD3B3E),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                  ),
                                 ),
                                 SizedBox(width: displayWidth(context) * 0.02),
                                 Expanded(
@@ -557,46 +558,54 @@ class _DetailTugasMentorState extends State<DetailTugasMentor> {
           ),
         );
       },
-      child: Container(
-        width: double.infinity,
-        height: displayHeight(context) * 0.22,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
-          image: DecorationImage(
-            image: NetworkImage(fullUrl),
-            fit: BoxFit.cover,
-            onError: (_, __) {},
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
-            ),
-          ),
-          padding: EdgeInsets.all(displayWidth(context) * 0.03),
-          alignment: Alignment.bottomLeft,
-          child: Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+        child: SizedBox(
+          width: double.infinity,
+          height: displayHeight(context) * 0.22,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Icon(
-                Icons.image_outlined,
-                color: Colors.white,
-                size: displayWidth(context) * 0.04,
+              ShimmerImage(
+                imageUrl: fullUrl,
+                width: double.infinity,
+                height: displayHeight(context) * 0.22,
+                fit: BoxFit.cover,
               ),
-              SizedBox(width: displayWidth(context) * 0.02),
-              Expanded(
-                child: Text(
-                  'petunjuk_satu.jpg',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: displayWidth(context) * 0.03,
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.6),
+                    ],
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ),
+                padding: EdgeInsets.all(displayWidth(context) * 0.03),
+                alignment: Alignment.bottomLeft,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.image_outlined,
+                      color: Colors.white,
+                      size: displayWidth(context) * 0.04,
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    Expanded(
+                      child: Text(
+                        fileName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: displayWidth(context) * 0.03,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

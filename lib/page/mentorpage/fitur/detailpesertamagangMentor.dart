@@ -244,24 +244,11 @@ class _DetailPesertaMagangMentorState extends State<DetailPesertaMagangMentor> {
       ),
       child: Column(
         children: [
-          CircleAvatar(
+          ShimmerAvatar(
+            imageUrl: _pesertaData?['profile_picture_url'],
             radius: displayWidth(context) * 0.1,
+            fallbackText: _pesertaData?['nama_lengkap'],
             backgroundColor: Colors.grey[400],
-            backgroundImage: _pesertaData?['profile_picture_url'] != null
-                ? NetworkImage(_pesertaData!['profile_picture_url'])
-                : null,
-            child: _pesertaData?['profile_picture_url'] == null
-                ? Text(
-                    (_pesertaData?['nama_lengkap'] != null &&
-                            _pesertaData!['nama_lengkap'].isNotEmpty)
-                        ? _pesertaData!['nama_lengkap'][0].toUpperCase()
-                        : '?',
-                    style: TextStyle(
-                      fontSize: displayWidth(context) * 0.08,
-                      color: Colors.white,
-                    ),
-                  )
-                : null,
           ),
           SizedBox(height: displayHeight(context) * 0.02),
           Text(

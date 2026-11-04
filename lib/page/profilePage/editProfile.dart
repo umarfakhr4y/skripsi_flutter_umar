@@ -270,24 +270,11 @@ class _EditProfileState extends State<EditProfile> {
                                     width: 4,
                                   ),
                                 ),
-                                child: CircleAvatar(
+                                child: ShimmerAvatar(
+                                  imageUrl: _profilePictureUrl,
                                   radius: displayWidth(context) * 0.13,
+                                  fallbackText: _namaLengkap,
                                   backgroundColor: Colors.grey[400],
-                                  backgroundImage: _profilePictureUrl != null
-                                      ? NetworkImage(_profilePictureUrl!)
-                                      : null,
-                                  child: _profilePictureUrl == null
-                                      ? Text(
-                                          _namaLengkap.isNotEmpty
-                                              ? _namaLengkap[0].toUpperCase()
-                                              : '?',
-                                          style: TextStyle(
-                                            fontSize:
-                                                displayWidth(context) * 0.11,
-                                            color: Colors.white,
-                                          ),
-                                        )
-                                      : null,
                                 ),
                               ),
                               if (_isUploading)

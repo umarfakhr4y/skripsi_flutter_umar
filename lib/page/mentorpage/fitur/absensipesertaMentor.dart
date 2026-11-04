@@ -307,22 +307,11 @@ class _AbsensiPesertaMentorState extends State<AbsensiPesertaMentor> {
       ),
       child: Row(
         children: [
-          CircleAvatar(
+          ShimmerAvatar(
+            imageUrl: data['profile_picture_url'],
             radius: displayWidth(context) * 0.05,
+            fallbackText: name,
             backgroundColor: const Color(0xFFEA6E7D),
-            backgroundImage: data['profile_picture_url'] != null
-                ? NetworkImage(data['profile_picture_url'])
-                : null,
-            child: data['profile_picture_url'] == null
-                ? Text(
-                    name.isNotEmpty ? name[0].toUpperCase() : '?',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: displayWidth(context) * 0.045,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  )
-                : null,
           ),
           SizedBox(width: displayWidth(context) * 0.04),
           Expanded(

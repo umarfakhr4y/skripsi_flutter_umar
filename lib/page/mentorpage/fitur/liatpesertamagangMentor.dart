@@ -144,22 +144,11 @@ class _LiatPesertaMagangMentorState extends State<LiatPesertaMagangMentor> {
         ),
         child: Row(
           children: [
-            CircleAvatar(
+            ShimmerAvatar(
+              imageUrl: peserta['profile_picture_url'],
               radius: displayWidth(context) * 0.05,
+              fallbackText: name,
               backgroundColor: const Color(0xFFEA6E7D),
-              backgroundImage: peserta['profile_picture_url'] != null
-                  ? NetworkImage(peserta['profile_picture_url'])
-                  : null,
-              child: peserta['profile_picture_url'] == null
-                  ? Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : '?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: displayWidth(context) * 0.045,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : null,
             ),
             SizedBox(width: displayWidth(context) * 0.04),
             Expanded(

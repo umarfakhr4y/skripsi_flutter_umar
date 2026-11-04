@@ -301,23 +301,11 @@ class _MentorHomeState extends State<MentorHome> {
                 // Profile Row
                 Row(
                   children: [
-                    CircleAvatar(
+                    ShimmerAvatar(
+                      imageUrl: _profilePictureUrl,
                       radius: displayWidth(context) * 0.06,
+                      fallbackText: _namaLengkap,
                       backgroundColor: Colors.grey[400],
-                      backgroundImage: _profilePictureUrl != null
-                          ? NetworkImage(_profilePictureUrl!)
-                          : null,
-                      child: _profilePictureUrl == null
-                          ? Text(
-                              _namaLengkap.isNotEmpty
-                                  ? _namaLengkap[0].toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                fontSize: displayWidth(context) * 0.05,
-                                color: Colors.white,
-                              ),
-                            )
-                          : null,
                     ),
                     SizedBox(width: displayWidth(context) * 0.03),
                     Column(

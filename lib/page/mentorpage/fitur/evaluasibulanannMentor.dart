@@ -409,13 +409,12 @@ class _EvaluasiBulananPesertaMentorState
                           children: [
                             Stack(
                               children: [
-                                CircleAvatar(
-                                  radius: displayWidth(context) * 0.06,
-                                  backgroundColor: Colors.grey[300],
-                                  backgroundImage: NetworkImage(
-                                    "https://ui-avatars.com/api/?name=${selectedPesertaName?.replaceAll(' ', '+') ?? 'P'}&background=random",
-                                  ),
-                                ),
+                                ShimmerAvatar(
+  imageUrl: "https://ui-avatars.com/api/?name=${selectedPesertaName?.replaceAll(' ', '+') ?? 'P'}&background=random",
+  radius: displayWidth(context) * 0.06,
+  fallbackText: selectedPesertaName ?? 'P',
+  backgroundColor: Colors.grey[300],
+),
                                 Positioned(
                                   bottom: 0,
                                   right: 0,

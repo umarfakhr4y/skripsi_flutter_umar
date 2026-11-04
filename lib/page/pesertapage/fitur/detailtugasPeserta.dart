@@ -918,45 +918,53 @@ class _DetailTugasPesertaState extends State<DetailTugasPeserta> {
           ),
         );
       },
-      child: Container(
-        width: double.infinity,
-        height: displayHeight(context) * 0.22,
-        decoration: BoxDecoration(
-          color: Colors.grey[300],
-          borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
-          image: DecorationImage(
-            image: NetworkImage(imageUrl),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Colors.transparent, Colors.black.withOpacity(0.6)],
-            ),
-          ),
-          padding: EdgeInsets.all(displayWidth(context) * 0.03),
-          alignment: Alignment.bottomLeft,
-          child: Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(displayWidth(context) * 0.04),
+        child: SizedBox(
+          width: double.infinity,
+          height: displayHeight(context) * 0.22,
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              Icon(
-                Icons.image_outlined,
-                color: Colors.white,
-                size: displayWidth(context) * 0.04,
+              ShimmerImage(
+                imageUrl: imageUrl,
+                width: double.infinity,
+                height: displayHeight(context) * 0.22,
+                fit: BoxFit.cover,
               ),
-              SizedBox(width: displayWidth(context) * 0.02),
-              Expanded(
-                child: Text(
-                  fileName,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: displayWidth(context) * 0.03,
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.6),
+                    ],
                   ),
-                  overflow: TextOverflow.ellipsis,
+                ),
+                padding: EdgeInsets.all(displayWidth(context) * 0.03),
+                alignment: Alignment.bottomLeft,
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.image_outlined,
+                      color: Colors.white,
+                      size: displayWidth(context) * 0.04,
+                    ),
+                    SizedBox(width: displayWidth(context) * 0.02),
+                    Expanded(
+                      child: Text(
+                        fileName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: displayWidth(context) * 0.03,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

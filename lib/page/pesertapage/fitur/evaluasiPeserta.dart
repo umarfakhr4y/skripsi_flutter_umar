@@ -102,13 +102,12 @@ class _EvaluasiPesertaState extends State<EvaluasiPeserta> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundImage: NetworkImage(
-                              'https://ui-avatars.com/api/?name=${name.replaceAll(' ', '+')}&background=random',
-                            ),
-                            backgroundColor: Colors.grey.shade200,
-                          ),
+                          ShimmerAvatar(
+  imageUrl: 'https://ui-avatars.com/api/?name=' + name.replaceAll(' ', '+') + '&background=random',
+  radius: 20,
+  fallbackText: name,
+  backgroundColor: Colors.grey.shade200,
+),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Column(
