@@ -146,7 +146,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Vocasia Connect.',
       theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Poppins'),
       // home:  PenggunaHome(),
       home: Splashscreen(),

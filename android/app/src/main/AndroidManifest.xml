@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     
     <application
-        android:label="vocasia_skripsi_app_umarfakhriy"
+        android:label="Vocasia Connect."
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -54,3 +54,4 @@
         </intent>
     </queries>
 </manifest>
+

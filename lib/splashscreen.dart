@@ -27,7 +27,7 @@ class _SplashscreenState extends State<Splashscreen> {
 
       if (!mounted) return;
 
-      Timer(const Duration(seconds: 1), () {
+      Timer(const Duration(seconds: 2), () {
         if (mounted) {
           if (token != null && token.isNotEmpty) {
             Navigator.pushReplacement(
@@ -57,15 +57,13 @@ class _SplashscreenState extends State<Splashscreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Center(
-        child: Container(
-          height: displayHeight(context) * 0.3,
-          width: displayHeight(context) * 0.3,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.lightBlue[100],
-          ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Image.asset(
+          'assets/images/vocasia-connect-logo.png',
+          width: displayWidth(context) * 0.65,
+          fit: BoxFit.contain,
         ),
       ),
     );
