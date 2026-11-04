@@ -121,7 +121,6 @@ class _loginPageState extends State<loginPage> {
                         badge: true,
                         sound: true,
                       );
-                      // Jika sistem Android menolak menampilkan dialog izin (karena user pernah klik "Don't allow")
                       if (newSettings.authorizationStatus !=
                           AuthorizationStatus.authorized) {
                         if (!mounted) return;
@@ -192,7 +191,7 @@ class _loginPageState extends State<loginPage> {
               ),
               SizedBox(height: displayHeight(ctx) * 0.012),
               Text(
-                'Sistem Android tidak dapat memunculkan pop-up izin karena Anda sebelumnya memilih "Don't allow".\n\nUntuk mengaktifkannya, silakan klik tombol di bawah untuk membuka Pengaturan Aplikasi, lalu aktifkan menu "Notifications".',
+                "Sistem Android tidak dapat memunculkan pop-up izin karena Anda sebelumnya memilih \"Don't allow\".\n\nUntuk mengaktifkannya, silakan klik tombol di bawah untuk membuka Pengaturan Aplikasi, lalu aktifkan menu \"Notifications\".",
                 style: TextStyle(
                   fontSize: displayWidth(ctx) * 0.033,
                   color: Colors.grey[700],
