@@ -31,8 +31,8 @@ class _loginPageState extends State<loginPage> {
 
   Future<void> _checkAndPromptNotificationPermission() async {
     try {
-      final settings =
-          await FirebaseMessaging.instance.getNotificationSettings();
+      final settings = await FirebaseMessaging.instance
+          .getNotificationSettings();
       if (settings.authorizationStatus != AuthorizationStatus.authorized) {
         if (!mounted) return;
         _showNotificationPermissionDialog();
@@ -115,12 +115,13 @@ class _loginPageState extends State<loginPage> {
                   onPressed: () async {
                     Navigator.pop(dialogContext);
                     try {
-                      final newSettings =
-                          await FirebaseMessaging.instance.requestPermission(
-                        alert: true,
-                        badge: true,
-                        sound: true,
-                      );
+                      final newSettings = await FirebaseMessaging.instance
+                          .requestPermission(
+                            alert: true,
+                            badge: true,
+                            sound: true,
+                          );
+                      // Jika sistem Android menolak menampilkan dialog izin (karena user pernah klik "Don't allow")
                       if (newSettings.authorizationStatus !=
                           AuthorizationStatus.authorized) {
                         if (!mounted) return;
@@ -153,9 +154,7 @@ class _loginPageState extends State<loginPage> {
       builder: (BuildContext ctx) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              displayWidth(ctx) * 0.05,
-            ),
+            borderRadius: BorderRadius.circular(displayWidth(ctx) * 0.05),
           ),
           contentPadding: EdgeInsets.fromLTRB(
             displayWidth(ctx) * 0.06,
@@ -191,7 +190,7 @@ class _loginPageState extends State<loginPage> {
               ),
               SizedBox(height: displayHeight(ctx) * 0.012),
               Text(
-                "Sistem Android tidak dapat memunculkan pop-up izin karena Anda sebelumnya memilih \"Don't allow\".\n\nUntuk mengaktifkannya, silakan klik tombol di bawah untuk membuka Pengaturan Aplikasi, lalu aktifkan menu \"Notifications\".",
+                'Sistem Android tidak dapat memunculkan pop-up izin karena Anda sebelumnya memilih Dont allow.\n\nUntuk mengaktifkannya, silakan klik tombol di bawah untuk membuka Pengaturan Aplikasi, lalu aktifkan menu "Notifications".',
                 style: TextStyle(
                   fontSize: displayWidth(ctx) * 0.033,
                   color: Colors.grey[700],
